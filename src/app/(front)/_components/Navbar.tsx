@@ -3,8 +3,7 @@ import Link from "next/link";
 const NAV_LINKS = [
     { label: "Accueil", href: "/" },
     { label: "Disciplines", href: "/disciplines" },
-    { label: "Planning", href: "/planning" },
-    { label: "Adhésion", href: "/adhesion" },
+    { label: "Inscription", href: "/inscription" },
     { label: "Contact", href: "/contact" },
 ];
 
@@ -16,7 +15,7 @@ export function Navbar() {
                     <li key={link.href}>
                         <Link
                             href={link.href}
-                            className="text-sm font-medium transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
+                            className="text-lg font-bold transition-colors text-white hover:text-zinc-600 dark:hover:text-zinc-300"
                         >
                             {link.label}
                         </Link>
