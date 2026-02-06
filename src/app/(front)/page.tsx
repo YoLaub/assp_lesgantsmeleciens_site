@@ -4,43 +4,42 @@ export default function HomePage() {
     return (
         <div className="flex flex-col gap-20 pb-20">
 
-            <section className="relative flex h-[70vh] items-center justify-center bg-white my-60">
-                <div className="min-h-screen flex items-center justify-center p-4 md:p-8 font-sans">
-                    <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <section className="relative w-full bg-white py-16 md:py-24 lg:py-32">
+                <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
-                        <div className="lg:col-span-7 relative flex flex-col items-center">
+                        {/* Colonne Gauche : Chevrons et Texte */}
+                        <div className="lg:col-span-7 flex flex-col items-center lg:items-start">
 
-                            <div className="relative w-full flex flex-col items-center">
-                                <div className="absolute top-75 flex flex-col items-center">
-                                    {/* Double chevron superposé  */}
+                            {/* Chevrons Rouges (Haut) */}
+                            <div className="relative w-full max-w-md flex justify-center lg:justify-start -mb-4 md:-mb-8">
+                                <div className="relative">
                                     <ChevronUpMod
-                                        strokeLinecap="square"   // Remplace "round" pour les extrémités
+                                        strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-red-600 w-250 h-250 -mb-240"
+                                        className="text-red-600 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64"
                                         strokeWidth={0.2}
                                     />
                                     <ChevronUpMod
-                                        strokeLinecap="square"   // Remplace "round" pour les extrémités
+                                        strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-red-600 w-250 h-250 "
+                                        className="text-red-600 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 absolute top-8 md:top-10 left-0"
                                         strokeWidth={0.2}
                                     />
                                 </div>
-
                             </div>
 
-                            {/* Bloc de texte descriptif */}
-                            <div className="max-w-md text-center lg:text-left">
-                                {/* Titre Principal */}
-                                <div className="relative z-10 text-center mt-200 py-8">
-                                    <h2 className="text-3xl md:text-4xl tracking-[0.3em] text-gray-500 font-light mb-2">
-                                        NOTRE
-                                    </h2>
-                                    <h1 className="text-3xl md:text-5xl tracking-[0.15em] text-gray-900 font-bold drop-shadow-sm">
-                                        ASSOCIATION
-                                    </h1>
-                                </div>
-                                <p className="text-gray-600 leading-relaxed text-sm md:text-base text-left font-light">
+                            {/* Titre Principal */}
+                            <div className="text-center lg:text-left w-full max-w-md py-4">
+                                <h2 className="text-2xl md:text-3xl lg:text-4xl tracking-[0.3em] text-gray-500 font-light mb-2">
+                                    NOTRE
+                                </h2>
+                                <h1 className="text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] text-gray-900 font-bold drop-shadow-sm mb-6">
+                                    ASSOCIATION
+                                </h1>
+
+                                {/* Texte descriptif */}
+                                <p className="text-gray-600 leading-relaxed text-sm md:text-base font-light">
                                     Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
                                     magna aliqua.
                                     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
@@ -54,57 +53,54 @@ export default function HomePage() {
                             </div>
 
                             {/* Chevrons Gris (Bas) */}
-                            <div className="relative w-full flex flex-col items-center -top-35.75 ">
-                                <div className="flex flex-col items-center">
+                            <div className="relative w-full max-w-md flex justify-center lg:justify-start -mt-4 md:-mt-8">
+                                <div className="relative">
                                     <ChevronDownMod
-                                        strokeLinecap="square"   // Remplace "round" pour les extrémités
+                                        strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-gray-200 w-250 h-250 -mb-240"
+                                        className="text-gray-200 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64"
                                         strokeWidth={0.2}
                                     />
                                     <ChevronDownMod
-                                        strokeLinecap="square"   // Remplace "round" pour les extrémités
+                                        strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-gray-200 w-250 h-250"
+                                        className="text-gray-200 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 absolute top-8 md:top-10 left-0"
                                         strokeWidth={0.2}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Colonne Droite : Image et Actions */}
-                        <div className="lg:col-span-5 flex flex-col items-center lg:items-center space-y-10">
+                        {/* Colonne Droite : Image et Boutons */}
+                        <div className="lg:col-span-5 flex flex-col items-center space-y-8 lg:space-y-10">
 
                             {/* Image avec bordure décorative rouge */}
-                            <div className="relative group">
-                                <div
-                                    className="absolute -left-6 top-0 bottom-0 w-3 bg-red-600 hidden md:block z-20 me-5"></div>
+                            <div className="relative group w-full max-w-sm">
+                                {/* Bordure rouge décorative */}
+                                <div className="absolute -left-4 md:-left-6 top-0 bottom-0 w-2 md:w-3 bg-red-600 z-20"></div>
 
-                                <div className="w-72 h-96 md:w-80 md:h-[480px] overflow-hidden shadow-2xl relative">
+                                <div className="w-full aspect-[3/4] overflow-hidden shadow-2xl relative ml-4 md:ml-6">
                                     <img
                                         src="/gant_de_boxe.jpg"
                                         alt="Gants de boxe"
                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 transform group-hover:scale-110"
                                     />
-                                    <div
-                                        className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
+                                    <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-1000"></div>
                                 </div>
                             </div>
 
                             {/* Boutons d'action */}
-                            <div className="flex flex-col space-y-5 w-64">
-                                <button
-                                    className="group relative bg-white border-2 border-red-600 rounded-full py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)]">
-              <span className="text-red-600 font-bold tracking-[0.2em] text-xs">
-                DISCIPLINES
-              </span>
+                            <div className="flex flex-col space-y-4 w-full max-w-xs px-4">
+                                <button className="group relative bg-white border-2 border-red-600 rounded-full py-3 md:py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)]">
+            <span className="text-red-600 font-bold tracking-[0.2em] text-xs md:text-sm">
+              DISCIPLINES
+            </span>
                                 </button>
 
-                                <button
-                                    className="group relative bg-black rounded-full py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900">
-              <span className="text-white font-bold tracking-[0.2em] text-xs">
-                INSCRIPTION
-              </span>
+                                <button className="group relative bg-black rounded-full py-3 md:py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900">
+            <span className="text-white font-bold tracking-[0.2em] text-xs md:text-sm">
+              INSCRIPTION
+            </span>
                                 </button>
                             </div>
                         </div>
@@ -112,7 +108,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Ligne horizontale décorative */}
-                    <div className="absolute -top-40 right-100 w-1/4 h-1 bg-red-600 hidden xl:block"></div>
+                    <div className="absolute top-8 right-8 w-32 md:w-48 lg:w-64 h-0.5 md:h-1 bg-red-600 hidden xl:block"></div>
                 </div>
             </section>
 
