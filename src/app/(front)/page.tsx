@@ -2,11 +2,11 @@ import {ChevronUpMod, ChevronDownMod} from "@/app/(admin)/_components/icon"
 
 export default function HomePage() {
     return (
-        <div className="flex flex-col gap-20 pb-20">
+        <main className=" container flex flex-col gap-20 pb-20 mx-auto px-5 md:px-0">
 
-            <section className="relative w-full bg-white py-16 md:py-24 lg:py-32">
-                <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <section className=" w-full bg-white ">
+                <div className=" mx-auto px-4 md:px-8 max-w-7xl">
+                    <div className=" flex flex-wrap lg:flex-row gap-8 lg:gap-40 items-center justify-center">
 
                         {/* Colonne Gauche : Chevrons et Texte */}
                         <div className="lg:col-span-7 flex flex-col items-center lg:items-start">
@@ -17,20 +17,20 @@ export default function HomePage() {
                                     <ChevronUpMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-red-600 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64"
-                                        strokeWidth={0.2}
+                                        className="text-brand-red w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100"
+                                        strokeWidth={0.4}
                                     />
                                     <ChevronUpMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-red-600 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 absolute top-8 md:top-10 left-0"
-                                        strokeWidth={0.2}
+                                        className="text-brand-red w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-10 left-0"
+                                        strokeWidth={0.4}
                                     />
                                 </div>
                             </div>
 
                             {/* Titre Principal */}
-                            <div className="text-center lg:text-left w-full max-w-md py-4">
+                            <div className="text-center text-shadow-lg lg:text-left w-full max-w-md pt-4">
                                 <h2 className="text-2xl md:text-3xl lg:text-4xl tracking-[0.3em] text-gray-500 font-light mb-2">
                                     NOTRE
                                 </h2>
@@ -39,45 +39,42 @@ export default function HomePage() {
                                 </h1>
 
                                 {/* Texte descriptif */}
-                                <p className="text-gray-600 leading-relaxed text-sm md:text-base font-light">
+                                <p className="text-gray-600 leading-relaxed text-lg md:text-base font-light">
                                     Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
                                     magna aliqua.
                                     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
                                     ex ea commodo consequat.
                                     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
                                     fugiat nulla pariatur.
-                                    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-                                    mollit anim id est laborum.
-                                    Sed ut perspiciatis unde omnis iste natus error sit voluptatem.
                                 </p>
                             </div>
 
                             {/* Chevrons Gris (Bas) */}
-                            <div className="relative w-full max-w-md flex justify-center lg:justify-start -mt-4 md:-mt-8">
+                            <div className="relative w-full  flex justify-center lg:justify-start -mt-4 md:-mt-8">
                                 <div className="relative">
                                     <ChevronDownMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-gray-200 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64"
-                                        strokeWidth={0.2}
+                                        className="text-brand-gray w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100"
+                                        strokeWidth={0.4}
                                     />
                                     <ChevronDownMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-gray-200 w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 absolute top-8 md:top-10 left-0"
-                                        strokeWidth={0.2}
+                                        className="text-brand-gray w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-10 left-0"
+                                        strokeWidth={0.4}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Colonne Droite : Image et Boutons */}
-                        <div className="lg:col-span-5 flex flex-col items-center space-y-8 lg:space-y-10">
+                        <div className="lg:col-span-5 flex flex-col items-start space-y-8 lg:space-y-10">
 
                             {/* Image avec bordure décorative rouge */}
                             <div className="relative group w-full max-w-sm">
-                                {/* Bordure rouge décorative */}
-                                <div className="absolute -left-4 md:-left-6 top-0 bottom-0 w-2 md:w-3 bg-red-600 z-20"></div>
+                                {/* Ligne horizontale décorative */}
+                                <div className="absolute -top-15 -right-5 w-64 md:w-48 lg:w-150 h-1 md:h-1 bg-red-600 hidden xl:block"></div>
 
                                 <div className="w-full aspect-[3/4] overflow-hidden shadow-2xl relative ml-4 md:ml-6">
                                     <img
@@ -91,44 +88,43 @@ export default function HomePage() {
 
                             {/* Boutons d'action */}
                             <div className="flex flex-col space-y-4 w-full max-w-xs px-4">
-                                <button className="group relative bg-white border-2 border-red-600 rounded-full py-3 md:py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)]">
-            <span className="text-red-600 font-bold tracking-[0.2em] text-xs md:text-sm">
-              DISCIPLINES
-            </span>
+                                <button className="group relative bg-white border-2 border-brand-red rounded-full py-3 md:py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)]">
+                                    <span className="text-brand-red font-bold tracking-[0.2em] text-xs md:text-sm">
+                                      DISCIPLINES
+                                    </span>
                                 </button>
 
-                                <button className="group relative bg-black rounded-full py-3 md:py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900">
-            <span className="text-white font-bold tracking-[0.2em] text-xs md:text-sm">
-              INSCRIPTION
-            </span>
+                                <button className="group relative border-[1px] border-brand-orange bg-black rounded-full py-3 md:py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900">
+                                    <span className="text-white font-bold tracking-[0.2em] text-xs md:text-sm">
+                                      INSCRIPTION
+                                    </span>
                                 </button>
                             </div>
                         </div>
 
                     </div>
 
-                    {/* Ligne horizontale décorative */}
-                    <div className="absolute top-8 right-8 w-32 md:w-48 lg:w-64 h-0.5 md:h-1 bg-red-600 hidden xl:block"></div>
+
                 </div>
             </section>
 
-            <section className="py-24 bg-white flex flex-col items-center px-4 md:px-8">
+            <section className="py-12 bg-white flex flex-col items-center px-4 md:px-8">
                 {/* Titre de section */}
                 <div className="text-center mb-20">
-                    <h2 className="text-2xl md:text-3xl tracking-[0.4em] text-gray-700 font-light uppercase">
+                    <h2 className="text-2xl md:text-3xl tracking-[0.4em] text-gray-700 font-light text-shadow-lg uppercase">
                         Nos valeurs, nos <br className="md:hidden" /> engagements
                     </h2>
                 </div>
 
                 {/* Grille 3 colonnes */}
-                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-3 gap-12 items-start">
+                <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
 
                     {/* Colonne 1 : Texte Gauche */}
                     <div className="flex flex-col items-center space-y-8 mt-4">
-                        <p className="text-gray-600 leading-relaxed text-sm text-justify font-light italic">
+                        <p className="text-gray-600 leading-relaxed text-lg text-justify font-light italic">
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
                         </p>
-                        <button className="border border-red-600 px-6 py-2 rounded-sm text-xs tracking-widest text-gray-700 hover:bg-red-50 transition-colors">
+                        <button className="border border-brand-red px-6 py-2 rounded-sm text-xs tracking-widest text-gray-700 hover:bg-red-50 transition-colors">
                             Voir plus
                         </button>
                     </div>
@@ -146,34 +142,34 @@ export default function HomePage() {
 
                     {/* Colonne 3 : Texte Droite */}
                     <div className="flex flex-col items-center space-y-8 mt-4">
-                        <p className="text-gray-600 leading-relaxed text-sm text-justify font-light">
+                        <p className="text-gray-600 leading-relaxed text-lg text-justify font-light">
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
                         </p>
-                        <button className="border border-red-600 px-6 py-2 rounded-sm text-xs tracking-widest text-gray-700 hover:bg-red-50 transition-colors">
+                        <button className="border border-brand-red px-6 py-2 rounded-sm text-xs tracking-widest text-gray-700 hover:bg-red-50 transition-colors">
                             Voir plus
                         </button>
                     </div>
                 </div>
 
                 {/* Ligne rouge décorative bas de section */}
-                <div className="w-1/3 h-1 bg-red-600 mt-20"></div>
+                <div className="w-1/3 h-1 bg-brand-red mt-20"></div>
             </section>
 
-            <section className="py-24 bg-white flex flex-col items-center px-4 md:px-8">
+            <section className="py-12 bg-white flex flex-col items-center px-4 md:px-8">
                 {/* Titre Les Actus */}
                 <div className="w-full max-w-6xl mb-12">
                     <h2 className="text-2xl md:text-3xl tracking-[0.3em] font-bold text-gray-900 uppercase mb-6">
                         Les actus
                     </h2>
-                    <p className="text-gray-600 text-sm max-w-4xl font-light leading-relaxed">
+                    <p className="text-gray-600 text-lg max-w-4xl font-light leading-relaxed">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
                     </p>
                 </div>
 
                 {/* REMPLACER PAR LA GALERIE */}
                 <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 mb-24">
-                    <div className="border-[12px] border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-[2rem] overflow-hidden aspect-[4/3]">
+                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
+                        <div className="rounded-4xl overflow-hidden aspect-4/3">
                             <img
                                 src="https://images.unsplash.com/photo-1552072092-7f9b8d63efcb?q=80&w=1000&auto=format&fit=crop"
                                 alt="Groupe de boxeurs"
@@ -181,8 +177,8 @@ export default function HomePage() {
                             />
                         </div>
                     </div>
-                    <div className="border-[12px] border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-[2rem] overflow-hidden aspect-[4/3]">
+                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
+                        <div className="rounded-4xl overflow-hidden aspect-4/3">
                             <img
                                 src="https://images.unsplash.com/photo-1517438476312-10d79c077509?q=80&w=1000&auto=format&fit=crop"
                                 alt="Boxeur enfant"
@@ -227,6 +223,6 @@ export default function HomePage() {
                 </article>
             </section>
 
-        </div>
+        </main>
     );
 }
