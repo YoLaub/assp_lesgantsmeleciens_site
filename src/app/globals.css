@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
+/* 1. Déclaration des polices locales */
+@font-face {
+  font-family: 'AnticDidone';
+  src: url('/fonts/AnticDidone-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'FrederickatheGreat';
+  src: url('/fonts/FrederickatheGreat-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --brand-orange: #FE7F00;
+  --brand-red: #DF0606;
+  --brand-gray: #D2C7C7;
+  --brand-light-gray: #E4E4E2;
 }
 
 @theme inline {
@@ -10,6 +44,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Liaison avec Tailwind pour utilisation (ex: bg-brand-orange) */
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-red: var(--brand-red);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-light-gray: var(--brand-light-gray);
+
+  --font-antic: "AnticDidone", serif;
+  --font-roboto: "Roboto", sans-serif;
+  --font-fredericka: "FrederickatheGreat", cursive;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,7 +64,8 @@
 }
 
 body {
+  
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-roboto);
 }
