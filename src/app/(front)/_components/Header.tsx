@@ -15,7 +15,7 @@ export function Header() {
                 />
             </div>
 
-            {/* Logo - GRAND et bien visible */}
+            {/* Logo  */}
             <Link
                 href="/"
                 className="relative top-20 flex justify-center mx-auto  items-center
