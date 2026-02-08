@@ -9,28 +9,28 @@ export default function HomePage() {
                     <div className=" flex flex-wrap lg:flex-row gap-8 lg:gap-40 items-center justify-center">
 
                         {/* Colonne Gauche : Chevrons et Texte */}
-                        <div className="lg:col-span-7 flex flex-col items-center lg:items-start">
+                        <div className="lg:col-span-7 flex flex-col items-center lg:items-center">
 
                             {/* Chevrons Rouges (Haut) */}
-                            <div className="relative w-full max-w-md flex justify-center lg:justify-start -mb-4 md:-mb-8">
+                            <div className="relative w-full max-w-md flex justify-center lg:justify-center -mb-4 md:-mb-20">
                                 <div className="relative">
                                     <ChevronUpMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-brand-red w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100"
-                                        strokeWidth={0.4}
+                                        className="text-brand-red w-48 h-48 scale-[2] md:w-56 md:h-56 lg:w-100 lg:h-100"
+                                        strokeWidth={0.3}
                                     />
                                     <ChevronUpMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-brand-red w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-10 left-0"
-                                        strokeWidth={0.4}
+                                        className="text-brand-red w-48 h-48 scale-[2] md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-16 left-0"
+                                        strokeWidth={0.3}
                                     />
                                 </div>
                             </div>
 
                             {/* Titre Principal */}
-                            <div className="text-center text-shadow-lg lg:text-left w-full max-w-md pt-4">
+                            <div className="text-center text-shadow-lg lg:text-center w-full max-w-md pt-4">
                                 <h2 className="text-2xl md:text-3xl lg:text-4xl tracking-[0.3em] text-gray-500 font-light mb-2">
                                     NOTRE
                                 </h2>
@@ -50,19 +50,19 @@ export default function HomePage() {
                             </div>
 
                             {/* Chevrons Gris (Bas) */}
-                            <div className="relative w-full  flex justify-center lg:justify-start -mt-4 md:-mt-8">
+                            <div className="relative w-full  flex justify-center lg:justify-center -mt-4 md:-mt-20">
                                 <div className="relative">
                                     <ChevronDownMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-brand-gray w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100"
-                                        strokeWidth={0.4}
+                                        className="text-brand-gray scale-[2] w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100"
+                                        strokeWidth={0.3}
                                     />
                                     <ChevronDownMod
                                         strokeLinecap="square"
                                         strokeLinejoin="miter"
-                                        className="text-brand-gray w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-10 left-0"
-                                        strokeWidth={0.4}
+                                        className="text-brand-gray scale-[2] w-48 h-48 md:w-56 md:h-56 lg:w-100 lg:h-100 absolute top-8 md:top-16 left-0"
+                                        strokeWidth={0.3}
                                     />
                                 </div>
                             </div>
