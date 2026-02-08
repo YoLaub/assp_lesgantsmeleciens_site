@@ -5,7 +5,7 @@ import Link from "next/link";
 export function Header() {
 
     return (
-        <header className="relative h-[350px] sm:h-[450px] md:h-[550px] lg:h-[650px] xl:h-100 -top-16 border-b border-zinc-200">
+        <header className="relative h-87.5 sm:h-112.5 md:h-137.5 lg:h-162.5 xl:h-100 -top-16 border-b border-zinc-200">
             {/* Background Image */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
                 <img

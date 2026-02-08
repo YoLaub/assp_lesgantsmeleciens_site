@@ -17,12 +17,12 @@ export function StickyNavbar() {
     return (
         <>
             {/* Sticky Navigation Bar - TOUJOURS VISIBLE */}
-            <div className="sticky top-0 z-50 shadow-lg isolate">
+            <div className="sticky top-0 z-50 shadow-lg isolate backdrop-blur-sm">
                 {/* Background avec blur - en arrière-plan */}
-                <div className="absolute inset-0 bg-linear-to-b from-black/40 to-black/20 backdrop-blur-sm border-b border-white/10 -z-10"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-black/40 to-black/20  border-b border-white/10"></div>
 
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 items-center justify-between">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 ">
+                    <div className="flex h-16 items-center justify-between ">
                         {/* Desktop Navbar */}
                         <nav className="hidden md:block flex-1">
                             <ul className="flex gap-8 lg:gap-20 justify-center">
