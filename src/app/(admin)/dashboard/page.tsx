@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 
 // Importations des composants décomposés avec chemins relatifs corrigés
-import { ModuleCard } from '../../../features/dashboard/presentation/components/ModuleCard';
-import { ActivityItem } from '../../../features/dashboard/presentation/components/ActivityItem';
+import { ModuleCard } from '@/features/dashboard/presentation/components/ModuleCard';
+import { ActivityItem } from '@/features/dashboard/presentation/components/ActivityItem';
 
 /**
  * Assemblage final du Cockpit d'Administration.
