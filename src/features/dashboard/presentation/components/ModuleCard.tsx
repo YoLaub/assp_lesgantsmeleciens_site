@@ -1,7 +1,8 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
+import Link from 'next/link'
 // Importation corrigée en chemin relatif pour éviter les erreurs de résolution d'alias
-import { StatBadge } from '../../../../shared/components/ui/StatBadge';
+import { StatBadge } from '@/shared/components/ui/StatBadge';
 
 interface ModuleLink {
     label: string;
@@ -45,8 +46,10 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
         <div className="p-5 flex-1 flex flex-col">
             <div className="space-y-2 flex-1">
                 {links.map((link, idx) => (
-                    <button
+                    // REMPLACEMENT de <button> par <Link>
+                    <Link
                         key={idx}
+                        href={link.href}
                         className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all group text-left"
                     >
                         <div className="flex items-center gap-3">
@@ -56,7 +59,7 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
                             <span className="font-semibold text-slate-700 text-sm">{link.label}</span>
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
-                    </button>
+                    </Link>
                 ))}
             </div>
         </div>
