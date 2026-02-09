@@ -1,4 +1,4 @@
-import {ChevronUpMod, ChevronDownMod} from "@/app/(admin)/_components/icon"
+import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
 
 export default function HomePage() {
     return (
