@@ -1,5 +1,6 @@
 import React from 'react';
 import { Edit2, Trash2, Eye, MoveVertical } from 'lucide-react';
+import Link from "next/link";
 
 /**
  * Données simulées (Mock)
@@ -50,9 +51,12 @@ export const DisciplineManager: React.FC = () => {
                                     <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
                                         <Eye className="w-4 h-4" />
                                     </button>
-                                    <button className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all">
+                                    <Link
+                                        href={`/content/disciplines/${item.id}`} // Lien vers la nouvelle route
+                                        className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                                    >
                                         <Edit2 className="w-4 h-4" />
-                                    </button>
+                                    </Link>
                                     <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
                                         <Trash2 className="w-4 h-4" />
                                     </button>
