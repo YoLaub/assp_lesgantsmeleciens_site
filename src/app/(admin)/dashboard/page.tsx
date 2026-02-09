@@ -16,7 +16,6 @@ import {
     Settings
 } from 'lucide-react';
 
-// Importations des composants décomposés avec chemins relatifs corrigés
 import { ModuleCard } from '@/features/dashboard/presentation/components/ModuleCard';
 import { ActivityItem } from '@/features/dashboard/presentation/components/ActivityItem';
 
@@ -77,9 +76,10 @@ export default function AdminDashboardPage() {
                             color="bg-red-600"
                             stats={{ label: "Dernière mise à jour", value: "Hier" }}
                             links={[
-                                { label: "Catalogue Disciplines", icon: Dumbbell, href: "/admin/content/disciplines" },
-                                { label: "Articles & Actualités", icon: Newspaper, href: "/admin/content/news" },
-                                { label: "Médiathèque (Galerie)", icon: ImageIcon, href: "/admin/content/gallery" }
+                                // FIX: Suppression du préfixe /admin car (admin) est un route group transparent
+                                { label: "Catalogue Disciplines", icon: Dumbbell, href: "/content/disciplines" },
+                                { label: "Articles & Actualités", icon: Newspaper, href: "/content/news" },
+                                { label: "Médiathèque (Galerie)", icon: ImageIcon, href: "/content/gallery" }
                             ]}
                         />
                     </div>
