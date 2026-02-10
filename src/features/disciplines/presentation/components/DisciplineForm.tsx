@@ -5,6 +5,8 @@ import {Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List} from 'l
 import {Editor} from "@tiptap/core";
 import {EditorContent, useEditor} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { DisciplineRepositoryImpl } from '../../data/repositories/discipline.repository.impl';
+import { SaveDisciplineUseCase } from '../../domain/usecases/save-discipline.usecase';
 
 // Barre d'outils isolée pour l'éditeur
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
@@ -45,7 +47,20 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 };
 
 export const DisciplineForm = ({ id }: { id: string }) => {
-    // État local pour la démonstration (À lier à un store ou React Query plus tard)
+
+    const repository = new DisciplineRepositoryImpl();
+    const saveUseCase = new SaveDisciplineUseCase(repository);
+
+    const handleSubmit = async (data: any) => {
+        try {
+            await saveUseCase.execute(data);
+            alert("Discipline enregistrée avec succès !");
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+
     const [photos, setPhotos] = useState<(string | null)[]>([null, null, null, null, null]);
 
     // Configuration de l'éditeur Tiptap pour la Description
