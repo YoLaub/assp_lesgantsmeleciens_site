@@ -51,4 +51,10 @@ export class DisciplinePostgresDataSource {
             updatedAt: d.updatedAt,
         }));
     }
+
+    async getDisciplineById(id: string): Promise<Discipline | null> {
+        return prisma.discipline.findUnique({
+            where: {id}
+        });
+    }
 }
