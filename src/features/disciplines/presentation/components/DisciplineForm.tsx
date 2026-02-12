@@ -62,7 +62,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Configuration de l'éditeur Tiptap pour la Description
+    // Configuration de l'éditeur Tiptap
     const editor = useEditor({
         extensions: [StarterKit],
         content: initialData?.description || '<p>Décrivez la discipline ici...</p>',
@@ -157,7 +157,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     // Créer un tableau de 5 slots pour l'affichage
     const photoSlots = Array(5).fill(null).map((_, index) => photos[index] || null);
 
-
     return (
         <form className="space-y-8" onSubmit={handleSubmit}>
             {error && (
@@ -167,7 +166,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
                 {/* COLONNE GAUCHE : Informations Principales */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">

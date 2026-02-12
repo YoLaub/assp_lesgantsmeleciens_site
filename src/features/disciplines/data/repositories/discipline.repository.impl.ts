@@ -18,8 +18,7 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
     }
 
     async getById(id: string): Promise<Discipline | null> {
-        // Implémentation via dataSource.getById...
-        return null;
+        return await this.dataSource.getDisciplineById(id);
     }
 
     async delete(id: string): Promise<void> {

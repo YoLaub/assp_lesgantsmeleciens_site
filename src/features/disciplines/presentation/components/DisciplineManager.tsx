@@ -1,18 +1,16 @@
 import React from 'react';
 import { Edit2, Trash2, Eye, MoveVertical } from 'lucide-react';
 import Link from "next/link";
+import {getAllDisciplinesAction} from "@/app/(admin)/content/actions/actions";
 
-/**
- * Données simulées (Mock)
- * Ces données seront injectées via les Use Cases dans l'étape suivante.
- */
-const disciplinesMock = [
-    { id: '1', title: 'Boxe Anglaise', coach: 'Sara', category: 'Tous niveaux', active: true },
-    { id: '2', title: 'Muay Thaï', coach: 'Tony', category: 'Ados/Adultes', active: true },
-    { id: '3', title: 'Kickboxing', coach: 'Tony', category: 'Ados/Adultes', active: false },
-];
+export const DisciplineManager = async () => {
+    const result = await getAllDisciplinesAction();
 
-export const DisciplineManager: React.FC = () => {
+    if (!result.success || !result.disciplines) {
+        return <div>Erreur lors du chargement des disciplines</div>;
+    }
+
+    const disciplines = result.disciplines;
     return (
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -27,7 +25,7 @@ export const DisciplineManager: React.FC = () => {
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                    {disciplinesMock.map((item) => (
+                    {disciplines.map((item) => (
                         <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
                             <td className="px-6 py-4">
                                 <button className="text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing">
