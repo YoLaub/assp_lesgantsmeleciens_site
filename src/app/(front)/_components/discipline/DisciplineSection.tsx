@@ -27,7 +27,7 @@ export default function DisciplineSection() {
                     </div>
 
                     <div className="w-full md:w-1/3 text-center">
-                        <p className="text-2xl font-bold mb-4">"Les champions ne se font pas dans les gymnases. Les champions sont faits de quelque chose qu'ils ont au plus profond d'eux-mêmes : un désir, un rêve, une vision. Ils doivent avoir l'endurance de la dernière minute, ils doivent être un peu plus rapides, ils doivent avoir le talent et la volonté. Mais la volonté doit être plus forte que le talent."</p>
+                        <p className="text-2xl font-thin mb-4">“Pour apprendre à boxer il suffit d'une nuit. Il faut une vie entière pour apprendre à combattre.”</p>
                     </div>
 
                     {/* Colonne droite - Citation et Image */}

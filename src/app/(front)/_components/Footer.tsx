@@ -6,10 +6,10 @@ export function Footer() {
     return (
         <footer className="bg-brand-light-gray pt-16 font-sans border-t border-gray-200">
             <div className="max-w-6xl mx-auto px-4 md:px-8 pb-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-30 items-start text-center md:text-left">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-10 items-start text-center md:text-left">
 
                     <div className="flex justify-center md:justify-start">
-                        <div className="w-48 h-48 flex items-center justify-center overflow-hidden">
+                        <div className="w-56 h-56 flex items-center justify-center overflow-hidden">
                             <img
                                 src="/logoNoir.webp"
                                 alt="Logo Les Gants Meleciens"
