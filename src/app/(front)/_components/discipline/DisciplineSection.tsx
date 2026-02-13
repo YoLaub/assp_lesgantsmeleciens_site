@@ -1,11 +1,12 @@
 import Image from 'next/image';
+import DisciplineCarousel from "@/app/(front)/_components/discipline/CarouselDiscipline";
 
 export default function DisciplineSection() {
     return (
         <section className="min-h-screen bg-white py-16 px-6 md:px-12 lg:px-24">
             {/* Header avec ligne orange */}
             <div className="mb-16">
-                <div className="w-full h-1 bg-gradient-to-r from-orange-400 to-orange-500 mb-8"></div>
+                <div className="w-full h-1 bg-gradient-to-r from-brand-orange to-orange-500 mb-8"></div>
             </div>
             <div className="max-w-7xl mx-auto flex flex-col items-center gap-12 md:gap-24">
                 <div className="flex flex-col items-center md: flex-row justify-between gap-12">
@@ -32,66 +33,26 @@ export default function DisciplineSection() {
                     {/* Colonne droite - Citation et Image */}
                     <div className="space-y-8  w-1/3">
                         {/* Card Citation */}
-                        <div className="border-4 border-orange-400 rounded-3xl p-8 bg-white shadow-lg">
-                            <div className="flex flex-col items-start gap-6">
-                                <div className="w-24 h-24 flex-shrink-0">
+                        <div className="border-4 border-brand-orange rounded-3xl p-8 bg-white shadow-lg ">
+                            <div className="flex flex-col items-start justify-center gap-6">
+                                <div className="w-full h-full flex-shrink-0">
                                     <Image
-                                        src="/placeholder-profile.jpg"
+                                        src="/1.webp"
                                         alt="Profile"
-                                        width={96}
-                                        height={96}
+                                        width={150}
+                                        height={150}
                                         className="rounded-lg object-cover w-full h-full grayscale"
                                     />
                                 </div>
-                                <div className="flex-1">
-                                    <h3 className="text-3xl font-bold mb-2">NOM PRÉNOM</h3>
+                                <div className="flex-1 ">
+                                    <h3 className="text-3xl font-bold mb-2">NICOLAS</h3>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="border-4 border-red-600 rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg min-h-[300px] flex items-center justify-center relative overflow-hidden">
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {/* Illustration kick boxing */}
-                        <svg
-                            viewBox="0 0 400 300"
-                            className="w-full max-w-md h-auto"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            {/* Silhouette simplifiée d'un kick boxer */}
-                            <g stroke="black" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                {/* Tête */}
-                                <circle cx="200" cy="80" r="20" fill="white" />
-
-                                {/* Corps */}
-                                <line x1="200" y1="100" x2="200" y2="180" />
-
-                                {/* Bras gauche (tendu) */}
-                                <line x1="200" y1="120" x2="140" y2="100" />
-                                <line x1="140" y1="100" x2="110" y2="110" />
-
-                                {/* Bras droit (coup de poing) */}
-                                <line x1="200" y1="120" x2="280" y2="100" />
-                                <line x1="280" y1="100" x2="310" y2="90" />
-
-                                {/* Jambe gauche (d'appui) */}
-                                <line x1="200" y1="180" x2="180" y2="240" />
-                                <line x1="180" y1="240" x2="170" y2="280" />
-
-                                {/* Jambe droite (coup de pied levé) */}
-                                <line x1="200" y1="180" x2="260" y2="150" />
-                                <line x1="260" y1="150" x2="310" y2="130" />
-                            </g>
-                        </svg>
-
-                        {/* Numéro en arrière-plan */}
-                        <div className="absolute right-4 bottom-4 text-9xl font-bold text-gray-200 opacity-50">
-                            4
-                        </div>
-                    </div>
-                </div>
+                <DisciplineCarousel/>
             </div>
         </section>
     );

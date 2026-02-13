@@ -1,7 +1,7 @@
 export default function CTAInscription() {
     return (
-        <section className=" py-16 px-6 md:px-12">
-            <div className="max-w-7xl mx-auto">
+        <section className=" py-16 px-6 md:px-12 mx-auto">
+            <div className="max-w-7xl">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                     {/* Texte */}
                     <div className="flex-1">

@@ -1,6 +1,6 @@
 export default function CTAFAQ() {
     return (
-        <section className="bg-white py-16 px-6 md:px-12">
+        <section className="bg-white py-16 px-6 md:px-12 mx-auto">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row items-center justify-center gap-16">
                     {/* Texte */}
@@ -12,7 +12,7 @@ export default function CTAFAQ() {
 
                     {/* Bouton */}
                     <div className="flex-shrink-0">
-                        <button className="bg-white text-red-600 px-12 py-5 w-[250px] rounded-full text-lg font-bold uppercase tracking-wide border-4 border-red-600 hover:bg-red-600 hover:text-white transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform">
+                        <button className="bg-white text-brand-red px-12 py-5 w-[250px] rounded-full text-lg font-bold uppercase tracking-wide border-4 border-brand-red hover:bg-brand-red hover:text-white transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform">
                             FAQ
                         </button>
                     </div>
