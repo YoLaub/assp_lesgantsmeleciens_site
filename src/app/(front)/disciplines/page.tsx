@@ -4,7 +4,7 @@ import CTAFAQ from "@/app/(front)/_components/discipline/FAQ";
 
 export default function Page() {
     return (
-        <main className=" container flex flex-col gap-20 pb-20 mx-auto px-5 md:px-0">
+        <main className=" container flex flex-col gap-20 pb-20 mx-auto px-10 md:px-0">
             <section className="flex flex-col gap-10 text-center">
                 <h1 className="text-4xl font-black uppercase tracking-tight text-slate-900">Les Disciplines</h1>
                 <p className="text-slate-500 text-lg">
@@ -13,10 +13,10 @@ export default function Page() {
             </section>
             <DisciplineSection />
             <section className="flex flex-col gap-10">
-                <div className="flex gap-4">
+                <div className="flex ">
                     <CTAInscription />
                 </div>
-                <div className="flex gap-4">
+                <div className="flex">
                     <CTAFAQ />
                 </div>
 

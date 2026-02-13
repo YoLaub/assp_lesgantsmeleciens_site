@@ -3,15 +3,15 @@ import DisciplineCarousel from "@/app/(front)/_components/discipline/CarouselDis
 
 export default function DisciplineSection() {
     return (
-        <section className="min-h-screen bg-white py-16 px-6 md:px-12 lg:px-24">
+        <section className="min-h-screen bg-white py-2 px-6 md:px-12 lg:px-24">
             {/* Header avec ligne orange */}
             <div className="mb-16">
-                <div className="w-full h-1 bg-gradient-to-r from-brand-orange to-orange-500 mb-8"></div>
+                <div className="w-full h-0.5 bg-linear-to-r from-brand-orange to-orange-500 mb-8"></div>
             </div>
-            <div className="max-w-7xl mx-auto flex flex-col items-center gap-12 md:gap-24">
-                <div className="flex flex-col items-center md: flex-row justify-between gap-12">
+            <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-col items-center gap-12 md:gap-24">
+                <div className="flex flex-col items-center lg:flex-row justify-between gap-12">
                     {/* Colonne gauche - Texte */}
-                    <div className="space-y-8 w-1/3">
+                    <div className="space-y-8 w-full md:w-1/3">
                         <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
                             KICK BOXING
                         </h2>
@@ -26,16 +26,17 @@ export default function DisciplineSection() {
                         </div>
                     </div>
 
-                    <div className="w-1/3 text-center">
-                        <p className="text-2xl font-bold mb-4">"Les champions ne se font pas dans les gymnases. Les champions sont faits de quelque chose qu'ils ont au plus profond d'eux-mêmes : un désir, un rêve, une vision. Ils doivent avoir l'endurance de la dernière minute, ils doivent être un peu plus rapides, ils doivent avoir le talent et la volonté. Mais la volonté doit être plus forte que le talent."</p>
+                    <div className="w-full md:w-1/3 text-center">
+                        <p className="text-2xl font-thin mb-4">“Pour apprendre à boxer il suffit d'une nuit. Il faut une vie entière pour apprendre à combattre.”</p>
                     </div>
 
                     {/* Colonne droite - Citation et Image */}
-                    <div className="space-y-8  w-1/3">
+                    <div className="space-y-8  w-full md:w-1/3">
                         {/* Card Citation */}
-                        <div className="border-4 border-brand-orange rounded-3xl p-8 bg-white shadow-lg ">
-                            <div className="flex flex-col items-start justify-center gap-6">
-                                <div className="w-full h-full flex-shrink-0">
+                        <div className="border-0 md:border-6 border-brand-orange rounded-3xl p-4 bg-white shadow-lg">
+                            <div className="flex flex-col justify-center gap-6">
+                                {/* Conteneur de l'image en position relative pour servir de repère au texte */}
+                                <div className="relative w-full h-full flex-shrink-0">
                                     <Image
                                         src="/1.webp"
                                         alt="Profile"
@@ -43,9 +44,11 @@ export default function DisciplineSection() {
                                         height={150}
                                         className="rounded-lg object-cover w-full h-full grayscale"
                                     />
-                                </div>
-                                <div className="flex-1 ">
-                                    <h3 className="text-3xl font-bold mb-2">NICOLAS</h3>
+
+                                    {/* Texte sur la photo en mobile, repositionné normalement sur PC si besoin */}
+                                    <h3 className="absolute inset-0 flex items-center justify-center text-white text-3xl font-bold md:relative md:text-gray-900 md:mt-4">
+                                        NICOLAS
+                                    </h3>
                                 </div>
                             </div>
                         </div>
