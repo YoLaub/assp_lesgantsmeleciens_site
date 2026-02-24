@@ -63,9 +63,9 @@ export default function AdminDashboardPage() {
                             color="bg-slate-900"
                             stats={{ label: "Inscriptions à valider", value: "08" }}
                             links={[
-                                { label: "Membres de l'association", icon: Users, href: "/admin/club/adherents" },
-                                { label: "Trésorerie & Cotisations", icon: CreditCard, href: "/admin/club/finances" },
-                                { label: "Organisation du Bureau", icon: ShieldCheck, href: "/admin/club/bureau" }
+                                { label: "Membres de l'association", icon: Users, href: "/club/adherents" },
+                                { label: "Trésorerie & Cotisations", icon: CreditCard, href: "/club/finances" },
+                                { label: "Organisation du Bureau", icon: ShieldCheck, href: "/club/bureau" }
                             ]}
                         />
 
