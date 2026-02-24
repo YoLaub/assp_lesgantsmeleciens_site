@@ -69,4 +69,28 @@ export class DisciplinePostgresDataSource {
             seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' }
         };
     }
+
+    async getActiveDisciplines(): Promise<Discipline[]> {
+        const disciplines = await prisma.discipline.findMany({
+            where: { active: true }, // Sécurité : on ne montre pas les brouillons
+            orderBy: { order: 'asc' },
+        });
+
+        return disciplines.map((d) => ({
+            id: d.id,
+            title: d.title,
+            coach: d.coach,
+            photo_coach: d.photo_coach ?? undefined,
+            category: d.category,
+            description: d.description,
+            tags: d.tags,
+            photo: d.photo,
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+            active: d.active,
+            // --- AJOUTS ICI ---
+            order: d.order,
+            createdAt: d.createdAt,
+            updatedAt: d.updatedAt,
+        }));
+    }
 }

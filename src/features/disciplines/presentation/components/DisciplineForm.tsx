@@ -157,7 +157,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             : [];
 
         const disciplineData: Discipline = {
-            id: id,
+            id: id || '',
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
             photo_coach: photoCoach,
@@ -170,6 +170,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                 metaDescription: formData.get('metaDescription') as string,
             },
             active: true,
+            order: 0,
         };
 
         try {
@@ -346,7 +347,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                     {/* Hidden file input */}
                                     <input
                                         type="file"
-                                        ref={el => fileInputRefs.current[index] = el}
+                                        ref={(el) => { fileInputRefs.current[index] = el; }}
                                         className="hidden"
                                         accept="image/jpeg,image/jpg,image/png,image/webp"
                                         onChange={(e) => {

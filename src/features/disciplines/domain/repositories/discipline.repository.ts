@@ -4,4 +4,5 @@ export interface DisciplineRepository {
     getAll(): Promise<Discipline[]>;
     save(discipline: Discipline): Promise<void>;
     delete(id: string): Promise<void>;
+    getAllActive(): Promise<Discipline[]>;
 }

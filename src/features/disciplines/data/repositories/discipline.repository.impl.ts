@@ -24,4 +24,8 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
     async delete(id: string): Promise<void> {
         // Implémentation via prisma.discipline.delete...
     }
+
+    async getAllActive(): Promise<Discipline[]> {
+        return await this.dataSource.getActiveDisciplines();
+    }
 }
