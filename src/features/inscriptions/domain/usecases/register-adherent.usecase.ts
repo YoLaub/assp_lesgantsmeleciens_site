@@ -1,5 +1,6 @@
 import {Inscription} from "../models/inscriptions.model";
 import {InscriptionsRepository } from "../repositories/inscriptions.repository";
+import { sendConfirmationEmail } from "@/shared/lib/mail";
 
 export class RegisterAdherentUseCase {
     constructor(private repository: InscriptionsRepository) {}
@@ -12,11 +13,14 @@ export class RegisterAdherentUseCase {
             throw new Error("L'adhérent doit avoir au moins 6 ans.");
         }
 
-        // Si paiement par chèque, le statut est PENDING
-        if (data.paymentMethod === 'CHECK') {
-            data.status = 'PENDING';
+        // 2. Persistance
+        const result = await this.repository.save(data);
+
+        // 3. Notification (Async - ne doit pas bloquer la réponse)
+        if (result.id) {
+            sendConfirmationEmail(data.email, `${data.firstName} ${data.lastName}`).catch(console.error);
         }
 
-        return await this.repository.save(data);
+        return result;
     }
 }
