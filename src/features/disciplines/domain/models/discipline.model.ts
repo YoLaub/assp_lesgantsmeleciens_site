@@ -3,6 +3,7 @@ export type Discipline = {
     title: string;
     coach: string;
     photo_coach?: string | null;
+    citation: string;
     category: string;
     description: string;
     tags: string[];

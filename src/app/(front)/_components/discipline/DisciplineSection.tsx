@@ -1,7 +1,12 @@
 import Image from 'next/image';
 import DisciplineCarousel from "@/app/(front)/_components/discipline/CarouselDiscipline";
+import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
 
-export default function DisciplineSection() {
+interface DisciplineSectionProps {
+    discipline: Discipline;
+}
+
+export default function DisciplineSection({ discipline }: DisciplineSectionProps) {
     return (
         <section className="min-h-screen bg-white py-16 px-6 md:px-12 lg:px-24">
             {/* Header avec ligne orange */}
@@ -13,22 +18,19 @@ export default function DisciplineSection() {
                     {/* Colonne gauche - Texte */}
                     <div className="space-y-8 w-1/3">
                         <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
-                            KICK BOXING
+                            {discipline.title}
                         </h2>
 
-                        <div className="prose prose-lg text-gray-700 leading-relaxed">
-                            <p>
-                                Kick boxing (Pieds-Poings): "Savage", "Transpirer": À partir de 16ans - Le mercredi de 19h à 20h15 avec Tony DEMARIGNY et Paul DESOMBRE: Préparation physique: Pour améliorer la coordination, la souplesse et la rapidité et la confiance en soi et le maintien de soi. Excellent moyen de se défouler au quotidien. Les cours de Cardio Kick anglaise Cardio (enfo et kick boxe sont combinés à partir de marche et autres objectifs: -Activité avec Sami.
-                            </p>
-                            <p>
-                                Description: Entrainement inspiré de la pratique de boxe - Un mix de cardio training et de renforcement musculaire. Brûler des calories, Evacuer le stress et se sentir bien.
-                            </p>
+                        <div
+                            className="prose prose-lg text-gray-700 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: discipline.description }}
+                        >
                         </div>
                     </div>
 
-                    <div className="w-1/3 text-center">
-                        <p className="text-2xl font-bold mb-4">"Les champions ne se font pas dans les gymnases. Les champions sont faits de quelque chose qu'ils ont au plus profond d'eux-mêmes : un désir, un rêve, une vision. Ils doivent avoir l'endurance de la dernière minute, ils doivent être un peu plus rapides, ils doivent avoir le talent et la volonté. Mais la volonté doit être plus forte que le talent."</p>
-                    </div>
+                    <p className="text-2xl font-bold mb-4 italic">
+                        {discipline.citation || "L'effort est la seule route qui mène au succès."}
+                    </p>
 
                     {/* Colonne droite - Citation et Image */}
                     <div className="space-y-8  w-1/3">
@@ -37,22 +39,22 @@ export default function DisciplineSection() {
                             <div className="flex flex-col items-start justify-center gap-6">
                                 <div className="w-full h-full flex-shrink-0">
                                     <Image
-                                        src="/1.webp"
-                                        alt="Profile"
+                                        src={discipline.photo_coach || '/default-coach.jpg'}
+                                        alt={discipline.coach}
                                         width={150}
                                         height={150}
                                         className="rounded-lg object-cover w-full h-full grayscale"
                                     />
                                 </div>
                                 <div className="flex-1 ">
-                                    <h3 className="text-3xl font-bold mb-2">NICOLAS</h3>
+                                    <h3 className="text-3xl font-bold mb-2">{discipline.coach}</h3>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <DisciplineCarousel/>
+                <DisciplineCarousel images={discipline.photo}/>
             </div>
         </section>
     );

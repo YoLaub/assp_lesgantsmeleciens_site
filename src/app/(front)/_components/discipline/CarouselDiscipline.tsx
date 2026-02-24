@@ -4,24 +4,10 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function DisciplineCarousel() {
+export default function DisciplineCarousel({ images }: { images: string[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Remplace ces images par tes vraies photos de kick boxing
-    const images = [
-        {
-            src: '/1.webp',
-            alt: 'Kick Boxing - Photo 1'
-        },
-        {
-            src: '/2.jpg',
-            alt: 'Kick Boxing - Photo 2'
-        },
-        {
-            src: '/3.avif',
-            alt: 'Kick Boxing - Photo 3'
-        }
-    ];
 
     const goToPrevious = () => {
         setCurrentIndex((prevIndex) =>
@@ -44,7 +30,7 @@ export default function DisciplineCarousel() {
             <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
                 {/* Image principale */}
                 <div className="relative w-full aspect-video"> {/* Utilise aspect-ratio pour être sûr */}
-                    <img src={images[currentIndex].src} alt={images[currentIndex].alt} className="w-full h-full object-cover" />
+                    <img src={images[currentIndex]} alt={images[currentIndex].slice(0,5)} className="w-full h-full object-cover" />
                 </div>
 
                 {/* Bouton Précédent */}

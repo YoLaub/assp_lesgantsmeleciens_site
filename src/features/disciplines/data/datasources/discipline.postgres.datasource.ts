@@ -17,6 +17,7 @@ export class DisciplinePostgresDataSource {
                 photo: discipline.photo,
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
+                citation: discipline.citation ?? '',
                 updatedAt: new Date(),
             },
             create: {
@@ -29,6 +30,7 @@ export class DisciplinePostgresDataSource {
                 photo: discipline.photo,
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
+                citation: discipline.citation ?? '',
             },
         });
     }
@@ -49,6 +51,7 @@ export class DisciplinePostgresDataSource {
             photo: d.photo,
             seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
             active: d.active,
+            citation: d.citation ?? '',
             order: d.order,
             createdAt: d.createdAt,
             updatedAt: d.updatedAt,
@@ -66,7 +69,32 @@ export class DisciplinePostgresDataSource {
         return {
             ...d,
             photo_coach: d.photo_coach ?? undefined,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' }
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+            citation: d.citation ?? ''
         };
+    }
+
+    async getActiveDisciplines(): Promise<Discipline[]> {
+        const disciplines = await prisma.discipline.findMany({
+            where: { active: true }, // Sécurité : on ne montre pas les brouillons
+            orderBy: { order: 'asc' },
+        });
+
+        return disciplines.map((d) => ({
+            id: d.id,
+            title: d.title,
+            coach: d.coach,
+            photo_coach: d.photo_coach ?? undefined,
+            category: d.category,
+            description: d.description,
+            tags: d.tags,
+            photo: d.photo,
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+            active: d.active,
+            citation:  d.citation ?? "",
+            order: d.order,
+            createdAt: d.createdAt,
+            updatedAt: d.updatedAt,
+        }));
     }
 }
