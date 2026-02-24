@@ -10,22 +10,24 @@ export class DisciplinePostgresDataSource {
             update: {
                 title: discipline.title,
                 coach: discipline.coach,
+                photo_coach: discipline.photo_coach ?? null,
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
                 photo: discipline.photo,
-                seo: discipline.seo,
+                seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
                 updatedAt: new Date(),
             },
             create: {
                 title: discipline.title,
                 coach: discipline.coach,
+                photo_coach: discipline.photo_coach ?? null,
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
                 photo: discipline.photo,
-                seo: discipline.seo,
+                seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
             },
         });
@@ -36,15 +38,16 @@ export class DisciplinePostgresDataSource {
             orderBy: { order: 'asc' },
         });
 
-        return disciplines.map((d: any) => ({
+        return disciplines.map((d) => ({
             id: d.id,
             title: d.title,
             coach: d.coach,
+            photo_coach: d.photo_coach ?? undefined,
             category: d.category,
             description: d.description,
             tags: d.tags,
             photo: d.photo,
-            seo: d.seo as { metaTitle: string; metaDescription: string },
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
             active: d.active,
             order: d.order,
             createdAt: d.createdAt,
@@ -53,8 +56,17 @@ export class DisciplinePostgresDataSource {
     }
 
     async getDisciplineById(id: string): Promise<Discipline | null> {
-        return prisma.discipline.findUnique({
-            where: {id}
+        const d = await prisma.discipline.findUnique({
+            where: { id }
         });
+
+        if (!d) return null;
+
+        // C'est ICI qu'était ton erreur. On map proprement les données.
+        return {
+            ...d,
+            photo_coach: d.photo_coach ?? undefined,
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' }
+        };
     }
 }

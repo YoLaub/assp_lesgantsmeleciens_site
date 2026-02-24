@@ -2,6 +2,7 @@ export type Discipline = {
     id: string;
     title: string;
     coach: string;
+    photo_coach?: string | null;
     category: string;
     description: string;
     tags: string[];

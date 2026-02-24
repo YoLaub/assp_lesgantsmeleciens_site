@@ -14,18 +14,19 @@ datasource db {
 }
 
 model Discipline {
-  id              String   @id @default(uuid())
-  title           String
-  coach           String
-  category        String
-  description     String   @db.Text
-  tags            String[] // Tableau natif PostgreSQL
-  active          Boolean  @default(true)
-  photo           String[]
+  id          String   @id @default(uuid())
+  title       String
+  coach       String
+  photo_coach String?
+  category    String
+  description String   @db.Text
+  tags        String[] // Tableau natif PostgreSQL
+  active      Boolean  @default(true)
+  photo       String[]
 
-  seo             Json
+  seo Json
 
-  order           Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
