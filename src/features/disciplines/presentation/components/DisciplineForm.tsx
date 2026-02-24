@@ -9,6 +9,7 @@ import { saveDisciplineAction, uploadPhotoAction } from '@/app/(admin)/content/a
 import { useRouter } from 'next/navigation';
 import { Discipline } from '../../domain/models/discipline.model';
 
+
 // Barre d'outils isolée pour l'éditeur
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
@@ -56,11 +57,16 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [photos, setPhotos] = useState<string[]>(
-        initialData?.photo || []
-    );
+
+    // --- États et Refs pour la Galerie ---
+    const [photos, setPhotos] = useState<string[]>(initialData?.photo || []);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // --- États et Refs pour le Coach ---
+    const [photoCoach, setPhotoCoach] = useState<string | undefined>(initialData?.photo_coach ?? undefined);
+    const [isCoachUploading, setIsCoachUploading] = useState(false);
+    const coachFileInputRef = useRef<HTMLInputElement | null>(null);
 
     // Configuration de l'éditeur Tiptap
     const editor = useEditor({
@@ -74,16 +80,15 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
         },
     });
 
+    // --- Gestion de la Galerie ---
     const handlePhotoSelect = async (index: number, file: File) => {
         setUploadingIndex(index);
         setError(null);
-
         const formData = new FormData();
         formData.append('file', file);
 
         try {
             const result = await uploadPhotoAction(formData);
-
             if (result.success && result.url) {
                 const newPhotos = [...photos];
                 newPhotos[index] = result.url;
@@ -108,6 +113,37 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
         setPhotos(newPhotos);
     };
 
+    // --- Gestion de la photo du Coach ---
+    const handleCoachPhotoSelect = async (file: File) => {
+        setIsCoachUploading(true);
+        setError(null);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const result = await uploadPhotoAction(formData);
+            if (result.success && result.url) {
+                setPhotoCoach(result.url);
+            } else {
+                setError(result.error || 'Upload failed');
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Upload failed');
+        } finally {
+            setIsCoachUploading(false);
+        }
+    };
+
+    const handleCoachPhotoClick = () => {
+        coachFileInputRef.current?.click();
+    };
+
+    const handleCoachPhotoRemove = () => {
+        setPhotoCoach(undefined);
+    };
+
+    // --- Soumission du formulaire ---
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -115,7 +151,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
 
         const formData = new FormData(e.currentTarget);
 
-        // Convertir les tags en tableau
         const tagsString = formData.get('tags') as string;
         const tagsArray = tagsString
             ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
@@ -125,6 +160,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             id: id,
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
+            photo_coach: photoCoach,
             category: formData.get('category') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
@@ -138,7 +174,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
 
         try {
             const result = await saveDisciplineAction(disciplineData);
-
             if (result.success) {
                 alert("Discipline enregistrée avec succès !");
                 router.push('/content/disciplines');
@@ -154,7 +189,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
         }
     };
 
-    // Créer un tableau de 5 slots pour l'affichage
     const photoSlots = Array(5).fill(null).map((_, index) => photos[index] || null);
 
     return (
@@ -194,6 +228,53 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                 required
                             />
                         </div>
+
+                        {/* --- BLOC PHOTO COACH CORRIGÉ --- */}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div
+                                className="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-red-500 transition-colors group"
+                                onClick={() => !isCoachUploading && handleCoachPhotoClick()}
+                            >
+                                <input
+                                    type="file"
+                                    ref={coachFileInputRef}
+                                    className="hidden"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleCoachPhotoSelect(file);
+                                    }}
+                                />
+
+                                {isCoachUploading ? (
+                                    <Upload className="w-6 h-6 text-red-600 animate-pulse" />
+                                ) : photoCoach ? (
+                                    <>
+                                        <img src={photoCoach} className="w-full h-full object-cover" alt="Coach" />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleCoachPhotoRemove();
+                                                }}
+                                                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                                            >
+                                                <X size={14}/>
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <Plus className="w-6 h-6 text-slate-300 group-hover:text-red-500 transition-colors" />
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Photo du Coach</label>
+                                <p className="text-xs text-slate-500">Portrait carré recommandé.</p>
+                            </div>
+                        </div>
+                        {/* --- FIN BLOC PHOTO COACH --- */}
+
                         <div>
                             <label className="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Categorie</label>
                             <input
@@ -250,6 +331,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
 
                 {/* COLONNE DROITE : Galerie Photos (5 slots) */}
                 <div className="space-y-6">
+
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <ImageIcon className="w-4 h-4 text-red-600" /> Galerie (Max 5)
@@ -306,13 +388,13 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                             ))}
                         </div>
                         <p className="mt-4 text-[10px] text-slate-400 italic">
-                            Format: JPG/WebP 800x800px max 5MB. La première photo sera l'image de couverture.
+                            Format: JPG/WebP 800x800px max 5MB.
                         </p>
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isLoading || uploadingIndex !== null}
+                        disabled={isLoading || uploadingIndex !== null || isCoachUploading}
                         className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save className="w-5 h-5" />
