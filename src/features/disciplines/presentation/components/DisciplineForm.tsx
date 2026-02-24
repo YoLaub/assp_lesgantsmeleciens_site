@@ -161,6 +161,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
             photo_coach: photoCoach,
+            citation: formData.get('citation') as string,
             category: formData.get('category') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
@@ -229,8 +230,16 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                 required
                             />
                         </div>
-
-                        {/* --- BLOC PHOTO COACH CORRIGÉ --- */}
+                        <div>
+                            <label className="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Citation</label>
+                            <textarea
+                                name="citation"
+                                defaultValue={initialData?.citation}
+                                rows={3}
+                                className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all"
+                                placeholder="Une phrase inspirante pour cette discipline..."
+                            />
+                        </div>
                         <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
                             <div
                                 className="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-red-500 transition-colors group"

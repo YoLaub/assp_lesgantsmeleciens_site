@@ -17,6 +17,7 @@ export class DisciplinePostgresDataSource {
                 photo: discipline.photo,
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
+                citation: discipline.citation ?? '',
                 updatedAt: new Date(),
             },
             create: {
@@ -29,6 +30,7 @@ export class DisciplinePostgresDataSource {
                 photo: discipline.photo,
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
+                citation: discipline.citation ?? '',
             },
         });
     }
@@ -49,6 +51,7 @@ export class DisciplinePostgresDataSource {
             photo: d.photo,
             seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
             active: d.active,
+            citation: d.citation ?? '',
             order: d.order,
             createdAt: d.createdAt,
             updatedAt: d.updatedAt,
@@ -66,7 +69,8 @@ export class DisciplinePostgresDataSource {
         return {
             ...d,
             photo_coach: d.photo_coach ?? undefined,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' }
+            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+            citation: d.citation ?? ''
         };
     }
 
@@ -87,7 +91,7 @@ export class DisciplinePostgresDataSource {
             photo: d.photo,
             seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
             active: d.active,
-            // --- AJOUTS ICI ---
+            citation:  d.citation ?? "",
             order: d.order,
             createdAt: d.createdAt,
             updatedAt: d.updatedAt,

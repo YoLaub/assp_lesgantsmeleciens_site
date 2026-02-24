@@ -19,6 +19,7 @@ model Discipline {
   coach       String
   photo_coach String?
   category    String
+  citation    String?  @db.Text
   description String   @db.Text
   tags        String[] // Tableau natif PostgreSQL
   active      Boolean  @default(true)
