@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
     "axios": "^1.13.4",

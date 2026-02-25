@@ -1,5 +1,6 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from '@prisma/adapter-pg';
+import { withAccelerate } from '@prisma/extension-accelerate'
 
 const globalForPrisma = global as unknown as {
     prisma: PrismaClient;
@@ -11,6 +12,6 @@ const adapter = new PrismaPg({
 
 export const prisma = globalForPrisma.prisma || new PrismaClient({
     adapter,
-});
+}).$extends(withAccelerate());
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
