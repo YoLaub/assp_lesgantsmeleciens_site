@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import DisciplineSection from "@/features/disciplines/presentation/components/front/DisciplineSection";
 import CTAInscription from "@/app/(front)/_components/CTA-inscription";
 import CTAFAQ from "@/app/(front)/_components/FAQ";
