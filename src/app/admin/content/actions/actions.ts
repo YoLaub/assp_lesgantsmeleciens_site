@@ -16,7 +16,7 @@ export async function saveDisciplineAction(data: Discipline) {
 
     try {
         await useCase.execute(data);
-        revalidatePath('/content/disciplines');
+        revalidatePath('/admin/content/disciplines');
         return {success: true};
     } catch (error: any) {
         return {success: false, error: error.message};

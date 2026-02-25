@@ -7,7 +7,7 @@ import { Inscription } from "@/features/inscriptions/domain/models/inscriptions.
 import { PaymentMethod, DocumentType } from "@/generated/prisma/enums";
 
 import { submitInscriptionAction } from "@/app/(front)/inscription/actions/inscription.actions";
-import { uploadDocumentAction } from "@/app/(admin)/club/adherents/actions/upload.actions";
+import { uploadDocumentAction } from "@/app/admin/club/adherents/actions/upload.actions";
 
 type FormInput = z.input<typeof Inscription>;
 type FormOutput = z.output<typeof Inscription>;

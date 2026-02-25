@@ -3,7 +3,7 @@ import { Inscription } from "@/features/inscriptions/domain/models/inscriptions.
 import { StatusBadge } from "./StatusBadge";
 import {useTransition} from "react";
 import {InscriptionStatus} from "@/generated/prisma/enums";
-import {updateInscriptionStatusAction} from "@/app/(admin)/club/adherents/actions/admin.actions";
+import {updateInscriptionStatusAction} from "@/app/admin/club/adherents/actions/admin.actions";
 
 interface InscriptionDetailDrawerProps {
     adherent: Inscription;

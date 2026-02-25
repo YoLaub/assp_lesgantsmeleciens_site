@@ -72,8 +72,8 @@ export async function AdminDashboard() {
                             color="bg-slate-900"
                             stats={{ label: "Inscriptions à valider", value: formattedPendingCount }}
                             links={[
-                                { label: "Membres de l'association", icon: Users, href: "/club/adherents" },
-                                { label: "Trésorerie & Cotisations", icon: CreditCard, href: "/club/finances" }
+                                { label: "Membres de l'association", icon: Users, href: "/admin/club/adherents" },
+                                { label: "Trésorerie & Cotisations", icon: CreditCard, href: "/admin/club/finances" }
                             ]}
                         />
 
@@ -84,9 +84,9 @@ export async function AdminDashboard() {
                             color="bg-red-600"
                             stats={{ label: "Dernière mise à jour", value: "Hier" }}
                             links={[
-                                { label: "Catalogue Disciplines", icon: Dumbbell, href: "/content/disciplines" },
-                                { label: "Articles & Actualités", icon: Newspaper, href: "/content/news" },
-                                { label: "Médiathèque (Galerie)", icon: ImageIcon, href: "/content/gallery" }
+                                { label: "Catalogue Disciplines", icon: Dumbbell, href: "/admin/content/disciplines" },
+                                { label: "Articles & Actualités", icon: Newspaper, href: "/admin/content/news" },
+                                { label: "Médiathèque (Galerie)", icon: ImageIcon, href: "/admin/content/gallery" }
                             ]}
                         />
                     </div>

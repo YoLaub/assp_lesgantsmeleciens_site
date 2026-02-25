@@ -5,7 +5,7 @@ import {Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload}
 import {Editor} from "@tiptap/core";
 import {EditorContent, useEditor} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { saveDisciplineAction, uploadPhotoAction } from '@/app/(admin)/content/actions/actions';
+import { saveDisciplineAction, uploadPhotoAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Discipline } from '../../../domain/models/discipline.model';
 
@@ -178,7 +178,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             const result = await saveDisciplineAction(disciplineData);
             if (result.success) {
                 alert("Discipline enregistrée avec succès !");
-                router.push('/content/disciplines');
+                router.push('/admin/content/disciplines');
                 router.refresh();
             } else {
                 setError(result.error || 'Une erreur est survenue');

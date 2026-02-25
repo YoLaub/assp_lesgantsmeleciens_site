@@ -1,7 +1,7 @@
 import React from 'react';
 import { Edit2, Trash2, Eye, MoveVertical } from 'lucide-react';
 import Link from "next/link";
-import {getAllDisciplinesAction} from "@/app/(admin)/content/actions/actions";
+import {getAllDisciplinesAction} from "@/app/admin/content/actions/actions";
 
 export const DisciplineManager = async () => {
     const result = await getAllDisciplinesAction();
@@ -50,7 +50,7 @@ export const DisciplineManager = async () => {
                                         <Eye className="w-4 h-4" />
                                     </button>
                                     <Link
-                                        href={`/content/disciplines/${item.id}`} // Lien vers la nouvelle route
+                                        href={`/admin/content/disciplines/${item.id}`} // Lien vers la nouvelle route
                                         className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                                     >
                                         <Edit2 className="w-4 h-4" />

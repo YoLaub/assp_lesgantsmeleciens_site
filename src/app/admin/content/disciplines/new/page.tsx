@@ -7,7 +7,7 @@ export default function CreateDisciplinePage() {
     return (
         <div className="p-8 space-y-8 font-sans max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
-                <Link href="/content/disciplines" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <Link href="/admin/content/disciplines" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                     <ChevronLeft className="w-6 h-6 text-slate-600" />
                 </Link>
                 <div>

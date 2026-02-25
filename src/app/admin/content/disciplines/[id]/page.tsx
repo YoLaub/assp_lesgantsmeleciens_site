@@ -4,10 +4,10 @@ import React from 'react';
 import { DisciplineForm } from '@/features/disciplines/presentation/components/admin/DisciplineForm';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import {getDisciplineByIdAction} from "@/app/(admin)/content/actions/actions";
+import {getDisciplineByIdAction} from "@/app/admin/content/actions/actions";
 
 interface PageProps {
-    params: Promise<{ id: string }>; // ✅ Promise depuis Next.js 15
+    params: Promise<{ id: string }>; //
 }
 
 export default async function EditDisciplinePage({ params }: PageProps) {
@@ -25,7 +25,7 @@ export default async function EditDisciplinePage({ params }: PageProps) {
     return (
         <div className="p-8 space-y-8 font-sans max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
-                <Link href="/content/disciplines" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <Link href="/admin/content/disciplines" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                     <ChevronLeft className="w-6 h-6 text-slate-600" />
                 </Link>
                 <div>
