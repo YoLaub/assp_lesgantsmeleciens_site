@@ -56,9 +56,11 @@ export function GalleryCard({
             {onEdit && (
                 <button
                     onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                    className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/90 hover:bg-white
+                    className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/80
                                flex items-center justify-center z-10
                                opacity-0 group-hover:opacity-100 scale-[0.6] group-hover:scale-100
+                               hover:!scale-110 hover:bg-white hover:shadow-md hover:ring-2 hover:ring-slate-300
+                               active:!scale-95
                                transition-all duration-200 ease-out shadow-sm"
                     aria-label={`Modifier ${image.title}`}
                 >

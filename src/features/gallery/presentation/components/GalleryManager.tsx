@@ -119,7 +119,11 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         setSortDirection(direction);
     }
 
-    async function handleReorder(fromId: string, toId: string) {
+    async function handleReorder(fromIndex: number, toIndex: number) {
+        const fromId = filteredAndSortedImages[fromIndex]?.id;
+        const toId = filteredAndSortedImages[toIndex]?.id;
+        if (!fromId || !toId) return;
+
         const snapshot = [...images];
         dispatch({ type: 'REORDER', fromId, toId });
 
@@ -204,6 +208,7 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
                     onEdit={handleEdit}
                     onDelete={(id) => setSingleDeleteId(id)}
                     onSelectAll={() => dispatch({ type: 'SELECT_ALL' })}
+                    onClearSelection={() => dispatch({ type: 'CLEAR_SELECTION' })}
                     onReorder={handleReorder}
                 />
             )}
