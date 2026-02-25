@@ -43,5 +43,4 @@ export class InscriptionsRepositoryImpl implements InscriptionsRepository {
             orderBy: { createdAt: 'desc' }
         }) as unknown as Inscription[];
     }
-    // ... autres méthodes (getById, updateStatus)
 }

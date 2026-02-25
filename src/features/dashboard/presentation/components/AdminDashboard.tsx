@@ -1,7 +1,7 @@
 import React from 'react';
 import {
     Users, ShieldCheck, Clock, PlusCircle, CreditCard,
-    Dumbbell, Newspaper, Image as ImageIcon, Globe, Settings
+    Dumbbell, Newspaper, Image as ImageIcon, Globe
 } from 'lucide-react';
 
 import { ModuleCard } from '@/features/dashboard/presentation/components/ModuleCard';
