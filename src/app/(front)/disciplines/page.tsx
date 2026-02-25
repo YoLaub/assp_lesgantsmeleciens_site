@@ -1,6 +1,6 @@
-import DisciplineSection from "@/app/(front)/_components/discipline/DisciplineSection";
-import CTAInscription from "@/app/(front)/_components/discipline/CTA-inscription";
-import CTAFAQ from "@/app/(front)/_components/discipline/FAQ";
+import DisciplineSection from "@/features/disciplines/presentation/components/front/DisciplineSection";
+import CTAInscription from "@/app/(front)/_components/CTA-inscription";
+import CTAFAQ from "@/app/(front)/_components/FAQ";
 import { DisciplineRepositoryImpl } from '@/features/disciplines/data/repositories/discipline.repository.impl';
 import { GetActiveDisciplinesUseCase } from '@/features/disciplines/domain/usecases/get-active-disciplines.usecase';
 

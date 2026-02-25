@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import DisciplineCarousel from "@/app/(front)/_components/discipline/CarouselDiscipline";
+import DisciplineCarousel from "@/features/disciplines/presentation/components/front/CarouselDiscipline";
 import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
 
 interface DisciplineSectionProps {

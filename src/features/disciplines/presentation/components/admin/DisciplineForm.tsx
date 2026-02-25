@@ -7,7 +7,7 @@ import {EditorContent, useEditor} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { saveDisciplineAction, uploadPhotoAction } from '@/app/(admin)/content/actions/actions';
 import { useRouter } from 'next/navigation';
-import { Discipline } from '../../domain/models/discipline.model';
+import { Discipline } from '../../../domain/models/discipline.model';
 
 
 // Barre d'outils isolée pour l'éditeur
