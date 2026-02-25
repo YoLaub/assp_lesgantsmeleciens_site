@@ -31,3 +31,60 @@ model Discipline {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+enum InscriptionStatus {
+  PENDING
+  VALIDATED
+  INCOMPLETE
+  UNPAID
+}
+
+enum PaymentMethod {
+  STRIPE
+  CHECK
+  CASH
+}
+
+enum DocumentType {
+  MEDICAL_CERTIFICATE
+  ID_PHOTO
+  ADDRESS_PROOF
+  CAF_VOUCHER
+  OTHER
+}
+
+model Inscription {
+  id         String   @id @default(uuid())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String
+  birthDate  DateTime
+  address    String
+  postalCode String
+  city       String
+
+  // Relation : Un adhérent peut avoir plusieurs documents
+  documents Document[]
+
+  // État du dossier
+  status          InscriptionStatus @default(PENDING)
+  paymentMethod   PaymentMethod
+  stripeSessionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id   String       @id @default(uuid())
+  type DocumentType
+  name String?
+  url  String
+  // isVerified Boolean @default(false)
+
+  adherent   Inscription @relation(fields: [adherentId], references: [id], onDelete: Cascade)
+  adherentId String
+
+  createdAt DateTime @default(now())
+}

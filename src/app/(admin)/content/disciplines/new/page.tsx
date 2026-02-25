@@ -1,5 +1,5 @@
 import React from 'react';
-import { DisciplineForm } from '@/features/disciplines/presentation/components/DisciplineForm';
+import { DisciplineForm } from '@/features/disciplines/presentation/components/admin/DisciplineForm';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 
