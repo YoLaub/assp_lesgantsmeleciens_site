@@ -1,14 +1,19 @@
 import { prisma } from "@/shared/lib/prisma";
 import { Inscription } from "../../domain/models/inscriptions.model";
 import { InscriptionsRepository } from "../../domain/repositories/inscriptions.repository";
+import {InscriptionStatus} from "@/generated/prisma/enums";
 
 export class InscriptionsRepositoryImpl implements InscriptionsRepository {
     getById(id: string): Promise<Inscription | null> {
         throw new Error("Method not implemented.");
     }
-    updateStatus(id: string, status: string): Promise<void> {
-        throw new Error("Method not implemented.");
+    async updateStatus(id: string, status: InscriptionStatus): Promise<void> {
+        await prisma.inscription.update({ // ⚠️ Ou prisma.adherent.update (selon le nom exact de ta table Prisma)
+            where: { id },
+            data: { status }
+        });
     }
+
     async save(data: Inscription): Promise<Inscription> {
         return await prisma.inscription.create({
             data: {

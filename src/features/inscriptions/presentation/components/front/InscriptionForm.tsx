@@ -4,14 +4,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Inscription } from "@/features/inscriptions/domain/models/inscriptions.model";
-import { PaymentMethod } from "@/generated/prisma/enums";
-import { submitInscriptionAction } from "@/app/(front)/inscription/actions/inscription.actions"; // <-- Import de ton action
+import { PaymentMethod, DocumentType } from "@/generated/prisma/enums";
+
+import { submitInscriptionAction } from "@/app/(front)/inscription/actions/inscription.actions";
+import { uploadDocumentAction } from "@/app/(admin)/club/adherents/actions/upload.actions";
 
 type FormInput = z.input<typeof Inscription>;
 type FormOutput = z.output<typeof Inscription>;
 
 export default function InscriptionForm() {
-    const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormInput, unknown, FormOutput>({
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<FormInput, unknown, FormOutput>({
         resolver: zodResolver(Inscription),
         defaultValues: { paymentMethod: PaymentMethod.STRIPE },
     });
@@ -20,21 +27,43 @@ export default function InscriptionForm() {
 
     const onSubmit = async (data: FormOutput) => {
         try {
-            // 1. Simulation des documents (à remplacer par ton futur module d'upload)
-            const mockDocs = [{ type: 'MEDICAL_CERTIFICATE' as const, url: '/uploads/temp/certif.pdf' }];
+            const fileInput = document.getElementById('certif') as HTMLInputElement;
+            const file = fileInput?.files?.[0];
 
-            // 2. Appel de la Server Action avec l'objet typé
-            const result = await submitInscriptionAction(data, mockDocs);
+            const realDocs: { type: DocumentType, url: string }[] = [];
+
+            // 1. On ne tente l'upload QUE s'il y a un fichier sélectionné
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // 2. Appel de la Server Action d'upload
+                const uploadedUrl = await uploadDocumentAction(formData);
+
+                // 3. On ajoute le document à la liste uniquement si l'upload a réussi
+                if (uploadedUrl) {
+                    realDocs.push({
+                        type: DocumentType.MEDICAL_CERTIFICATE,
+                        url: uploadedUrl
+                    });
+                }
+            }
+
+            // 4. Lancement de l'inscription globale avec les données validées et l'URL du fichier
+            const result = await submitInscriptionAction(data, realDocs);
 
             if (result.success) {
-                // Redirection vers succès ou Checkout Stripe
-                window.location.href = "/inscription/merci";
+                console.log("Inscription réussie ! ID:", result.id);
+                // Si paiement Stripe, rediriger vers Checkout, sinon vers une page de succès :
+                // window.location.href = "/inscription/merci";
+                alert("Inscription validée avec succès !");
             } else {
-                console.error("Erreurs côté serveur:", result.errors || result.error);
+                console.error("Erreur serveur:", result.errors || result.error);
                 alert("Une erreur est survenue lors de l'enregistrement.");
             }
         } catch (error) {
-            console.error("Erreur critique:", error);
+            console.error("Erreur critique lors de la soumission:", error);
+            alert("Une erreur inattendue s'est produite.");
         }
     };
 
@@ -126,6 +155,26 @@ export default function InscriptionForm() {
                 </div>
             </div>
 
+            {/* Documents */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+                <h4 className="font-semibold text-gray-800">Documents Requis</h4>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Certificat Médical (PDF ou Image)</label>
+                    <input
+                        type="file"
+                        id="certif"
+                        accept=".pdf, image/jpeg, image/png"
+                        className="mt-1 block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-orange-50 file:text-[#FF8A00]
+                          hover:file:bg-orange-100 transition-colors"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Fournir un certificat de moins de 3 mois (Optionnel pour tester).</p>
+                </div>
+            </div>
+
             {/* Paiement */}
             <div className="pt-4 border-t border-gray-200">
                 <label className="block text-base font-semibold text-gray-900 mb-3">Mode de paiement</label>
@@ -135,7 +184,7 @@ export default function InscriptionForm() {
                             type="radio"
                             value={PaymentMethod.STRIPE}
                             {...register("paymentMethod")}
-                            className="h-4 w-4 text-[#FF8A00]"
+                            className="h-4 w-4 text-[#FF8A00] focus:ring-[#FF8A00]"
                         />
                         <span className="ml-3 font-medium text-gray-900">Carte Bancaire (Stripe)</span>
                     </label>
@@ -144,7 +193,7 @@ export default function InscriptionForm() {
                             type="radio"
                             value={PaymentMethod.CHECK}
                             {...register("paymentMethod")}
-                            className="h-4 w-4 text-[#FF8A00]"
+                            className="h-4 w-4 text-[#FF8A00] focus:ring-[#FF8A00]"
                         />
                         <span className="ml-3 font-medium text-gray-900">Paiement par chèque</span>
                     </label>
