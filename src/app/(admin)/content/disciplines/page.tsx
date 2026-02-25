@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import React from 'react';
 import {Plus, Search, Filter} from 'lucide-react';
 import { DisciplineManager } from '@/features/disciplines/presentation/components/admin/DisciplineManager';

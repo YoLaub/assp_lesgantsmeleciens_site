@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Download } from 'lucide-react';
 import { InscriptionsRepositoryImpl } from '@/features/inscriptions/data/repositories/inscriptions.repository.impl';
 import { InscriptionsTable } from '@/features/inscriptions/presentation/components/admin/InscriptionsTable';

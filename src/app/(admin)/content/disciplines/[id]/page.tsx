@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import React from 'react';
 import { DisciplineForm } from '@/features/disciplines/presentation/components/admin/DisciplineForm';
 import { ChevronLeft } from 'lucide-react';
