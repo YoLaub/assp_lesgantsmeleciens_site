@@ -37,26 +37,29 @@ export default function InscriptionForm() {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                // 2. Appel de la Server Action d'upload
-                const uploadedUrl = await uploadDocumentAction(formData);
+                // 2. Appel de la Server Action d'upload (vers Cloudflare R2)
+                const uploadResult = await uploadDocumentAction(formData);
 
-                // 3. On ajoute le document à la liste uniquement si l'upload a réussi
-                if (uploadedUrl) {
+                // 3. On vérifie que l'upload a bien fonctionné
+                if (uploadResult.success && uploadResult.fileKey) {
                     realDocs.push({
                         type: DocumentType.MEDICAL_CERTIFICATE,
-                        url: uploadedUrl
+                        url: uploadResult.fileKey // On stocke la clé R2 (ex: certificats/1234_doc.pdf)
                     });
+                } else {
+                    // Si l'upload échoue, on arrête tout
+                    alert(uploadResult.error || "Erreur lors de l'envoi du certificat.");
+                    return;
                 }
             }
 
-            // 4. Lancement de l'inscription globale avec les données validées et l'URL du fichier
+            // 4. Lancement de l'inscription globale en BDD
             const result = await submitInscriptionAction(data, realDocs);
 
             if (result.success) {
                 console.log("Inscription réussie ! ID:", result.id);
-                // Si paiement Stripe, rediriger vers Checkout, sinon vers une page de succès :
-                // window.location.href = "/inscription/merci";
                 alert("Inscription validée avec succès !");
+                // TODO: Si paiement Stripe, rediriger vers Checkout, sinon vers une page de succès
             } else {
                 console.error("Erreur serveur:", result.errors || result.error);
                 alert("Une erreur est survenue lors de l'enregistrement.");

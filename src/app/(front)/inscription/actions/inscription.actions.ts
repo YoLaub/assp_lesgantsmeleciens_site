@@ -1,6 +1,5 @@
 'use server';
 
-// On importe notre fameuse "Single Source of Truth" !
 import { Inscription } from "@/features/inscriptions/domain/models/inscriptions.model";
 import { InscriptionsRepositoryImpl } from "@/features/inscriptions/data/repositories/inscriptions.repository.impl";
 import { InscriptionStatus, PaymentMethod, DocumentType } from "@/generated/prisma/enums";
@@ -31,8 +30,8 @@ export async function submitInscriptionAction(
         // TODO: Si Stripe, générer ici la session Checkout et retourner l'URL
         // if (validated.data.paymentMethod === PaymentMethod.STRIPE) { ... }
 
-        return { success: true, id: result?.id }; // Adapter selon le retour réel de ton repository
-        // 2. On remplace 'any' par 'unknown'
+        return { success: true, id: result?.id };
+
     } catch (error: unknown) {
         // On vérifie proprement si l'erreur est une vraie erreur JS
         const errorMessage = error instanceof Error
