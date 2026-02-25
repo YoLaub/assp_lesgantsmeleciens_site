@@ -23,6 +23,8 @@ export const Inscription = z.object({
     status: z.nativeEnum(InscriptionStatus).default(InscriptionStatus.PENDING),
     paymentMethod: z.nativeEnum(PaymentMethod),
     documents: z.array(DocumentSchema).optional(),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
 });
 
 // 2. LE TYPE s'appelle AUSSI "Inscription" !

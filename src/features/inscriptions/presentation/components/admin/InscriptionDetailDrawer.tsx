@@ -22,8 +22,6 @@ export function InscriptionDetailDrawer({ adherent, onClose }: InscriptionDetail
             const result = await updateInscriptionStatusAction(adherent.id!, newStatus);
 
             if (result.success) {
-                // Si la mise à jour a réussi, on ferme le tiroir
-                // Le tableau en dessous se mettra à jour tout seul grâce au revalidatePath !
                 onClose();
             } else {
                 alert("Une erreur est survenue : " + result.error);

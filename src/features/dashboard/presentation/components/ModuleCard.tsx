@@ -46,7 +46,6 @@ export const ModuleCard: React.FC<ModuleCardProps> = ({
         <div className="p-5 flex-1 flex flex-col">
             <div className="space-y-2 flex-1">
                 {links.map((link, idx) => (
-                    // REMPLACEMENT de <button> par <Link>
                     <Link
                         key={idx}
                         href={link.href}
