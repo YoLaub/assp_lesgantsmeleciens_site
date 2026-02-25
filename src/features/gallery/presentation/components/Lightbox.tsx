@@ -1,7 +1,8 @@
 'use client';
 
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
+import { ChevronLeft, ChevronRight, X, Pencil } from 'lucide-react';
 
 interface LightboxProps {
     images: GalleryImage[];
@@ -10,6 +11,7 @@ interface LightboxProps {
     onClose: () => void;
     onNext: () => void;
     onPrev: () => void;
+    onEdit?: (image: GalleryImage) => void;
 }
 
 export function Lightbox({
@@ -19,6 +21,7 @@ export function Lightbox({
     onClose,
     onNext,
     onPrev,
+    onEdit,
 }: LightboxProps) {
     if (!isOpen || images.length === 0) return null;
 
@@ -60,11 +63,24 @@ export function Lightbox({
                 <div className="text-center">
                     <p className="text-white text-lg font-semibold">{image.title}</p>
                     {image.category && (
-                        <p className="text-white/60 text-sm">{image.category}</p>
+                        <span className="inline-block mt-1 px-3 py-1 bg-white/10 rounded-lg text-white/70 text-xs font-semibold uppercase tracking-wide">
+                            {getCategoryLabel(image.category)}
+                        </span>
                     )}
-                    <p className="text-white/40 text-xs mt-1">
-                        {currentIndex + 1} / {images.length}
-                    </p>
+                    <div className="flex items-center justify-center gap-3 mt-2">
+                        <p className="text-white/40 text-xs">
+                            {currentIndex + 1} / {images.length}
+                        </p>
+                        {onEdit && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onEdit(image); }}
+                                className="text-white/50 hover:text-white transition-colors"
+                                aria-label="Modifier cette image"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 

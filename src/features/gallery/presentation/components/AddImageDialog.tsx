@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
 import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/(admin)/content/actions/gallery.actions';
 
 interface AddImageDialogProps {
@@ -16,7 +17,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
     const [uploadedUrl, setUploadedUrl] = useState('');
     const [title, setTitle] = useState('');
     const [alt, setAlt] = useState('');
-    const [category, setCategory] = useState('');
+    const [category, setCategory] = useState<GalleryCategory | ''>('');
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -211,14 +212,24 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                 <label className="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">
                                     Catégorie
                                 </label>
-                                <input
-                                    type="text"
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    placeholder="Ex: Événements, Entraînements..."
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm
-                                               focus:ring-2 focus:ring-red-500 outline-none transition-all"
-                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {GALLERY_CATEGORIES.map((cat) => (
+                                        <button
+                                            key={cat.value}
+                                            type="button"
+                                            onClick={() => setCategory(
+                                                category === cat.value ? '' : cat.value
+                                            )}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                                                ${category === cat.value
+                                                    ? 'bg-red-600 text-white shadow-sm'
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                }`}
+                                        >
+                                            {cat.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </>
                     )}

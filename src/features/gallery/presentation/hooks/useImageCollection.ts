@@ -4,11 +4,15 @@ import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.mod
 type Action =
     | { type: 'SET_IMAGES'; images: GalleryImage[] }
     | { type: 'ADD_IMAGE'; image: GalleryImage }
+    | { type: 'ADD_IMAGES'; images: GalleryImage[] }
+    | { type: 'UPDATE_IMAGE'; image: GalleryImage }
     | { type: 'REMOVE_IMAGE'; id: string }
     | { type: 'TOGGLE_SELECT'; id: string }
+    | { type: 'RANGE_SELECT'; fromId: string; toId: string }
     | { type: 'SELECT_ALL' }
     | { type: 'CLEAR_SELECTION' }
-    | { type: 'DELETE_SELECTED' };
+    | { type: 'DELETE_SELECTED' }
+    | { type: 'REORDER'; fromId: string; toId: string };
 
 interface State {
     images: GalleryImage[];
@@ -22,6 +26,17 @@ function reducer(state: State, action: Action): State {
 
         case 'ADD_IMAGE':
             return { ...state, images: [...state.images, action.image] };
+
+        case 'ADD_IMAGES':
+            return { ...state, images: [...state.images, ...action.images] };
+
+        case 'UPDATE_IMAGE':
+            return {
+                ...state,
+                images: state.images.map((img) =>
+                    img.id === action.image.id ? action.image : img
+                ),
+            };
 
         case 'REMOVE_IMAGE': {
             const nextSelected = new Set(state.selectedIds);
@@ -42,6 +57,19 @@ function reducer(state: State, action: Action): State {
             return { ...state, selectedIds: nextSelected };
         }
 
+        case 'RANGE_SELECT': {
+            const fromIdx = state.images.findIndex((img) => img.id === action.fromId);
+            const toIdx = state.images.findIndex((img) => img.id === action.toId);
+            if (fromIdx === -1 || toIdx === -1) return state;
+            const start = Math.min(fromIdx, toIdx);
+            const end = Math.max(fromIdx, toIdx);
+            const nextSelected = new Set(state.selectedIds);
+            for (let i = start; i <= end; i++) {
+                nextSelected.add(state.images[i].id);
+            }
+            return { ...state, selectedIds: nextSelected };
+        }
+
         case 'SELECT_ALL':
             return {
                 ...state,
@@ -56,6 +84,19 @@ function reducer(state: State, action: Action): State {
                 images: state.images.filter((img) => !state.selectedIds.has(img.id)),
                 selectedIds: new Set(),
             };
+
+        case 'REORDER': {
+            const imgs = [...state.images];
+            const fromIdx = imgs.findIndex((img) => img.id === action.fromId);
+            const toIdx = imgs.findIndex((img) => img.id === action.toId);
+            if (fromIdx === -1 || toIdx === -1) return state;
+            const [moved] = imgs.splice(fromIdx, 1);
+            imgs.splice(toIdx, 0, moved);
+            return {
+                ...state,
+                images: imgs.map((img, i) => ({ ...img, order: i })),
+            };
+        }
 
         default:
             return state;

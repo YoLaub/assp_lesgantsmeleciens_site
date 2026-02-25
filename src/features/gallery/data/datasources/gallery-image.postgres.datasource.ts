@@ -75,6 +75,24 @@ export class GalleryImagePostgresDataSource {
         ).map(() => undefined);
     }
 
+    createManyGalleryImages(images: GalleryImage[]): ResultAsync<void, string> {
+        return ResultAsync.fromPromise(
+            prisma.galleryImage.createMany({
+                data: images.map((img) => ({
+                    id: img.id,
+                    title: img.title,
+                    alt: img.alt,
+                    category: img.category,
+                    src: img.src,
+                    width: img.width,
+                    height: img.height,
+                    order: img.order,
+                })),
+            }),
+            () => 'Erreur lors de la sauvegarde des images'
+        ).map(() => undefined);
+    }
+
     deleteGalleryImage(id: string): ResultAsync<void, string> {
         return ResultAsync.fromPromise(
             prisma.galleryImage.delete({ where: { id } }),
@@ -86,6 +104,20 @@ export class GalleryImagePostgresDataSource {
         return ResultAsync.fromPromise(
             prisma.galleryImage.deleteMany({ where: { id: { in: ids } } }),
             () => 'Erreur lors de la suppression des images'
+        ).map(() => undefined);
+    }
+
+    reorderGalleryImages(items: { id: string; order: number }[]): ResultAsync<void, string> {
+        return ResultAsync.fromPromise(
+            prisma.$transaction(
+                items.map((item) =>
+                    prisma.galleryImage.update({
+                        where: { id: item.id },
+                        data: { order: item.order },
+                    }),
+                ),
+            ),
+            () => "Erreur lors de la réorganisation des images"
         ).map(() => undefined);
     }
 }

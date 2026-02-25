@@ -22,11 +22,19 @@ export class GalleryImageRepositoryImpl implements GalleryImageRepository {
         return this.dataSource.upsertGalleryImage(image);
     }
 
+    saveMany(images: GalleryImage[]): ResultAsync<void, string> {
+        return this.dataSource.createManyGalleryImages(images);
+    }
+
     delete(id: string): ResultAsync<void, string> {
         return this.dataSource.deleteGalleryImage(id);
     }
 
     bulkDelete(ids: string[]): ResultAsync<void, string> {
         return this.dataSource.bulkDeleteGalleryImages(ids);
+    }
+
+    reorderMany(items: { id: string; order: number }[]): ResultAsync<void, string> {
+        return this.dataSource.reorderGalleryImages(items);
     }
 }

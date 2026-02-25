@@ -4,7 +4,9 @@
       "Bash(ls*)",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs",
-      "Bash(bun run test*)"
+      "Bash(bun run test*)",
+      "Bash(npx next build)",
+      "Bash(npx vitest run)"
     ]
   }
 }

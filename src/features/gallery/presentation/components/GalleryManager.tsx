@@ -1,22 +1,44 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { useImageCollection } from '../hooks/useImageCollection';
 import { useLightbox } from '../hooks/useLightbox';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
 import { GalleryGrid } from './GalleryGrid';
-import { GalleryToolbar } from './GalleryToolbar';
+import { GalleryListView } from './GalleryListView';
+import { GalleryToolbar, ViewMode, SortField, SortDirection } from './GalleryToolbar';
 import { Lightbox } from './Lightbox';
-import { AddImageDialog } from './AddImageDialog';
+import { AddImagesDialog } from './AddImagesDialog';
+import { EditImageDialog } from './EditImageDialog';
 import { SelectionToolbar } from './SelectionToolbar';
+import { GalleryEmptyState } from './GalleryEmptyState';
+import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import {
     deleteGalleryImageAction,
     bulkDeleteGalleryImagesAction,
+    reorderGalleryImagesAction,
 } from '@/app/(admin)/content/actions/gallery.actions';
 
 interface GalleryManagerProps {
     initialImages: GalleryImage[];
+}
+
+function sortImages(images: GalleryImage[], field: SortField, direction: SortDirection): GalleryImage[] {
+    const sorted = [...images].sort((a, b) => {
+        switch (field) {
+            case 'date': {
+                const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return da - db;
+            }
+            case 'title':
+                return a.title.localeCompare(b.title, 'fr');
+            case 'category':
+                return a.category.localeCompare(b.category, 'fr');
+        }
+    });
+    return direction === 'desc' ? sorted.reverse() : sorted;
 }
 
 export function GalleryManager({ initialImages }: GalleryManagerProps) {
@@ -24,25 +46,41 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         useImageCollection(initialImages);
     const lightbox = useLightbox(images.length);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [viewMode, setViewMode] = useState<ViewMode>('masonry');
+    const [sortField, setSortField] = useState<SortField>('date');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const lastSelectedRef = useRef<string | null>(null);
+    const [singleDeleteId, setSingleDeleteId] = useState<string | null>(null);
 
-    const filteredImages = useMemo(() => {
-        if (!searchQuery.trim()) return images;
-        const q = searchQuery.toLowerCase();
-        return images.filter(
-            (img) =>
-                img.title.toLowerCase().includes(q) ||
-                img.category.toLowerCase().includes(q),
-        );
-    }, [images, searchQuery]);
+    const filteredAndSortedImages = useMemo(() => {
+        let result = images;
+        if (activeCategory) {
+            result = result.filter((img) => img.category === activeCategory);
+        }
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(
+                (img) =>
+                    img.title.toLowerCase().includes(q) ||
+                    img.category.toLowerCase().includes(q),
+            );
+        }
+        return sortImages(result, sortField, sortDirection);
+    }, [images, searchQuery, activeCategory, sortField, sortDirection]);
 
     useKeyboardNavigation({
         onDelete: () => {
-            if (hasSelection) handleBulkDelete();
+            if (hasSelection) setDeleteConfirmOpen(true);
         },
         onEscape: () => {
             lightbox.close();
             dispatch({ type: 'CLEAR_SELECTION' });
+            setSelectionMode(false);
         },
         onSelectAll: (e) => {
             e.preventDefault();
@@ -52,9 +90,14 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         onArrowRight: lightbox.isOpen ? lightbox.next : undefined,
     });
 
-    function handleCardClick(id: string, index: number) {
-        if (hasSelection) {
-            dispatch({ type: 'TOGGLE_SELECT', id });
+    function handleCardClick(id: string, index: number, e: React.MouseEvent) {
+        if (selectionMode || hasSelection) {
+            if (e.shiftKey && lastSelectedRef.current) {
+                dispatch({ type: 'RANGE_SELECT', fromId: lastSelectedRef.current, toId: id });
+            } else {
+                dispatch({ type: 'TOGGLE_SELECT', id });
+            }
+            lastSelectedRef.current = id;
         } else {
             lightbox.open(index);
         }
@@ -63,17 +106,42 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
     function handleCardContextMenu(e: React.MouseEvent, id: string) {
         e.preventDefault();
         dispatch({ type: 'TOGGLE_SELECT', id });
+        lastSelectedRef.current = id;
+    }
+
+    function handleEdit(image: GalleryImage) {
+        lightbox.close();
+        setEditingImage(image);
+    }
+
+    function handleSortChange(field: SortField, direction: SortDirection) {
+        setSortField(field);
+        setSortDirection(direction);
+    }
+
+    async function handleReorder(fromId: string, toId: string) {
+        const snapshot = [...images];
+        dispatch({ type: 'REORDER', fromId, toId });
+
+        const reordered = [...images];
+        const fromIdx = reordered.findIndex((img) => img.id === fromId);
+        const toIdx = reordered.findIndex((img) => img.id === toId);
+        if (fromIdx === -1 || toIdx === -1) return;
+        const [moved] = reordered.splice(fromIdx, 1);
+        reordered.splice(toIdx, 0, moved);
+
+        const items = reordered.map((img, i) => ({ id: img.id, order: i }));
+        const result = await reorderGalleryImagesAction(items);
+        if (!result.success) {
+            dispatch({ type: 'SET_IMAGES', images: snapshot });
+        }
     }
 
     async function handleBulkDelete() {
         const ids = selectedIdsArray();
-        const count = ids.length;
-        if (!count) return;
+        if (!ids.length) return;
 
-        const confirmed = window.confirm(
-            `Supprimer ${count} image${count > 1 ? 's' : ''} ? Cette action est irréversible.`,
-        );
-        if (!confirmed) return;
+        setDeleteConfirmOpen(false);
 
         const snapshot = [...images];
         dispatch({ type: 'DELETE_SELECTED' });
@@ -86,6 +154,8 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
     }
 
     async function handleSingleDelete(id: string) {
+        setSingleDeleteId(null);
+
         const snapshot = [...images];
         dispatch({ type: 'REMOVE_IMAGE', id });
 
@@ -101,37 +171,90 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
             <GalleryToolbar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+                selectionMode={selectionMode}
+                onSelectionModeChange={setSelectionMode}
                 onAdd={() => setAddDialogOpen(true)}
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
             />
 
-            <GalleryGrid
-                images={filteredImages}
-                selectedIds={selectedIds}
-                hasSelection={hasSelection}
-                onCardClick={handleCardClick}
-                onCardContextMenu={handleCardContextMenu}
-            />
+            {images.length === 0 ? (
+                <GalleryEmptyState onAdd={() => setAddDialogOpen(true)} />
+            ) : viewMode === 'masonry' ? (
+                <GalleryGrid
+                    images={filteredAndSortedImages}
+                    selectedIds={selectedIds}
+                    hasSelection={hasSelection}
+                    onCardClick={handleCardClick}
+                    onCardContextMenu={handleCardContextMenu}
+                    onEdit={handleEdit}
+                />
+            ) : (
+                <GalleryListView
+                    images={filteredAndSortedImages}
+                    selectedIds={selectedIds}
+                    hasSelection={hasSelection}
+                    onCardClick={handleCardClick}
+                    onToggleSelect={(id) => dispatch({ type: 'TOGGLE_SELECT', id })}
+                    onEdit={handleEdit}
+                    onDelete={(id) => setSingleDeleteId(id)}
+                    onSelectAll={() => dispatch({ type: 'SELECT_ALL' })}
+                    onReorder={handleReorder}
+                />
+            )}
 
             <Lightbox
-                images={filteredImages}
+                images={filteredAndSortedImages}
                 currentIndex={lightbox.currentIndex}
                 isOpen={lightbox.isOpen}
                 onClose={lightbox.close}
                 onNext={lightbox.next}
                 onPrev={lightbox.prev}
+                onEdit={handleEdit}
             />
 
-            <AddImageDialog
+            <AddImagesDialog
                 isOpen={addDialogOpen}
                 onClose={() => setAddDialogOpen(false)}
-                onImageAdded={(img) => dispatch({ type: 'ADD_IMAGE', image: img })}
+                onImagesAdded={(imgs) => dispatch({ type: 'ADD_IMAGES', images: imgs })}
+            />
+
+            <EditImageDialog
+                image={editingImage}
+                onClose={() => setEditingImage(null)}
+                onSaved={(updated) => dispatch({ type: 'UPDATE_IMAGE', image: updated })}
             />
 
             <SelectionToolbar
                 selectedCount={selectedCount}
-                onDelete={handleBulkDelete}
+                onDelete={() => setDeleteConfirmOpen(true)}
                 onSelectAll={() => dispatch({ type: 'SELECT_ALL' })}
                 onClearSelection={() => dispatch({ type: 'CLEAR_SELECTION' })}
+            />
+
+            <ConfirmDialog
+                isOpen={deleteConfirmOpen}
+                title="Supprimer les images"
+                message={`Supprimer ${selectedCount} image${selectedCount > 1 ? 's' : ''} ? Cette action est irréversible.`}
+                confirmLabel="Supprimer"
+                variant="danger"
+                onConfirm={handleBulkDelete}
+                onCancel={() => setDeleteConfirmOpen(false)}
+            />
+
+            <ConfirmDialog
+                isOpen={singleDeleteId !== null}
+                title="Supprimer l'image"
+                message="Supprimer cette image ? Cette action est irréversible."
+                confirmLabel="Supprimer"
+                variant="danger"
+                onConfirm={() => singleDeleteId && handleSingleDelete(singleDeleteId)}
+                onCancel={() => setSingleDeleteId(null)}
             />
         </div>
     );

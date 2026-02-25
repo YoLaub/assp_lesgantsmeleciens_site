@@ -5,6 +5,8 @@ import { SaveGalleryImageUseCase } from '@/features/gallery/domain/usecases/save
 import { GetAllGalleryImagesUseCase } from '@/features/gallery/domain/usecases/getAll-gallery-images.usecase';
 import { DeleteGalleryImageUseCase } from '@/features/gallery/domain/usecases/delete-gallery-image.usecase';
 import { BulkDeleteGalleryImagesUseCase } from '@/features/gallery/domain/usecases/bulk-delete-gallery-images.usecase';
+import { SaveManyGalleryImagesUseCase } from '@/features/gallery/domain/usecases/save-many-gallery-images.usecase';
+import { ReorderGalleryImagesUseCase } from '@/features/gallery/domain/usecases/reorder-gallery-images.usecase';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
@@ -61,6 +63,19 @@ export async function bulkDeleteGalleryImagesAction(ids: string[]) {
     );
 }
 
+export async function bulkSaveGalleryImagesAction(images: GalleryImage[]) {
+    const repository = new GalleryImageRepositoryImpl();
+    const useCase = new SaveManyGalleryImagesUseCase(repository);
+
+    return useCase.execute(images).match(
+        () => {
+            revalidatePath('/content/gallery');
+            return { success: true as const };
+        },
+        (error) => ({ success: false as const, error })
+    );
+}
+
 export async function uploadGalleryImageAction(formData: FormData) {
     const file = formData.get('file') as File;
 
@@ -95,6 +110,19 @@ export async function uploadGalleryImageAction(formData: FormData) {
     )
     .match(
         () => ({ success: true as const, url: `/uploads/gallery/${filename}` }),
+        (error) => ({ success: false as const, error })
+    );
+}
+
+export async function reorderGalleryImagesAction(items: { id: string; order: number }[]) {
+    const repository = new GalleryImageRepositoryImpl();
+    const useCase = new ReorderGalleryImagesUseCase(repository);
+
+    return useCase.execute(items).match(
+        () => {
+            revalidatePath('/content/gallery');
+            return { success: true as const };
+        },
         (error) => ({ success: false as const, error })
     );
 }
