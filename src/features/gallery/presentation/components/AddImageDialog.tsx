@@ -51,7 +51,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
 
         const result = await uploadGalleryImageAction(formData);
 
-        if (result.success && result.url) {
+        if (result.success) {
             setUploadedUrl(result.url);
             setTitle(file.name.replace(/\.[^/.]+$/, ''));
             setStep('metadata');
@@ -154,7 +154,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                     : 'Glissez une image ici ou cliquez pour sélectionner'
                                 }
                             </p>
-                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 5 Mo</p>
+                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 10 Mo</p>
                             <input
                                 ref={fileInputRef}
                                 type="file"

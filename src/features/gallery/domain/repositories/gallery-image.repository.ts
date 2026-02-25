@@ -1,9 +1,10 @@
 import { GalleryImage } from "@/features/gallery/domain/models/gallery-image.model";
+import { ResultAsync } from "@/shared/lib/result";
 
 export interface GalleryImageRepository {
-    getAll(): Promise<GalleryImage[]>;
-    getById(id: string): Promise<GalleryImage | null>;
-    save(image: GalleryImage): Promise<void>;
-    delete(id: string): Promise<void>;
-    bulkDelete(ids: string[]): Promise<void>;
+    getAll(): ResultAsync<GalleryImage[], string>;
+    getById(id: string): ResultAsync<GalleryImage | null, string>;
+    save(image: GalleryImage): ResultAsync<void, string>;
+    delete(id: string): ResultAsync<void, string>;
+    bulkDelete(ids: string[]): ResultAsync<void, string>;
 }

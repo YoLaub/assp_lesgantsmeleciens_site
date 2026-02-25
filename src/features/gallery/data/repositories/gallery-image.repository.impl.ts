@@ -1,3 +1,4 @@
+import { ResultAsync } from '@/shared/lib/result';
 import { GalleryImage } from '../../domain/models/gallery-image.model';
 import { GalleryImageRepository } from '../../domain/repositories/gallery-image.repository';
 import { GalleryImagePostgresDataSource } from '../datasources/gallery-image.postgres.datasource';
@@ -9,23 +10,23 @@ export class GalleryImageRepositoryImpl implements GalleryImageRepository {
         this.dataSource = new GalleryImagePostgresDataSource();
     }
 
-    async getAll(): Promise<GalleryImage[]> {
-        return await this.dataSource.getGalleryImages();
+    getAll(): ResultAsync<GalleryImage[], string> {
+        return this.dataSource.getGalleryImages();
     }
 
-    async getById(id: string): Promise<GalleryImage | null> {
-        return await this.dataSource.getGalleryImageById(id);
+    getById(id: string): ResultAsync<GalleryImage | null, string> {
+        return this.dataSource.getGalleryImageById(id);
     }
 
-    async save(image: GalleryImage): Promise<void> {
-        return await this.dataSource.upsertGalleryImage(image);
+    save(image: GalleryImage): ResultAsync<void, string> {
+        return this.dataSource.upsertGalleryImage(image);
     }
 
-    async delete(id: string): Promise<void> {
-        return await this.dataSource.deleteGalleryImage(id);
+    delete(id: string): ResultAsync<void, string> {
+        return this.dataSource.deleteGalleryImage(id);
     }
 
-    async bulkDelete(ids: string[]): Promise<void> {
-        return await this.dataSource.bulkDeleteGalleryImages(ids);
+    bulkDelete(ids: string[]): ResultAsync<void, string> {
+        return this.dataSource.bulkDeleteGalleryImages(ids);
     }
 }

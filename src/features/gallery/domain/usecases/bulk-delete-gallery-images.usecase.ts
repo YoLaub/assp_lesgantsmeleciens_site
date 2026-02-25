@@ -1,13 +1,14 @@
+import { ResultAsync, errAsync } from '@/shared/lib/result';
 import { GalleryImageRepository } from '../repositories/gallery-image.repository';
 
 export class BulkDeleteGalleryImagesUseCase {
     constructor(private repository: GalleryImageRepository) {}
 
-    async execute(ids: string[]): Promise<void> {
+    execute(ids: string[]): ResultAsync<void, string> {
         if (!ids.length) {
-            throw new Error("Aucune image sélectionnée pour la suppression.");
+            return errAsync("Aucune image sélectionnée pour la suppression.");
         }
 
-        return await this.repository.bulkDelete(ids);
+        return this.repository.bulkDelete(ids);
     }
 }

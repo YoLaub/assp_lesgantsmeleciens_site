@@ -75,13 +75,25 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         );
         if (!confirmed) return;
 
+        const snapshot = [...images];
         dispatch({ type: 'DELETE_SELECTED' });
-        await bulkDeleteGalleryImagesAction(ids);
+
+        const result = await bulkDeleteGalleryImagesAction(ids);
+        if (!result.success) {
+            dispatch({ type: 'SET_IMAGES', images: snapshot });
+            alert(result.error || 'Erreur lors de la suppression');
+        }
     }
 
     async function handleSingleDelete(id: string) {
+        const snapshot = [...images];
         dispatch({ type: 'REMOVE_IMAGE', id });
-        await deleteGalleryImageAction(id);
+
+        const result = await deleteGalleryImageAction(id);
+        if (!result.success) {
+            dispatch({ type: 'SET_IMAGES', images: snapshot });
+            alert(result.error || 'Erreur lors de la suppression');
+        }
     }
 
     return (
