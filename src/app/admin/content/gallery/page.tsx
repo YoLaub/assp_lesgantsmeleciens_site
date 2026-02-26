@@ -1,5 +1,5 @@
 import { GalleryManager } from '@/features/gallery/presentation/components/GalleryManager';
-import { getAllGalleryImagesAction } from '@/app/(admin)/content/actions/gallery.actions';
+import { getAllGalleryImagesAction } from '@/app/admin/content/actions/gallery.actions';
 
 export default async function AdminGalleryPage() {
     const result = await getAllGalleryImagesAction();

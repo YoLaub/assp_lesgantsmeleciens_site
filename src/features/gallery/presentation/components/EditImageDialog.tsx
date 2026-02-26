@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
-import { saveGalleryImageAction } from '@/app/(admin)/content/actions/gallery.actions';
+import { saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
 
 interface EditImageDialogProps {
     image: GalleryImage | null;
