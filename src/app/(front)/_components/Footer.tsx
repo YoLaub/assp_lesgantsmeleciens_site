@@ -1,4 +1,5 @@
 import {Instagram, Twitter, Youtube} from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -74,7 +75,9 @@ export function Footer() {
             <div className="bg-brand-orange py-4 text-white text-center">
                 <div className="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-12 text-sm font-light tracking-wide">
                     <span>{currentYear} - Les Gants Meleciens - Copyright @</span>
-                    <a href="#" className="hover:underline">Mentions légales</a>
+                    <Link href="/mentions-legales" className="hover:underline transition-colors">
+                        Mentions légales
+                    </Link>
                 </div>
             </div>
         </footer>
