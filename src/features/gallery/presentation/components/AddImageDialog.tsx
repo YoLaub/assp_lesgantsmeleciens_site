@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
-import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/(admin)/content/actions/gallery.actions';
+import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
 
 interface AddImageDialogProps {
     isOpen: boolean;

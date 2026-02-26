@@ -18,7 +18,7 @@ import {
     deleteGalleryImageAction,
     bulkDeleteGalleryImagesAction,
     reorderGalleryImagesAction,
-} from '@/app/(admin)/content/actions/gallery.actions';
+} from '@/app/admin/content/actions/gallery.actions';
 
 interface GalleryManagerProps {
     initialImages: GalleryImage[];

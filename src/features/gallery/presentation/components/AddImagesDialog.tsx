@@ -7,7 +7,7 @@ import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/dom
 import {
     uploadGalleryImageAction,
     bulkSaveGalleryImagesAction,
-} from '@/app/(admin)/content/actions/gallery.actions';
+} from '@/app/admin/content/actions/gallery.actions';
 
 type UploadStatus = 'pending' | 'uploading' | 'success' | 'error';
 
