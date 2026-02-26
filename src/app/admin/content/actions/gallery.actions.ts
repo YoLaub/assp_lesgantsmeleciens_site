@@ -13,6 +13,7 @@ import { ResultAsync } from '@/shared/lib/result';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { uploadPublicImage } from '@/shared/lib/upload';
 
 export async function getAllGalleryImagesAction() {
     const repository = new GalleryImageRepositoryImpl();
@@ -83,6 +84,7 @@ export async function uploadGalleryImageAction(formData: FormData) {
         return { success: false as const, error: 'Aucun fichier fourni' };
     }
 
+    // 1. Validation de sécurité (Client-side checks)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
         return { success: false as const, error: 'Fichier trop volumineux (max 5 Mo)' };
@@ -93,23 +95,16 @@ export async function uploadGalleryImageAction(formData: FormData) {
         return { success: false as const, error: 'Type de fichier invalide. Utilisez JPG, PNG ou WebP' };
     }
 
-    const ext = file.name.split('.').pop();
-    const filename = `${randomUUID()}.${ext}`;
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'gallery');
-    const filepath = join(uploadDir, filename);
-
+    // 2. Utilisation de la librairie partagée (Abstraction Cloudinary)
+    // On wrap l'appel dans ResultAsync pour maintenir la cohérence de gestion d'erreur du projet
     return ResultAsync.fromPromise(
-        file.arrayBuffer(),
-        () => "Erreur lors de la lecture du fichier"
-    )
-    .andThen((bytes) =>
-        ResultAsync.fromPromise(
-            mkdir(uploadDir, { recursive: true }).then(() => writeFile(filepath, Buffer.from(bytes))),
-            () => "Erreur lors de l'écriture du fichier sur le serveur"
-        )
-    )
-    .match(
-        () => ({ success: true as const, url: `/uploads/gallery/${filename}` }),
+        uploadPublicImage(file, 'gallery'), // 'gallery' est le sous-dossier Cloudinary
+        (error: unknown) => {
+            console.error('Cloudinary Upload Error:', error);
+            return error instanceof Error ? error.message : "Erreur lors de l'upload sur le cloud";
+        }
+    ).match(
+        (publicUrl) => ({ success: true as const, url: publicUrl }),
         (error) => ({ success: false as const, error })
     );
 }
