@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import {Clock, ShieldCheck, Lock} from "lucide-react";
 
 export const metadata: Metadata = {
     title: "Mentions Légales | Les Gants Méléciens",
@@ -46,13 +47,46 @@ export default function MentionsLegalesPage() {
                     </p>
                 </section>
 
-                <section>
-                    <h2 className="text-xl font-bold text-brand-red uppercase tracking-widest mb-4">5. Protection des données (RGPD)</h2>
-                    <p className="text-justify leading-relaxed">
-                        Conformément à la loi "Informatique et Libertés" et au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression des données vous concernant.
-                        Les informations collectées via le formulaire d'inscription sont strictement réservées à la gestion administrative du club et ne sont jamais cédées à des tiers.
-                    </p>
+                <section className="bg-slate-900 text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-6">
+                            <ShieldCheck className="text-brand-orange w-8 h-8" />
+                            <h2 className="text-2xl font-black uppercase italic tracking-tight">Protection des données (RGPD)</h2>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex gap-4">
+                                <Clock className="text-brand-orange shrink-0 w-6 h-6" />
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">Durée de conservation limitée</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed">
+                                        Conformément au principe de minimisation des données, les informations sensibles (notamment les certificats médicaux et pièces jointes) sont <strong>automatiquement supprimées de nos serveurs 365 jours</strong> après la date de soumission du dossier.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <Lock className="text-brand-orange shrink-0 w-6 h-6" />
+                                <div>
+                                    <h3 className="font-bold text-lg mb-1">Sécurité gérée par des experts</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed">
+                                        La gestion technique et la sécurisation de vos documents sont confiées à un <strong>service tiers spécialisé</strong> (infrastructure Cloudflare R2 / PostgreSQL sécurisé).
+                                        Ce dispositif assure un chiffrement des données au repos et en transit, isolant vos fichiers personnels de tout accès non autorisé.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-white/10 text-xs text-slate-400">
+                            <p>Pour exercer vos droits d'accès, de rectification ou de suppression, contactez-nous à : <span className="text-white">lesgantsmeleciens@gmail.com</span></p>
+                        </div>
+                    </div>
+                    {/* Décoration en arrière-plan */}
+                    <div className="absolute -right-10 -bottom-10 opacity-10">
+                        <ShieldCheck size={200} />
+                    </div>
                 </section>
+
             </div>
         </main>
     );
