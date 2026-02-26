@@ -14,9 +14,9 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                 <div className="w-full h-1 bg-gradient-to-r from-brand-orange to-orange-500 mb-8"></div>
             </div>
             <div className="max-w-7xl mx-auto flex flex-col items-center gap-12 md:gap-24">
-                <div className="flex flex-col-reverse items-center md:flex-row justify-between gap-12">
+                <div className="flex flex-col-reverse items-center lg:flex-row justify-between gap-12">
                     {/* Colonne gauche - Texte */}
-                    <div className="space-y-8 w-full md:w-1/3">
+                    <div className="space-y-8 w-full lg:w-1/3">
                         <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
                             {discipline.title}
                         </h2>
@@ -33,7 +33,7 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                     </p>
 
                     {/* Colonne droite - Citation et Image */}
-                    <div className="space-y-8 w-full  md:w-1/3">
+                    <div className="space-y-8 w-full  lg:w-1/3">
                         {/* Card Citation */}
                         <div className="border-4 border-brand-orange rounded-3xl p-8 bg-white shadow-lg ">
                             <div className="flex flex-col items-start justify-center gap-6">
