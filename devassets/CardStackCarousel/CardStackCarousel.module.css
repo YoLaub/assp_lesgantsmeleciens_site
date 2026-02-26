@@ -1,0 +1,160 @@
+/* =========================================
+   CardStackCarousel — 3D Perspective Card Fan
+   ========================================= */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+/* --- Cards viewport --- */
+
+.viewport {
+  position: relative;
+  width: 100%;
+  height: 550px;
+  perspective: 1200px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.cardsContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Card base --- */
+
+.card {
+  position: absolute;
+  width: 400px;
+  height: 500px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-dramatic);
+  cursor: pointer;
+  transition: all 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity, filter;
+}
+
+.card.selected {
+  box-shadow: 0 0 0 3px var(--accent-500), var(--shadow-glow);
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* --- Position classes --- */
+
+.posCenter {
+  transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
+  opacity: 1;
+  z-index: 5;
+  filter: blur(0px);
+}
+
+.posLeft1 {
+  transform: translateX(-45%) translateZ(-120px) rotateY(5deg) scale(0.85);
+  opacity: 0.7;
+  z-index: 3;
+  filter: blur(1px);
+}
+
+.posLeft2 {
+  transform: translateX(-80%) translateZ(-250px) rotateY(8deg) scale(0.7);
+  opacity: 0.4;
+  z-index: 1;
+  filter: blur(2px);
+}
+
+.posRight1 {
+  transform: translateX(45%) translateZ(-120px) rotateY(-5deg) scale(0.85);
+  opacity: 0.7;
+  z-index: 3;
+  filter: blur(1px);
+}
+
+.posRight2 {
+  transform: translateX(80%) translateZ(-250px) rotateY(-8deg) scale(0.7);
+  opacity: 0.4;
+  z-index: 1;
+  filter: blur(2px);
+}
+
+.posHidden {
+  transform: translateX(0) translateZ(-400px) scale(0.5);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(4px);
+}
+
+/* --- Navigation arrows --- */
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--radius-full);
+  background: var(--surface-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  z-index: 10;
+  transition: var(--transition-colors), var(--transition-transform);
+}
+
+.navButton:hover {
+  background: var(--surface-glass-hover);
+  color: var(--text-accent);
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-glow);
+}
+
+.prevButton {
+  left: 16px;
+}
+
+.nextButton {
+  right: 16px;
+}
+
+/* --- Grab cursor for drag --- */
+
+.viewport.dragging {
+  cursor: grabbing;
+}
+
+.viewport:not(.dragging) {
+  cursor: grab;
+}
+
+/* --- Empty state --- */
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 550px;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-md);
+}
