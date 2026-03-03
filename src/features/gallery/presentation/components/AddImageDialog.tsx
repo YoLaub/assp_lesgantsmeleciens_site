@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
@@ -170,10 +171,13 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                         <>
                             {/* Preview */}
                             <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
-                                <img
+                                <Image
                                     src={uploadedUrl}
                                     alt="Aperçu"
-                                    className="max-h-48 object-contain"
+                                    width={400}
+                                    height={300}
+                                    sizes="400px"
+                                    className="max-h-48 w-auto h-auto object-contain"
                                 />
                             </div>
 

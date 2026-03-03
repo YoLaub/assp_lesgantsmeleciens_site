@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
@@ -60,11 +61,13 @@ export function GalleryListRow({
 
             {/* Thumbnail */}
             <div className="py-2">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                    <img
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                    <Image
                         src={image.src}
                         alt={image.alt || image.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="48px"
+                        className="object-cover"
                     />
                 </div>
             </div>

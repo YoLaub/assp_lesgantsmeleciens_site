@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
 
 export default function HomePage() {
@@ -77,9 +78,12 @@ export default function HomePage() {
                                 <div className="absolute -top-15 -right-5 w-64 md:w-48 lg:w-150 h-1 md:h-1 bg-red-600 hidden xl:block"></div>
 
                                 <div className="w-full aspect-[3/4] overflow-hidden shadow-2xl relative ml-4 md:ml-6">
-                                    <img
+                                    <Image
                                         src="/gant_de_boxe.jpg"
                                         alt="Gants de boxe"
+                                        width={768}
+                                        height={1024}
+                                        sizes="(max-width: 768px) 100vw, 384px"
                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 transform group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-1000"></div>
@@ -131,11 +135,13 @@ export default function HomePage() {
 
                     {/* Colonne 2 : Image Centrale */}
                     <div className="relative flex flex-col items-center">
-                        <div className="w-full aspect-square max-w-[400px] overflow-hidden shadow-lg border border-gray-100">
-                            <img
+                        <div className="relative w-full aspect-square max-w-[400px] overflow-hidden shadow-lg border border-gray-100">
+                            <Image
                                 src="/accueil_valeur.png"
                                 alt="Entraînement boxe"
-                                className="w-full h-full object-cover grayscale"
+                                fill
+                                sizes="(max-width: 768px) 100vw, 400px"
+                                className="object-cover grayscale"
                             />
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
 import { ChevronLeft, ChevronRight, X, Pencil } from 'lucide-react';
@@ -55,10 +56,13 @@ export function Lightbox({
 
             {/* Image */}
             <div className="max-w-[90vw] max-h-[85vh] flex flex-col items-center gap-4">
-                <img
+                <Image
                     src={image.src}
                     alt={image.alt || image.title}
-                    className="max-w-full max-h-[75vh] object-contain rounded-lg"
+                    width={image.width || 1200}
+                    height={image.height || 800}
+                    sizes="90vw"
+                    className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg"
                 />
                 <div className="text-center">
                     <p className="text-white text-lg font-semibold">{image.title}</p>

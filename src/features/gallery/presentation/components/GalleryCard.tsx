@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Pencil } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
@@ -44,12 +45,13 @@ export function GalleryCard({
             aria-label={image.alt || image.title}
             aria-pressed={isSelected}
         >
-            <img
+            <Image
                 className="block w-full h-auto pointer-events-none"
                 src={image.src}
                 alt={image.alt || image.title}
-                width={image.width || undefined}
-                height={image.height || undefined}
+                width={image.width || 800}
+                height={image.height || 600}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
 
             {/* Edit button on hover */}

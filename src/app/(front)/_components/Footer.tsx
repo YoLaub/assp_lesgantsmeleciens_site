@@ -1,4 +1,5 @@
 import {Instagram, Twitter, Youtube} from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export function Footer() {
@@ -10,11 +11,13 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-30 items-start text-center md:text-left">
 
                     <div className="flex justify-center md:justify-start">
-                        <div className="w-48 h-48 flex items-center justify-center overflow-hidden">
-                            <img
+                        <div className="w-48 h-48 relative overflow-hidden">
+                            <Image
                                 src="/logoNoir.webp"
                                 alt="Logo Les Gants Meleciens"
-                                className="max-w-full max-h-full object-contain"
+                                fill
+                                sizes="192px"
+                                className="object-contain"
                             />
                         </div>
                     </div>
