@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, Bell } from 'lucide-react';
+import { UserButton } from '@clerk/nextjs';
 
 /**
  * Composant d'entête pour la zone d'administration.
@@ -33,15 +34,7 @@ export const AdminHeader = () => {
                 <div className="h-8 w-[1px] bg-slate-200 mx-2 hidden sm:block"></div>
 
                 {/* Profil Utilisateur */}
-                <div className="flex items-center gap-3">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-xs font-bold text-slate-900">C. Barbereau</p>
-                        <p className="text-[10px] text-slate-500 font-medium italic">Gestionnaire</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold text-xs shadow-md">
-                        CB
-                    </div>
-                </div>
+                <UserButton afterSignOutUrl="/login" />
             </div>
         </header>
     );

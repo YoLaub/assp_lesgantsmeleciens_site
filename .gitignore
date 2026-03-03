@@ -48,3 +48,5 @@ public/uploads/**
 /prisma/migrations/migration_lock.toml
 
 .playwright-mcp/
+# clerk configuration (can include secrets)
+/.clerk/
