@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function DisciplineCarousel({ images }: { images: string[] }) {
@@ -29,7 +30,7 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
             <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
                 {/* Image principale */}
                 <div className="relative w-full aspect-video"> {/* Utilise aspect-ratio pour être sûr */}
-                    <img src={images[currentIndex]} alt={images[currentIndex].slice(0,5)} className="w-full h-full object-cover" />
+                    <Image src={images[currentIndex]} alt={images[currentIndex].slice(0,5)} fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
                 </div>
 
                 {/* Bouton Précédent */}

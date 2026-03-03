@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useRef, useState} from 'react';
+import Image from 'next/image';
 import {Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload} from 'lucide-react';
 import {Editor} from "@tiptap/core";
 import {EditorContent, useEditor} from "@tiptap/react";
@@ -260,7 +261,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                     <Upload className="w-6 h-6 text-red-600 animate-pulse" />
                                 ) : photoCoach ? (
                                     <>
-                                        <img src={photoCoach} className="w-full h-full object-cover" alt="Coach" />
+                                        <Image src={photoCoach} alt="Coach" fill sizes="64px" className="object-cover" />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 type="button"
@@ -372,10 +373,12 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                         </div>
                                     ) : photo ? (
                                         <>
-                                            <img
+                                            <Image
                                                 src={photo}
                                                 alt={`Photo ${index + 1}`}
-                                                className="w-full h-full object-cover rounded-xl"
+                                                fill
+                                                sizes="200px"
+                                                className="object-cover rounded-xl"
                                             />
                                             <button
                                                 type="button"

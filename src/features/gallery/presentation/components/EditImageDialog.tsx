@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { X, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
@@ -81,10 +82,13 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
                 <div className="p-6 space-y-5">
                     {/* Preview */}
                     <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
-                        <img
+                        <Image
                             src={image.src}
                             alt={image.alt || image.title}
-                            className="max-h-48 object-contain"
+                            width={image.width || 400}
+                            height={image.height || 300}
+                            sizes="400px"
+                            className="max-h-48 w-auto h-auto object-contain"
                         />
                     </div>
 
