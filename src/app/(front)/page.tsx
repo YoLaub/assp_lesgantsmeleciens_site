@@ -1,7 +1,10 @@
 import Image from "next/image";
 import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
+import { getGalleryImagesByCategoryAction } from "@/app/admin/content/actions/gallery.actions";
+import { CardStackCarousel } from "@/features/gallery/presentation/components/CardStackCarousel";
 
-export default function HomePage() {
+export default async function HomePage() {
+    const carouselResult = await getGalleryImagesByCategoryAction('carousel');
     return (
         <main className=" container flex flex-col gap-20 pb-20 mx-auto px-5 md:px-0">
 
@@ -162,6 +165,16 @@ export default function HomePage() {
             </section>
 
             <section className="py-12 bg-white flex flex-col items-center px-4 md:px-8">
+                {/* Galerie Photo Carousel */}
+                {carouselResult.success && carouselResult.images.length > 0 && (
+                    <div className="max-w-6xl w-full mb-24">
+                        <h3 className="text-xl md:text-2xl tracking-[0.4em] text-gray-700 font-light uppercase text-center mb-8">
+                            Galerie Photo
+                        </h3>
+                        <CardStackCarousel images={carouselResult.images} />
+                    </div>
+                )}
+
                 {/* Titre Les Actus */}
                 <div className="w-full max-w-6xl mb-12">
                     <h2 className="text-2xl md:text-3xl tracking-[0.3em] font-bold text-gray-900 uppercase mb-6">
@@ -172,27 +185,7 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                {/* REMPLACER PAR LA GALERIE */}
-                <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 mb-24">
-                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-4xl overflow-hidden aspect-4/3">
-                            <img
-                                src="https://images.unsplash.com/photo-1552072092-7f9b8d63efcb?q=80&w=1000&auto=format&fit=crop"
-                                alt="Groupe de boxeurs"
-                                className="w-full h-full object-cover grayscale"
-                            />
-                        </div>
-                    </div>
-                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-4xl overflow-hidden aspect-4/3">
-                            <img
-                                src="https://images.unsplash.com/photo-1517438476312-10d79c077509?q=80&w=1000&auto=format&fit=crop"
-                                alt="Boxeur enfant"
-                                className="w-full h-full object-cover grayscale"
-                            />
-                        </div>
-                    </div>
-                </div>
+                
 
                 {/* REMPLACER PAR LA DERNIERE ACTUS */}
                 <article>

@@ -14,6 +14,10 @@ export class GalleryImageRepositoryImpl implements GalleryImageRepository {
         return this.dataSource.getGalleryImages();
     }
 
+    getByCategory(category: string): ResultAsync<GalleryImage[], string> {
+        return this.dataSource.getGalleryImagesByCategory(category);
+    }
+
     getById(id: string): ResultAsync<GalleryImage | null, string> {
         return this.dataSource.getGalleryImageById(id);
     }

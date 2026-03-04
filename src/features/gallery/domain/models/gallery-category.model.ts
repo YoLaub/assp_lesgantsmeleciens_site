@@ -5,6 +5,7 @@ export const GALLERY_CATEGORIES = [
     { value: 'portraits', label: 'Portraits' },
     { value: 'installations', label: 'Installations' },
     { value: 'autre', label: 'Autre' },
+    { value: 'carousel', label: 'Carousel' },
 ] as const;
 
 export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number]['value'];
