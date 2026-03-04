@@ -6,9 +6,12 @@ export function createMockRepository(): {
 } {
     return {
         getAll: vi.fn(),
+        getByCategory: vi.fn(),
         getById: vi.fn(),
         save: vi.fn(),
+        saveMany: vi.fn(),
         delete: vi.fn(),
         bulkDelete: vi.fn(),
+        reorderMany: vi.fn(),
     };
 }

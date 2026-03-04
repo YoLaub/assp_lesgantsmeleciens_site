@@ -6,7 +6,13 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function uploadPublicImage(file: File, subFolder: string): Promise<string> {
+export interface CloudinaryUploadResult {
+    url: string;
+    width: number;
+    height: number;
+}
+
+export async function uploadPublicImage(file: File, subFolder: string): Promise<CloudinaryUploadResult> {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Astuce Next.js Serverless : On convertit le buffer en Base64 pour Cloudinary
@@ -19,6 +25,9 @@ export async function uploadPublicImage(file: File, subFolder: string): Promise<
         resource_type: 'auto',
     });
 
-    // Retourne la VRAIE URL publique optimisée (https://res.cloudinary.com/...)
-    return response.secure_url;
+    return {
+        url: response.secure_url,
+        width: response.width,
+        height: response.height,
+    };
 }

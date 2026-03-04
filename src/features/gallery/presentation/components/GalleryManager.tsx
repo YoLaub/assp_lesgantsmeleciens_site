@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useTransition } from 'react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { useImageCollection } from '../hooks/useImageCollection';
 import { useLightbox } from '../hooks/useLightbox';
@@ -56,6 +56,7 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const lastSelectedRef = useRef<string | null>(null);
     const [singleDeleteId, setSingleDeleteId] = useState<string | null>(null);
+    const [, startTransition] = useTransition();
 
     const filteredAndSortedImages = useMemo(() => {
         let result = images;
@@ -119,7 +120,7 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         setSortDirection(direction);
     }
 
-    async function handleReorder(fromIndex: number, toIndex: number) {
+    function handleReorder(fromIndex: number, toIndex: number) {
         const fromId = filteredAndSortedImages[fromIndex]?.id;
         const toId = filteredAndSortedImages[toIndex]?.id;
         if (!fromId || !toId) return;
@@ -135,13 +136,16 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         reordered.splice(toIdx, 0, moved);
 
         const items = reordered.map((img, i) => ({ id: img.id, order: i }));
-        const result = await reorderGalleryImagesAction(items);
-        if (!result.success) {
-            dispatch({ type: 'SET_IMAGES', images: snapshot });
-        }
+
+        startTransition(async () => {
+            const result = await reorderGalleryImagesAction(items);
+            if (!result.success) {
+                dispatch({ type: 'SET_IMAGES', images: snapshot });
+            }
+        });
     }
 
-    async function handleBulkDelete() {
+    function handleBulkDelete() {
         const ids = selectedIdsArray();
         if (!ids.length) return;
 
@@ -150,24 +154,28 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         const snapshot = [...images];
         dispatch({ type: 'DELETE_SELECTED' });
 
-        const result = await bulkDeleteGalleryImagesAction(ids);
-        if (!result.success) {
-            dispatch({ type: 'SET_IMAGES', images: snapshot });
-            alert(result.error || 'Erreur lors de la suppression');
-        }
+        startTransition(async () => {
+            const result = await bulkDeleteGalleryImagesAction(ids);
+            if (!result.success) {
+                dispatch({ type: 'SET_IMAGES', images: snapshot });
+                alert(result.error || 'Erreur lors de la suppression');
+            }
+        });
     }
 
-    async function handleSingleDelete(id: string) {
+    function handleSingleDelete(id: string) {
         setSingleDeleteId(null);
 
         const snapshot = [...images];
         dispatch({ type: 'REMOVE_IMAGE', id });
 
-        const result = await deleteGalleryImageAction(id);
-        if (!result.success) {
-            dispatch({ type: 'SET_IMAGES', images: snapshot });
-            alert(result.error || 'Erreur lors de la suppression');
-        }
+        startTransition(async () => {
+            const result = await deleteGalleryImageAction(id);
+            if (!result.success) {
+                dispatch({ type: 'SET_IMAGES', images: snapshot });
+                alert(result.error || 'Erreur lors de la suppression');
+            }
+        });
     }
 
     return (

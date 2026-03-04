@@ -7,12 +7,10 @@ import { DeleteGalleryImageUseCase } from '@/features/gallery/domain/usecases/de
 import { BulkDeleteGalleryImagesUseCase } from '@/features/gallery/domain/usecases/bulk-delete-gallery-images.usecase';
 import { SaveManyGalleryImagesUseCase } from '@/features/gallery/domain/usecases/save-many-gallery-images.usecase';
 import { ReorderGalleryImagesUseCase } from '@/features/gallery/domain/usecases/reorder-gallery-images.usecase';
+import { GetGalleryImagesByCategoryUseCase } from '@/features/gallery/domain/usecases/getByCategory-gallery-images.usecase';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import { uploadPublicImage } from '@/shared/lib/upload';
 
 export async function getAllGalleryImagesAction() {
@@ -20,6 +18,16 @@ export async function getAllGalleryImagesAction() {
     const useCase = new GetAllGalleryImagesUseCase(repository);
 
     return useCase.execute().match(
+        (images) => ({ success: true as const, images }),
+        (error) => ({ success: false as const, error })
+    );
+}
+
+export async function getGalleryImagesByCategoryAction(category: string) {
+    const repository = new GalleryImageRepositoryImpl();
+    const useCase = new GetGalleryImagesByCategoryUseCase(repository);
+
+    return useCase.execute(category).match(
         (images) => ({ success: true as const, images }),
         (error) => ({ success: false as const, error })
     );
@@ -104,7 +112,7 @@ export async function uploadGalleryImageAction(formData: FormData) {
             return error instanceof Error ? error.message : "Erreur lors de l'upload sur le cloud";
         }
     ).match(
-        (publicUrl) => ({ success: true as const, url: publicUrl }),
+        (result) => ({ success: true as const, url: result.url, width: result.width, height: result.height }),
         (error) => ({ success: false as const, error })
     );
 }

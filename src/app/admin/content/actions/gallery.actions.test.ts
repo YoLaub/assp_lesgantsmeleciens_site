@@ -13,9 +13,7 @@ const mockDataSource = vi.hoisted(() => ({
 }));
 
 const mockRevalidatePath = vi.hoisted(() => vi.fn());
-const mockWriteFile = vi.hoisted(() => vi.fn());
-const mockMkdir = vi.hoisted(() => vi.fn());
-const mockRandomUUID = vi.hoisted(() => vi.fn());
+const mockUploadPublicImage = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/gallery/data/repositories/gallery-image.repository.impl', () => ({
     GalleryImageRepositoryImpl: class {
@@ -32,22 +30,9 @@ vi.mock('next/cache', () => ({
     revalidatePath: mockRevalidatePath,
 }));
 
-vi.mock('fs/promises', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('fs/promises')>();
-    return {
-        ...actual,
-        writeFile: mockWriteFile,
-        mkdir: mockMkdir,
-    };
-});
-
-vi.mock('crypto', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('crypto')>();
-    return {
-        ...actual,
-        randomUUID: mockRandomUUID,
-    };
-});
+vi.mock('@/shared/lib/upload', () => ({
+    uploadPublicImage: mockUploadPublicImage,
+}));
 
 import { okAsync, errAsync } from '@/shared/lib/result';
 import {
@@ -161,17 +146,17 @@ describe('gallery server actions', () => {
         }
 
         beforeEach(() => {
-            mockRandomUUID.mockReturnValue('test-uuid-1234');
-            mockMkdir.mockResolvedValue(undefined);
-            mockWriteFile.mockResolvedValue(undefined);
+            mockUploadPublicImage.mockResolvedValue({ url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
         });
 
         it('uploads valid JPEG and returns url', async () => {
-            const fd = makeFormDataWith(makeFile());
+            const file = makeFile();
+            const fd = makeFormDataWith(file);
 
             const result = await uploadGalleryImageAction(fd);
 
-            expect(result).toEqual({ success: true, url: '/uploads/gallery/test-uuid-1234.jpg' });
+            expect(result).toEqual({ success: true, url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
+            expect(mockUploadPublicImage).toHaveBeenCalledWith(expect.any(File), 'gallery');
         });
 
         it('rejects missing file', async () => {
@@ -208,9 +193,6 @@ describe('gallery server actions', () => {
                 ['photo.png', 'image/png'],
                 ['photo.webp', 'image/webp'],
             ]) {
-                mockMkdir.mockResolvedValue(undefined);
-                mockWriteFile.mockResolvedValue(undefined);
-
                 const fd = makeFormDataWith(makeFile(name, type));
 
                 const result = await uploadGalleryImageAction(fd);
@@ -219,26 +201,14 @@ describe('gallery server actions', () => {
             }
         });
 
-        it('returns error on arrayBuffer failure', async () => {
-            const file = makeFile();
-            const originalArrayBuffer = file.arrayBuffer.bind(file);
-            vi.spyOn(file, 'arrayBuffer').mockRejectedValue(new Error('Read error'));
-
-            const fd = makeFormDataWith(file);
-            const result = await uploadGalleryImageAction(fd);
-
-            expect(result.success).toBe(false);
-            expect((result as { error: string }).error).toContain('lecture du fichier');
-        });
-
-        it('returns error on writeFile failure', async () => {
-            mockWriteFile.mockRejectedValue(new Error('Disk full'));
+        it('returns error on upload failure', async () => {
+            mockUploadPublicImage.mockRejectedValue(new Error('Upload error'));
             const fd = makeFormDataWith(makeFile());
 
             const result = await uploadGalleryImageAction(fd);
 
             expect(result.success).toBe(false);
-            expect((result as { error: string }).error).toContain("écriture du fichier");
+            expect((result as { error: string }).error).toBe('Upload error');
         });
     });
 });

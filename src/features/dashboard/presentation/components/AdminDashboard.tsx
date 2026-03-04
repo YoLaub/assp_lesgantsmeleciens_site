@@ -85,7 +85,7 @@ export async function AdminDashboard() {
                             stats={{ label: "Dernière mise à jour", value: "Hier" }}
                             links={[
                                 { label: "Catalogue Disciplines", icon: Dumbbell, href: "/admin/content/disciplines" },
-                                { label: "Articles & Actualités", icon: Newspaper, href: "/admin/content/news" },
+                                { label: "Articles & Actualités", icon: Newspaper, href: "/admin/content/actualites" },
                                 { label: "Médiathèque (Galerie)", icon: ImageIcon, href: "/admin/content/gallery" }
                             ]}
                         />

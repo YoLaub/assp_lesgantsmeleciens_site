@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { Pencil } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
+import { getCloudinaryBlurUrl } from '@/features/gallery/lib/cloudinary';
 
 interface GalleryCardProps {
     image: GalleryImage;
@@ -24,6 +26,12 @@ export function GalleryCard({
     onContextMenu,
     onEdit,
 }: GalleryCardProps) {
+    const [loaded, setLoaded] = useState(false);
+
+    const hasRealDimensions = image.width > 0 && image.height > 0;
+    const aspectRatio = hasRealDimensions ? (image.height / image.width) * 100 : 0;
+    const blurUrl = getCloudinaryBlurUrl(image.src);
+
     return (
         <div
             className={`
@@ -35,8 +43,8 @@ export function GalleryCard({
                 ${isDimmed ? 'opacity-65 grayscale-[30%] hover:opacity-80 hover:grayscale-0' : ''}
             `}
             style={{
-                animation: 'fadeSlideUp 0.5s ease-out both',
-                animationDelay: `${index * 60}ms`,
+                animation: 'fadeSlideUp 0.4s ease-out both',
+                animationDelay: `${(index % 4) * 40}ms`,
             }}
             onClick={(e) => onClick(e)}
             onContextMenu={onContextMenu}
@@ -45,14 +53,31 @@ export function GalleryCard({
             aria-label={image.alt || image.title}
             aria-pressed={isSelected}
         >
-            <Image
-                className="block w-full h-auto pointer-events-none"
-                src={image.src}
-                alt={image.alt || image.title}
-                width={image.width || 800}
-                height={image.height || 600}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            />
+            {/* Image container with space reservation */}
+            <div
+                className="relative w-full bg-slate-100 overflow-hidden"
+                style={hasRealDimensions ? { paddingBottom: `${aspectRatio}%` } : undefined}
+            >
+                {/* Blur placeholder */}
+                {blurUrl && (
+                    <div
+                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${loaded ? 'opacity-0' : 'opacity-100'}`}
+                        style={{ backgroundImage: `url('${blurUrl}')` }}
+                        aria-hidden="true"
+                    />
+                )}
+
+                {/* Real image */}
+                <Image
+                    className={`block w-full h-auto pointer-events-none transition-opacity duration-500 ${hasRealDimensions ? 'absolute inset-0 w-full h-full object-cover' : ''} ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                    src={image.src}
+                    alt={image.alt || image.title}
+                    width={image.width || 800}
+                    height={image.height || 600}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    onLoad={() => setLoaded(true)}
+                />
+            </div>
 
             {/* Edit button on hover */}
             {onEdit && (

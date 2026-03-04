@@ -8,7 +8,7 @@ const NAV_LINKS = [
     { label: "Accueil", href: "/" },
     { label: "Disciplines", href: "/disciplines" },
     { label: "Inscription", href: "/inscription" },
-    { label: "Actualités", href: "#" },
+    { label: "Actualités", href: "/actualites" },
 ];
 
 export function StickyNavbar() {

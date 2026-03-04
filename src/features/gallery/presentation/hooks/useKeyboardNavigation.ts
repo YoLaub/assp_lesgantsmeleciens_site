@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface KeyboardCallbacks {
     onDelete?: () => void;
@@ -9,6 +9,9 @@ interface KeyboardCallbacks {
 }
 
 export function useKeyboardNavigation(callbacks: KeyboardCallbacks) {
+    const callbacksRef = useRef(callbacks);
+    callbacksRef.current = callbacks;
+
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
             const target = e.target as HTMLElement;
@@ -19,26 +22,26 @@ export function useKeyboardNavigation(callbacks: KeyboardCallbacks) {
 
             switch (e.key) {
                 case 'Delete':
-                    callbacks.onDelete?.();
+                    callbacksRef.current.onDelete?.();
                     break;
                 case 'Escape':
-                    callbacks.onEscape?.();
+                    callbacksRef.current.onEscape?.();
                     break;
                 case 'a':
                     if (e.ctrlKey || e.metaKey) {
-                        callbacks.onSelectAll?.(e);
+                        callbacksRef.current.onSelectAll?.(e);
                     }
                     break;
                 case 'ArrowLeft':
-                    callbacks.onArrowLeft?.();
+                    callbacksRef.current.onArrowLeft?.();
                     break;
                 case 'ArrowRight':
-                    callbacks.onArrowRight?.();
+                    callbacksRef.current.onArrowRight?.();
                     break;
             }
         }
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [callbacks]);
+    }, []);
 }

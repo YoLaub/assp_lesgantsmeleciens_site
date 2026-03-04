@@ -26,6 +26,29 @@ export class GalleryImagePostgresDataSource {
         );
     }
 
+    getGalleryImagesByCategory(category: string): ResultAsync<GalleryImage[], string> {
+        return ResultAsync.fromPromise(
+            prisma.galleryImage.findMany({
+                where: { category },
+                orderBy: { order: 'asc' },
+            }),
+            () => 'Erreur lors de la récupération des images par catégorie'
+        ).map((images) =>
+            images.map((img) => ({
+                id: img.id,
+                title: img.title,
+                alt: img.alt,
+                category: img.category,
+                src: img.src,
+                width: img.width,
+                height: img.height,
+                order: img.order,
+                createdAt: img.createdAt,
+                updatedAt: img.updatedAt,
+            }))
+        );
+    }
+
     getGalleryImageById(id: string): ResultAsync<GalleryImage | null, string> {
         return ResultAsync.fromPromise(
             prisma.galleryImage.findUnique({ where: { id } }),

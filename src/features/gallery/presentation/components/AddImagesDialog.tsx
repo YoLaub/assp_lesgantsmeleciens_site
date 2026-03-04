@@ -20,6 +20,8 @@ interface PendingImage {
     category: GalleryCategory | '';
     status: UploadStatus;
     uploadedUrl: string;
+    width: number;
+    height: number;
     error: string;
 }
 
@@ -61,6 +63,8 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 category: globalCategory,
                 status: 'pending' as const,
                 uploadedUrl: '',
+                width: 0,
+                height: 0,
                 error: '',
             }));
 
@@ -118,26 +122,39 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
         setError('');
         setStep('uploading');
 
+        const CONCURRENCY = 3;
         const results: PendingImage[] = [...pendingImages];
 
-        // Upload files sequentially
-        for (let i = 0; i < results.length; i++) {
-            const img = results[i];
+        async function uploadOne(index: number) {
+            const img = results[index];
+
             setPendingImages((prev) =>
                 prev.map((p) => (p.id === img.id ? { ...p, status: 'uploading' } : p))
             );
 
             const formData = new FormData();
             formData.append('file', img.file);
-            const uploadResult = await uploadGalleryImageAction(formData);
 
-            if (uploadResult.success) {
-                results[i] = { ...results[i], status: 'success', uploadedUrl: uploadResult.url };
-            } else {
-                results[i] = { ...results[i], status: 'error', error: uploadResult.error || 'Erreur' };
+            try {
+                const uploadResult = await uploadGalleryImageAction(formData);
+                if (uploadResult.success) {
+                    results[index] = { ...results[index], status: 'success', uploadedUrl: uploadResult.url, width: uploadResult.width, height: uploadResult.height };
+                } else {
+                    results[index] = { ...results[index], status: 'error', error: uploadResult.error || 'Erreur' };
+                }
+            } catch {
+                results[index] = { ...results[index], status: 'error', error: 'Erreur réseau' };
             }
 
             setPendingImages([...results]);
+        }
+
+        for (let i = 0; i < results.length; i += CONCURRENCY) {
+            const batch = [];
+            for (let j = i; j < Math.min(i + CONCURRENCY, results.length); j++) {
+                batch.push(uploadOne(j));
+            }
+            await Promise.allSettled(batch);
         }
 
         // Save metadata for all successful uploads
@@ -149,8 +166,8 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 alt: img.alt.trim(),
                 category: img.category,
                 src: img.uploadedUrl,
-                width: 0,
-                height: 0,
+                width: img.width,
+                height: img.height,
                 order: 0,
             }));
 
