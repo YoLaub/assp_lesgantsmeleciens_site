@@ -20,6 +20,8 @@ interface PendingImage {
     category: GalleryCategory | '';
     status: UploadStatus;
     uploadedUrl: string;
+    width: number;
+    height: number;
     error: string;
 }
 
@@ -61,6 +63,8 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 category: globalCategory,
                 status: 'pending' as const,
                 uploadedUrl: '',
+                width: 0,
+                height: 0,
                 error: '',
             }));
 
@@ -134,7 +138,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
             try {
                 const uploadResult = await uploadGalleryImageAction(formData);
                 if (uploadResult.success) {
-                    results[index] = { ...results[index], status: 'success', uploadedUrl: uploadResult.url };
+                    results[index] = { ...results[index], status: 'success', uploadedUrl: uploadResult.url, width: uploadResult.width, height: uploadResult.height };
                 } else {
                     results[index] = { ...results[index], status: 'error', error: uploadResult.error || 'Erreur' };
                 }
@@ -162,8 +166,8 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 alt: img.alt.trim(),
                 category: img.category,
                 src: img.uploadedUrl,
-                width: 0,
-                height: 0,
+                width: img.width,
+                height: img.height,
                 order: 0,
             }));
 

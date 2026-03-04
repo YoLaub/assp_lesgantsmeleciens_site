@@ -146,7 +146,7 @@ describe('gallery server actions', () => {
         }
 
         beforeEach(() => {
-            mockUploadPublicImage.mockResolvedValue('https://res.cloudinary.com/test/gallery/photo.jpg');
+            mockUploadPublicImage.mockResolvedValue({ url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
         });
 
         it('uploads valid JPEG and returns url', async () => {
@@ -155,7 +155,7 @@ describe('gallery server actions', () => {
 
             const result = await uploadGalleryImageAction(fd);
 
-            expect(result).toEqual({ success: true, url: 'https://res.cloudinary.com/test/gallery/photo.jpg' });
+            expect(result).toEqual({ success: true, url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
             expect(mockUploadPublicImage).toHaveBeenCalledWith(expect.any(File), 'gallery');
         });
 

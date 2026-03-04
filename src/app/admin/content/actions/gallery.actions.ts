@@ -101,7 +101,7 @@ export async function uploadGalleryImageAction(formData: FormData) {
             return error instanceof Error ? error.message : "Erreur lors de l'upload sur le cloud";
         }
     ).match(
-        (publicUrl) => ({ success: true as const, url: publicUrl }),
+        (result) => ({ success: true as const, url: result.url, width: result.width, height: result.height }),
         (error) => ({ success: false as const, error })
     );
 }

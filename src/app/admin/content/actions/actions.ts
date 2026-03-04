@@ -56,10 +56,10 @@ export async function uploadPhotoAction(formData: FormData) {
 
         // 2. Magie Cloudinary : on appelle juste notre librairie
         // Elle se charge de convertir le fichier et de l'envoyer dans le cloud
-        const publicUrl = await uploadPublicImage(file, 'disciplines');
+        const result = await uploadPublicImage(file, 'disciplines');
 
         // On retourne la vraie URL en https://res.cloudinary.com/...
-        return { success: true, url: publicUrl };
+        return { success: true, url: result.url };
 
     } catch (error: unknown) {
         console.error('Upload error:', error);
