@@ -2,6 +2,7 @@ import Image from "next/image";
 import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
 import { getGalleryImagesByCategoryAction } from "@/app/admin/content/actions/gallery.actions";
 import { CardStackCarousel } from "@/features/gallery/presentation/components/CardStackCarousel";
+import { ActualitesSection } from "@/features/actualites/presentation/components/front/ActualitesSection";
 
 export default async function HomePage() {
     const carouselResult = await getGalleryImagesByCategoryAction('carousel');
@@ -175,51 +176,8 @@ export default async function HomePage() {
                     </div>
                 )}
 
-                {/* Titre Les Actus */}
-                <div className="w-full max-w-6xl mb-12">
-                    <h2 className="text-2xl md:text-3xl tracking-[0.3em] font-bold text-gray-900 uppercase mb-6">
-                        Les actus
-                    </h2>
-                    <p className="text-gray-600 text-lg max-w-4xl font-light leading-relaxed">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                    </p>
-                </div>
-
-                
-
-                {/* REMPLACER PAR LA DERNIERE ACTUS */}
-                <article>
-                <div className="text-center space-y-6 mb-24">
-                    <h3 className="text-xl md:text-2xl tracking-[0.4em] text-gray-700 font-light uppercase">
-                        L'evenement de décembre
-                    </h3>
-                    <div className="space-y-2">
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            LE REPAS DES AMIS DU CLUB
-                        </p>
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            ON SE DONNE RENDEZ VOUS LE 28
-                        </p>
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            DECEMBRE A 18H30 !
-                        </p>
-                    </div>
-                </div>
-
-                {/* Illustration Boxing Day */}
-                <div className="relative w-full max-w-4xl flex flex-col items-center py-12">
-                    <div className="relative flex items-center justify-center">
-                        {/* SVG simple pour simuler le style de l'illustration de boxe */}
-                        <svg viewBox="0 0 400 200" className="w-full max-w-lg opacity-80 h-auto">
-                            <text x="10%" y="80%" className="text-6xl font-serif italic fill-gray-900 select-none" style={{ fontFamily: 'cursive' }}>Boxing</text>
-                            <text x="75%" y="85%" className="text-4xl font-sans font-light fill-gray-900 tracking-widest">Day</text>
-                            {/* Cercle rouge décoratif */}
-                            <circle cx="280" cy="120" r="40" fill="none" stroke="red" strokeWidth="2" opacity="0.6" />
-                        </svg>
-
-                    </div>
-                </div>
-                </article>
+                {/* Actualités */}
+                <ActualitesSection />
             </section>
 
         </main>

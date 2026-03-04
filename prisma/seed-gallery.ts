@@ -7,7 +7,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const categories = ["entrainements", "competitions", "evenements", "portraits", "installations", "autre"];
+const categories = ["entrainements", "competitions", "evenements", "portraits", "installations", "autre", "carousel"];
 
 const titles = [
   "Entraînement boxe anglaise",
