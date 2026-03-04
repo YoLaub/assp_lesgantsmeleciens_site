@@ -10,9 +10,6 @@ import { ReorderGalleryImagesUseCase } from '@/features/gallery/domain/usecases/
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 import { uploadPublicImage } from '@/shared/lib/upload';
 
 export async function getAllGalleryImagesAction() {

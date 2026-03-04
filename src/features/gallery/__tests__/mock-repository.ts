@@ -8,7 +8,9 @@ export function createMockRepository(): {
         getAll: vi.fn(),
         getById: vi.fn(),
         save: vi.fn(),
+        saveMany: vi.fn(),
         delete: vi.fn(),
         bulkDelete: vi.fn(),
+        reorderMany: vi.fn(),
     };
 }

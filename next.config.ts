@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
                 port: '',
                 pathname: '/**',
             },
+            // For development purposes, allowing images from picsum.photos, remove this in production.
+            {
+                protocol: 'https',
+                hostname: 'picsum.photos',
+                pathname: '/**',
+            },
         ],
     },
 };

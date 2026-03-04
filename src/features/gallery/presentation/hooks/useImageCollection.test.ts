@@ -147,4 +147,153 @@ describe('useImageCollection', () => {
             expect(result.current.selectedIdsArray()).toHaveLength(2);
         });
     });
+
+    describe('RANGE_SELECT', () => {
+        it('selects all images between fromId and toId (inclusive)', () => {
+            const images = makeGalleryImageList(5);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'RANGE_SELECT', fromId: 'img-2', toId: 'img-4' }));
+
+            expect(result.current.selectedIds.size).toBe(3);
+            expect(result.current.selectedIds.has('img-2')).toBe(true);
+            expect(result.current.selectedIds.has('img-3')).toBe(true);
+            expect(result.current.selectedIds.has('img-4')).toBe(true);
+        });
+
+        it('works when fromId index > toId index (reversed range)', () => {
+            const images = makeGalleryImageList(5);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'RANGE_SELECT', fromId: 'img-4', toId: 'img-2' }));
+
+            expect(result.current.selectedIds.size).toBe(3);
+            expect(result.current.selectedIds.has('img-2')).toBe(true);
+            expect(result.current.selectedIds.has('img-3')).toBe(true);
+            expect(result.current.selectedIds.has('img-4')).toBe(true);
+        });
+
+        it('adds to existing selection', () => {
+            const images = makeGalleryImageList(5);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'TOGGLE_SELECT', id: 'img-1' }));
+            act(() => result.current.dispatch({ type: 'RANGE_SELECT', fromId: 'img-3', toId: 'img-4' }));
+
+            expect(result.current.selectedIds.size).toBe(3);
+            expect(result.current.selectedIds.has('img-1')).toBe(true);
+            expect(result.current.selectedIds.has('img-3')).toBe(true);
+            expect(result.current.selectedIds.has('img-4')).toBe(true);
+        });
+
+        it('returns unchanged state if fromId not found', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'RANGE_SELECT', fromId: 'nonexistent', toId: 'img-2' }));
+
+            expect(result.current.selectedIds.size).toBe(0);
+        });
+
+        it('returns unchanged state if toId not found', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'RANGE_SELECT', fromId: 'img-1', toId: 'nonexistent' }));
+
+            expect(result.current.selectedIds.size).toBe(0);
+        });
+    });
+
+    describe('REORDER', () => {
+        it('moves image from one position to another', () => {
+            const images = makeGalleryImageList(4);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'REORDER', fromId: 'img-1', toId: 'img-3' }));
+
+            const ids = result.current.images.map((i) => i.id);
+            expect(ids).toEqual(['img-2', 'img-3', 'img-1', 'img-4']);
+        });
+
+        it('reindexes all order fields after move', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'REORDER', fromId: 'img-3', toId: 'img-1' }));
+
+            result.current.images.forEach((img, i) => {
+                expect(img.order).toBe(i);
+            });
+        });
+
+        it('returns unchanged state if fromId not found', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'REORDER', fromId: 'nonexistent', toId: 'img-2' }));
+
+            expect(result.current.images.map((i) => i.id)).toEqual(['img-1', 'img-2', 'img-3']);
+        });
+
+        it('returns unchanged state if toId not found', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            act(() => result.current.dispatch({ type: 'REORDER', fromId: 'img-1', toId: 'nonexistent' }));
+
+            expect(result.current.images.map((i) => i.id)).toEqual(['img-1', 'img-2', 'img-3']);
+        });
+    });
+
+    describe('ADD_IMAGES', () => {
+        it('appends multiple images to the list', () => {
+            const images = makeGalleryImageList(2);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            const newImages = [
+                makeGalleryImage({ id: 'new-1', title: 'New 1' }),
+                makeGalleryImage({ id: 'new-2', title: 'New 2' }),
+            ];
+            act(() => result.current.dispatch({ type: 'ADD_IMAGES', images: newImages }));
+
+            expect(result.current.images).toHaveLength(4);
+            expect(result.current.images[2].id).toBe('new-1');
+            expect(result.current.images[3].id).toBe('new-2');
+        });
+
+        it('appends to empty list', () => {
+            const { result } = renderHook(() => useImageCollection([]));
+
+            const newImages = [makeGalleryImage({ id: 'new-1' })];
+            act(() => result.current.dispatch({ type: 'ADD_IMAGES', images: newImages }));
+
+            expect(result.current.images).toHaveLength(1);
+        });
+    });
+
+    describe('UPDATE_IMAGE', () => {
+        it('replaces the image matching by id', () => {
+            const images = makeGalleryImageList(3);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            const updated = makeGalleryImage({ id: 'img-2', title: 'Updated Title' });
+            act(() => result.current.dispatch({ type: 'UPDATE_IMAGE', image: updated }));
+
+            expect(result.current.images[1].title).toBe('Updated Title');
+            expect(result.current.images).toHaveLength(3);
+        });
+
+        it('does not change images if id not found', () => {
+            const images = makeGalleryImageList(2);
+            const { result } = renderHook(() => useImageCollection(images));
+
+            const updated = makeGalleryImage({ id: 'nonexistent', title: 'Nope' });
+            act(() => result.current.dispatch({ type: 'UPDATE_IMAGE', image: updated }));
+
+            expect(result.current.images).toHaveLength(2);
+            expect(result.current.images[0].title).toBe('Image 1');
+            expect(result.current.images[1].title).toBe('Image 2');
+        });
+    });
 });
