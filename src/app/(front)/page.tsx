@@ -1,6 +1,11 @@
-import {ChevronUpMod, ChevronDownMod} from "@/app/(admin)/_components/icon"
+import Image from "next/image";
+import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
+import { getGalleryImagesByCategoryAction } from "@/app/admin/content/actions/gallery.actions";
+import { CardStackCarousel } from "@/features/gallery/presentation/components/CardStackCarousel";
+import { ActualitesSection } from "@/features/actualites/presentation/components/front/ActualitesSection";
 
-export default function HomePage() {
+export default async function HomePage() {
+    const carouselResult = await getGalleryImagesByCategoryAction('carousel');
     return (
         <main className=" container flex flex-col gap-20 pb-20 mx-auto px-5 md:px-0">
 
@@ -77,9 +82,12 @@ export default function HomePage() {
                                 <div className="absolute -top-15 -right-5 w-64 md:w-48 lg:w-150 h-1 md:h-1 bg-red-600 hidden xl:block"></div>
 
                                 <div className="w-full aspect-[3/4] overflow-hidden shadow-2xl relative ml-4 md:ml-6">
-                                    <img
+                                    <Image
                                         src="/gant_de_boxe.jpg"
                                         alt="Gants de boxe"
+                                        width={768}
+                                        height={1024}
+                                        sizes="(max-width: 768px) 100vw, 384px"
                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 transform group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-1000"></div>
@@ -131,11 +139,13 @@ export default function HomePage() {
 
                     {/* Colonne 2 : Image Centrale */}
                     <div className="relative flex flex-col items-center">
-                        <div className="w-full aspect-square max-w-[400px] overflow-hidden shadow-lg border border-gray-100">
-                            <img
+                        <div className="relative w-full aspect-square max-w-[400px] overflow-hidden shadow-lg border border-gray-100">
+                            <Image
                                 src="/accueil_valeur.png"
                                 alt="Entraînement boxe"
-                                className="w-full h-full object-cover grayscale"
+                                fill
+                                sizes="(max-width: 768px) 100vw, 400px"
+                                className="object-cover grayscale"
                             />
                         </div>
                     </div>
@@ -156,71 +166,21 @@ export default function HomePage() {
             </section>
 
             <section className="py-12 bg-white flex flex-col items-center px-4 md:px-8">
-                {/* Titre Les Actus */}
-                <div className="w-full max-w-6xl mb-12">
-                    <h2 className="text-2xl md:text-3xl tracking-[0.3em] font-bold text-gray-900 uppercase mb-6">
-                        Les actus
-                    </h2>
-                    <p className="text-gray-600 text-lg max-w-4xl font-light leading-relaxed">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                    </p>
-                </div>
-
-                {/* REMPLACER PAR LA GALERIE */}
-                <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 mb-24">
-                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-4xl overflow-hidden aspect-4/3">
-                            <img
-                                src="https://images.unsplash.com/photo-1552072092-7f9b8d63efcb?q=80&w=1000&auto=format&fit=crop"
-                                alt="Groupe de boxeurs"
-                                className="w-full h-full object-cover grayscale"
-                            />
-                        </div>
+                {/* Galerie Photo Carousel */}
+                {carouselResult.success && carouselResult.images.length > 0 && (
+                    <div className="max-w-6xl w-full mb-24">
+                        <h3 className="text-xl md:text-2xl tracking-[0.4em] text-gray-700 font-light uppercase text-center mb-8">
+                            Galerie Photo
+                        </h3>
+                        <CardStackCarousel images={carouselResult.images} />
                     </div>
-                    <div className="border-12 border-amber-700 rounded-[3rem] p-4 bg-white shadow-xl">
-                        <div className="rounded-4xl overflow-hidden aspect-4/3">
-                            <img
-                                src="https://images.unsplash.com/photo-1517438476312-10d79c077509?q=80&w=1000&auto=format&fit=crop"
-                                alt="Boxeur enfant"
-                                className="w-full h-full object-cover grayscale"
-                            />
-                        </div>
-                    </div>
-                </div>
+                )}
 
-                {/* REMPLACER PAR LA DERNIERE ACTUS */}
-                <article>
-                <div className="text-center space-y-6 mb-24">
-                    <h3 className="text-xl md:text-2xl tracking-[0.4em] text-gray-700 font-light uppercase">
-                        L'evenement de décembre
-                    </h3>
-                    <div className="space-y-2">
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            LE REPAS DES AMIS DU CLUB
-                        </p>
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            ON SE DONNE RENDEZ VOUS LE 28
-                        </p>
-                        <p className="text-gray-900 tracking-[0.2em] font-medium text-lg">
-                            DECEMBRE A 18H30 !
-                        </p>
-                    </div>
-                </div>
+                {/* Ligne rouge décorative entre galerie et actualités */}
+                <div className="w-1/3 h-1 bg-brand-red mb-20"></div>
 
-                {/* Illustration Boxing Day */}
-                <div className="relative w-full max-w-4xl flex flex-col items-center py-12">
-                    <div className="relative flex items-center justify-center">
-                        {/* SVG simple pour simuler le style de l'illustration de boxe */}
-                        <svg viewBox="0 0 400 200" className="w-full max-w-lg opacity-80 h-auto">
-                            <text x="10%" y="80%" className="text-6xl font-serif italic fill-gray-900 select-none" style={{ fontFamily: 'cursive' }}>Boxing</text>
-                            <text x="75%" y="85%" className="text-4xl font-sans font-light fill-gray-900 tracking-widest">Day</text>
-                            {/* Cercle rouge décoratif */}
-                            <circle cx="280" cy="120" r="40" fill="none" stroke="red" strokeWidth="2" opacity="0.6" />
-                        </svg>
-
-                    </div>
-                </div>
-                </article>
+                {/* Actualités */}
+                <ActualitesSection />
             </section>
 
         </main>

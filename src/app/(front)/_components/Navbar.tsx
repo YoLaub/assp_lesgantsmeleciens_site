@@ -42,7 +42,7 @@ export function StickyNavbar() {
                         {/* Contact Button - Desktop */}
                         <div className="hidden md:flex items-center mix-blend-difference">
                             <Link
-                                href="/adhesion"
+                                href="/inscription"
                                 className="rounded-sm border-2 border-white px-4 py-2 text-lg font-medium text-white transition-transform hover:scale-105"
                             >
                                 Contact
@@ -82,7 +82,7 @@ export function StickyNavbar() {
                                 ))}
                                 <li className="pt-2 border-t border-white/20">
                                     <Link
-                                        href="/adhesion"
+                                        href="/inscription"
                                         className="block text-center rounded-sm border-2 border-white px-4 py-2 text-lg font-medium text-white transition-transform hover:scale-105"
                                         onClick={() => setMobileMenuOpen(false)}
                                     >

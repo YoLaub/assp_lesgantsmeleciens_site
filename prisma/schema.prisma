@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Discipline {
+  id          String   @id @default(uuid())
+  title       String
+  coach       String
+  photo_coach String?
+  category    String
+  citation    String?  @db.Text
+  description String   @db.Text
+  tags        String[] // Tableau natif PostgreSQL
+  active      Boolean  @default(true)
+  photo       String[]
+
+  seo Json
+
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum InscriptionStatus {
+  PENDING
+  VALIDATED
+  INCOMPLETE
+  UNPAID
+}
+
+enum PaymentMethod {
+  STRIPE
+  CHECK
+  CASH
+}
+
+enum DocumentType {
+  MEDICAL_CERTIFICATE
+  ID_PHOTO
+  ADDRESS_PROOF
+  CAF_VOUCHER
+  OTHER
+}
+
+model Inscription {
+  id         String   @id @default(uuid())
+  firstName  String
+  lastName   String
+  email      String   @unique
+  phone      String
+  birthDate  DateTime
+  address    String
+  postalCode String
+  city       String
+
+  // Relation : Un adhérent peut avoir plusieurs documents
+  documents Document[]
+
+  // État du dossier
+  status          InscriptionStatus @default(PENDING)
+  paymentMethod   PaymentMethod
+  stripeSessionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id   String       @id @default(uuid())
+  type DocumentType
+  name String?
+  url  String
+  // isVerified Boolean @default(false)
+
+  adherent   Inscription @relation(fields: [adherentId], references: [id], onDelete: Cascade)
+  adherentId String
+
+  createdAt DateTime @default(now())
+}
+
+model Actualite {
+  id          String    @id @default(uuid())
+  title       String
+  description String    @db.Text
+  tags        String[]
+  active      Boolean   @default(true)
+  featured    Boolean   @default(false)
+  photo       String[]
+  seo         Json
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model GalleryImage {
+  id        String   @id @default(uuid())
+  title     String
+  alt       String   @default("")
+  category  String   @default("")
+  src       String
+  width     Int      @default(0)
+  height    Int      @default(0)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,4 +1,6 @@
 import {Instagram, Twitter, Youtube} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -6,14 +8,16 @@ export function Footer() {
     return (
         <footer className="bg-brand-light-gray pt-16 font-sans border-t border-gray-200">
             <div className="max-w-6xl mx-auto px-4 md:px-8 pb-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-10 items-start text-center md:text-left">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-30 items-start text-center md:text-left">
 
                     <div className="flex justify-center md:justify-start">
-                        <div className="w-56 h-56 flex items-center justify-center overflow-hidden">
-                            <img
+                        <div className="w-48 h-48 relative overflow-hidden">
+                            <Image
                                 src="/logoNoir.webp"
                                 alt="Logo Les Gants Meleciens"
-                                className="max-w-full max-h-full object-contain"
+                                fill
+                                sizes="192px"
+                                className="object-contain"
                             />
                         </div>
                     </div>
@@ -74,7 +78,9 @@ export function Footer() {
             <div className="bg-brand-orange py-4 text-white text-center">
                 <div className="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-center space-y-2 md:space-y-0 md:space-x-12 text-sm font-light tracking-wide">
                     <span>{currentYear} - Les Gants Meleciens - Copyright @</span>
-                    <a href="#" className="hover:underline">Mentions légales</a>
+                    <Link href="/mentions-legales" className="hover:underline transition-colors">
+                        Mentions légales
+                    </Link>
                 </div>
             </div>
         </footer>

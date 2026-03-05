@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export function Header() {
@@ -8,10 +9,14 @@ export function Header() {
         <header className="relative h-87.5 sm:h-112.5 md:h-137.5 lg:h-162.5 xl:h-100 -top-16 border-b border-zinc-200">
             {/* Background Image */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
-                <img
+                <Image
                     src="/Header.webp"
                     alt="Background Header"
-                    className="w-full h-full object-cover object-center transform -scale-x-100"
+                    fill
+                    priority
+                    unoptimized
+                    sizes="100vw"
+                    className="object-cover object-center transform -scale-x-100"
                 />
             </div>
 
@@ -27,9 +32,12 @@ export function Header() {
                            z-10 transition-transform hover:scale-105 duration-300"
                 aria-label="Retour à l'accueil"
             >
-                <img
+                <Image
                     src="/logoBlanc.webp"
                     alt="Logo association Les Gants Méléciens"
+                    width={432}
+                    height={280}
+                    priority
                     className="h-70 w-108
                                md:h-70 md:w-108
                                2xl:h-90 2xl:w-90
