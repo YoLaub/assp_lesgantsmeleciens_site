@@ -14,6 +14,7 @@ export function Header() {
                     alt="Background Header"
                     fill
                     priority
+                    unoptimized
                     sizes="100vw"
                     className="object-cover object-center transform -scale-x-100"
                 />

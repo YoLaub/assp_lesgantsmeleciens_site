@@ -176,6 +176,9 @@ export default async function HomePage() {
                     </div>
                 )}
 
+                {/* Ligne rouge décorative entre galerie et actualités */}
+                <div className="w-1/3 h-1 bg-brand-red mb-20"></div>
+
                 {/* Actualités */}
                 <ActualitesSection />
             </section>

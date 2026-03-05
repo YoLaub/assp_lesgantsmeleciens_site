@@ -19,11 +19,11 @@ export async function ActualitesSection() {
     return (
         <div className="w-full max-w-6xl flex flex-col items-center">
             {/* Section heading */}
-            <div className="w-full mb-12">
-                <h2 className="text-2xl md:text-3xl tracking-[0.3em] font-bold text-gray-900 uppercase mb-6">
+            <div className="w-full mb-12 text-center">
+                <h2 className="text-xl md:text-2xl tracking-[0.4em] text-gray-700 font-light uppercase mb-6">
                     Actualités
                 </h2>
-                <p className="text-gray-600 text-lg max-w-4xl font-light leading-relaxed">
+                <p className="text-gray-600 text-lg max-w-4xl mx-auto font-light leading-relaxed">
                     Retrouvez les dernières nouvelles, événements et annonces de l&apos;association.
                 </p>
             </div>
