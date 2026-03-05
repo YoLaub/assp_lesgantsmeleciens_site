@@ -13,6 +13,7 @@ import { AddImagesDialog } from './AddImagesDialog';
 import { EditImageDialog } from './EditImageDialog';
 import { SelectionToolbar } from './SelectionToolbar';
 import { GalleryEmptyState } from './GalleryEmptyState';
+import { Plus } from 'lucide-react';
 import { ConfirmDialog } from '@/shared/components/ui/ConfirmDialog';
 import {
     deleteGalleryImageAction,
@@ -180,6 +181,26 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
 
     return (
         <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">
+                        Médiathèque
+                    </h1>
+                    <p className="text-slate-500 text-sm">
+                        Gérez les photos et visuels de l&apos;association.
+                    </p>
+                </div>
+                <button
+                    onClick={() => setAddDialogOpen(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl
+                               font-bold text-sm flex items-center gap-2 transition-all
+                               shadow-lg shadow-red-600/20 active:scale-95"
+                >
+                    <Plus className="w-5 h-5" />
+                    Ajouter
+                </button>
+            </div>
+
             <GalleryToolbar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
@@ -187,7 +208,6 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
                 onCategoryChange={setActiveCategory}
                 selectionMode={selectionMode}
                 onSelectionModeChange={setSelectionMode}
-                onAdd={() => setAddDialogOpen(true)}
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
                 sortField={sortField}

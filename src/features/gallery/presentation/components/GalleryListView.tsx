@@ -43,7 +43,7 @@ export function GalleryListView({
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {/* Header row */}
-            <div className="grid grid-cols-[2rem_2.5rem_4rem_1fr_8rem_7rem_7rem_6rem] items-center border-b border-slate-100">
+            <div className="grid grid-cols-[2.5rem_2.5rem_4rem_1fr_8rem_7rem_7rem_6rem] items-center border-b border-slate-100">
                 <div className="pl-3 py-3" />
                 <div className="py-3">
                     <input

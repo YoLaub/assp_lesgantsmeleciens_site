@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import { LayoutDashboard, Users, Globe, Settings, Dumbbell } from 'lucide-react';
+import { UserButton } from '@clerk/nextjs';
 
 /**
  * Navigation latérale pour l'espace d'administration.
@@ -28,9 +31,7 @@ export const AdminSidebar = () => (
             </button>
         </nav>
 
-        {/* User Profile Avatar */}
-        <div className="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-white font-bold text-xs">
-            CB
-        </div>
+        {/* User Profile */}
+        <UserButton afterSignOutUrl="/login" />
     </aside>
 );

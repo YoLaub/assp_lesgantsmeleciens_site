@@ -30,7 +30,7 @@ export function GalleryListRow({
     return (
         <div
             ref={ref}
-            className={`grid grid-cols-[2rem_2.5rem_4rem_1fr_8rem_7rem_7rem_6rem] items-center
+            className={`grid grid-cols-[2.5rem_2.5rem_4rem_1fr_8rem_7rem_7rem_6rem] items-center
                 group transition-colors cursor-pointer border-b border-slate-50
                 ${isDragging ? 'bg-slate-100 opacity-50 z-50' : ''}
                 ${isSelected ? 'bg-red-50' : 'hover:bg-slate-50'}`}
