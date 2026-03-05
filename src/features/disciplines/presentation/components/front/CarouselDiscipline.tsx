@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function DisciplineCarousel({ images }: { images: string[] }) {
@@ -28,7 +28,7 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
     };
 
     return (
-        <div className="border-4 border-brand-red rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-[500px] flex items-center justify-center relative overflow-hidden">
+        <div className="w-full border-4 border-brand-red rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-[500px] flex items-center justify-center relative overflow-hidden">
             <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
                 {/* Image principale */}
                 <div className="relative w-full aspect-video"> {/* Utilise aspect-ratio pour être sûr */}
