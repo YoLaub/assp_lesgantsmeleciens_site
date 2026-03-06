@@ -1,8 +1,42 @@
-import {prisma} from "@/shared/lib/prisma";
+import { prisma } from "@/shared/lib/prisma";
 import { Discipline } from '../../domain/models/discipline.model';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+
+function mapToDiscipline(d: {
+    id: string;
+    title: string;
+    coach: string;
+    category: string;
+    citation: string | null;
+    description: string;
+    tags: string[];
+    active: boolean;
+    coachPhoto: unknown;
+    photos: unknown;
+    seo: unknown;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+}): Discipline {
+    return {
+        id: d.id,
+        title: d.title,
+        coach: d.coach,
+        coachPhoto: (d.coachPhoto as CloudinaryAsset | null) ?? null,
+        category: d.category,
+        description: d.description,
+        tags: d.tags,
+        photos: (d.photos as CloudinaryAsset[]) ?? [],
+        seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+        active: d.active,
+        citation: d.citation ?? '',
+        order: d.order,
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+    };
+}
 
 export class DisciplinePostgresDataSource {
-
 
     async upsertDiscipline(discipline: Discipline): Promise<void> {
         await prisma.discipline.upsert({
@@ -10,11 +44,11 @@ export class DisciplinePostgresDataSource {
             update: {
                 title: discipline.title,
                 coach: discipline.coach,
-                photo_coach: discipline.photo_coach ?? null,
+                coachPhoto: (discipline.coachPhoto ?? undefined) as object | undefined,
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
-                photo: discipline.photo,
+                photos: discipline.photos as unknown as object[],
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
                 citation: discipline.citation ?? '',
@@ -23,11 +57,11 @@ export class DisciplinePostgresDataSource {
             create: {
                 title: discipline.title,
                 coach: discipline.coach,
-                photo_coach: discipline.photo_coach ?? null,
+                coachPhoto: (discipline.coachPhoto ?? undefined) as object | undefined,
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
-                photo: discipline.photo,
+                photos: discipline.photos as unknown as object[],
                 seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
                 citation: discipline.citation ?? '',
@@ -39,62 +73,20 @@ export class DisciplinePostgresDataSource {
         const disciplines = await prisma.discipline.findMany({
             orderBy: { order: 'asc' },
         });
-
-        return disciplines.map((d) => ({
-            id: d.id,
-            title: d.title,
-            coach: d.coach,
-            photo_coach: d.photo_coach ?? undefined,
-            category: d.category,
-            description: d.description,
-            tags: d.tags,
-            photo: d.photo,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            active: d.active,
-            citation: d.citation ?? '',
-            order: d.order,
-            createdAt: d.createdAt,
-            updatedAt: d.updatedAt,
-        }));
+        return disciplines.map(mapToDiscipline);
     }
 
     async getDisciplineById(id: string): Promise<Discipline | null> {
-        const d = await prisma.discipline.findUnique({
-            where: { id }
-        });
-
+        const d = await prisma.discipline.findUnique({ where: { id } });
         if (!d) return null;
-
-        // C'est ICI qu'était ton erreur. On map proprement les données.
-        return {
-            ...d,
-            photo_coach: d.photo_coach ?? undefined,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            citation: d.citation ?? ''
-        };
+        return mapToDiscipline(d);
     }
 
     async getActiveDisciplines(): Promise<Discipline[]> {
         const disciplines = await prisma.discipline.findMany({
-            where: { active: true }, // Sécurité : on ne montre pas les brouillons
+            where: { active: true },
             orderBy: { order: 'asc' },
         });
-
-        return disciplines.map((d) => ({
-            id: d.id,
-            title: d.title,
-            coach: d.coach,
-            photo_coach: d.photo_coach ?? undefined,
-            category: d.category,
-            description: d.description,
-            tags: d.tags,
-            photo: d.photo,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            active: d.active,
-            citation:  d.citation ?? "",
-            order: d.order,
-            createdAt: d.createdAt,
-            updatedAt: d.updatedAt,
-        }));
+        return disciplines.map(mapToDiscipline);
     }
 }

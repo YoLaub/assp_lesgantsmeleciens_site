@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import headerBg from "@/../public/Header.webp";
+import logoBlanc from "@/../public/logoBlanc.webp";
 
 export function Header() {
 
@@ -10,12 +12,12 @@ export function Header() {
             {/* Background Image */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
                 <Image
-                    src="/Header.webp"
+                    src={headerBg}
                     alt="Background Header"
                     fill
                     priority
-                    unoptimized
                     sizes="100vw"
+                    placeholder="blur"
                     className="object-cover object-center transform -scale-x-100"
                 />
             </div>
@@ -33,11 +35,12 @@ export function Header() {
                 aria-label="Retour à l'accueil"
             >
                 <Image
-                    src="/logoBlanc.webp"
+                    src={logoBlanc}
                     alt="Logo association Les Gants Méléciens"
                     width={432}
                     height={280}
                     priority
+                    placeholder="blur"
                     className="h-70 w-108
                                md:h-70 md:w-108
                                2xl:h-90 2xl:w-90

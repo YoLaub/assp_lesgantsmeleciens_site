@@ -2,6 +2,41 @@ import { prisma } from "@/shared/lib/prisma";
 import { ResultAsync } from "@/shared/lib/result";
 import { GalleryImage } from '../../domain/models/gallery-image.model';
 
+function mapToGalleryImage(img: {
+    id: string;
+    title: string;
+    alt: string;
+    category: string;
+    publicId: string;
+    version: number;
+    format: string;
+    width: number;
+    height: number;
+    bytes: number;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+}): GalleryImage {
+    return {
+        id: img.id,
+        title: img.title,
+        alt: img.alt,
+        category: img.category,
+        asset: {
+            publicId: img.publicId,
+            version: img.version,
+            format: img.format,
+            width: img.width,
+            height: img.height,
+            bytes: img.bytes,
+            resourceType: 'image',
+        },
+        order: img.order,
+        createdAt: img.createdAt,
+        updatedAt: img.updatedAt,
+    };
+}
+
 export class GalleryImagePostgresDataSource {
 
     getGalleryImages(): ResultAsync<GalleryImage[], string> {
@@ -10,20 +45,7 @@ export class GalleryImagePostgresDataSource {
                 orderBy: { order: 'asc' },
             }),
             () => 'Erreur lors de la récupération des images'
-        ).map((images) =>
-            images.map((img) => ({
-                id: img.id,
-                title: img.title,
-                alt: img.alt,
-                category: img.category,
-                src: img.src,
-                width: img.width,
-                height: img.height,
-                order: img.order,
-                createdAt: img.createdAt,
-                updatedAt: img.updatedAt,
-            }))
-        );
+        ).map((images) => images.map(mapToGalleryImage));
     }
 
     getGalleryImagesByCategory(category: string): ResultAsync<GalleryImage[], string> {
@@ -33,20 +55,7 @@ export class GalleryImagePostgresDataSource {
                 orderBy: { order: 'asc' },
             }),
             () => 'Erreur lors de la récupération des images par catégorie'
-        ).map((images) =>
-            images.map((img) => ({
-                id: img.id,
-                title: img.title,
-                alt: img.alt,
-                category: img.category,
-                src: img.src,
-                width: img.width,
-                height: img.height,
-                order: img.order,
-                createdAt: img.createdAt,
-                updatedAt: img.updatedAt,
-            }))
-        );
+        ).map((images) => images.map(mapToGalleryImage));
     }
 
     getGalleryImageById(id: string): ResultAsync<GalleryImage | null, string> {
@@ -55,18 +64,7 @@ export class GalleryImagePostgresDataSource {
             () => `Erreur lors de la récupération de l'image ${id}`
         ).map((img) => {
             if (!img) return null;
-            return {
-                id: img.id,
-                title: img.title,
-                alt: img.alt,
-                category: img.category,
-                src: img.src,
-                width: img.width,
-                height: img.height,
-                order: img.order,
-                createdAt: img.createdAt,
-                updatedAt: img.updatedAt,
-            };
+            return mapToGalleryImage(img);
         });
     }
 
@@ -78,9 +76,12 @@ export class GalleryImagePostgresDataSource {
                     title: image.title,
                     alt: image.alt,
                     category: image.category,
-                    src: image.src,
-                    width: image.width,
-                    height: image.height,
+                    publicId: image.asset.publicId,
+                    version: image.asset.version,
+                    format: image.asset.format,
+                    width: image.asset.width,
+                    height: image.asset.height,
+                    bytes: image.asset.bytes,
                     order: image.order,
                     updatedAt: new Date(),
                 },
@@ -88,9 +89,12 @@ export class GalleryImagePostgresDataSource {
                     title: image.title,
                     alt: image.alt,
                     category: image.category,
-                    src: image.src,
-                    width: image.width,
-                    height: image.height,
+                    publicId: image.asset.publicId,
+                    version: image.asset.version,
+                    format: image.asset.format,
+                    width: image.asset.width,
+                    height: image.asset.height,
+                    bytes: image.asset.bytes,
                     order: image.order,
                 },
             }),
@@ -106,9 +110,12 @@ export class GalleryImagePostgresDataSource {
                     title: img.title,
                     alt: img.alt,
                     category: img.category,
-                    src: img.src,
-                    width: img.width,
-                    height: img.height,
+                    publicId: img.asset.publicId,
+                    version: img.asset.version,
+                    format: img.asset.format,
+                    width: img.asset.width,
+                    height: img.asset.height,
+                    bytes: img.asset.bytes,
                     order: img.order,
                 })),
             }),

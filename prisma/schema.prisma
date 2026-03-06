@@ -17,12 +17,18 @@ model Discipline {
   id          String   @id @default(uuid())
   title       String
   coach       String
-  photo_coach String?
   category    String
   citation    String?  @db.Text
   description String   @db.Text
   tags        String[] // Tableau natif PostgreSQL
   active      Boolean  @default(true)
+
+  // Structured Cloudinary metadata
+  coachPhoto  Json?              // CloudinaryAsset | null
+  photos      Json     @default("[]")  // CloudinaryAsset[]
+
+  // Legacy columns — kept for data migration, remove after migration
+  photo_coach String?
   photo       String[]
 
   seo Json
@@ -96,7 +102,13 @@ model Actualite {
   tags        String[]
   active      Boolean   @default(true)
   featured    Boolean   @default(false)
+
+  // Structured Cloudinary metadata: CloudinaryAsset[]
+  photos      Json      @default("[]")
+
+  // Legacy column — kept for data migration, remove after migration
   photo       String[]
+
   seo         Json
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -108,9 +120,18 @@ model GalleryImage {
   title     String
   alt       String   @default("")
   category  String   @default("")
-  src       String
+
+  // Structured Cloudinary metadata (replaces old `src`)
+  publicId  String   @default("")
+  version   Int      @default(0)
+  format    String   @default("")
   width     Int      @default(0)
   height    Int      @default(0)
+  bytes     Int      @default(0)
+
+  // Legacy column — kept for data migration, remove after migration
+  src       String   @default("")
+
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

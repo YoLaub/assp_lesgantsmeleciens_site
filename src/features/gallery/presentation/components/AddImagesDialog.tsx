@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { X, Upload, Loader2, Trash2, Check, AlertCircle } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import {
     uploadGalleryImageAction,
     bulkSaveGalleryImagesAction,
@@ -19,9 +20,7 @@ interface PendingImage {
     alt: string;
     category: GalleryCategory | '';
     status: UploadStatus;
-    uploadedUrl: string;
-    width: number;
-    height: number;
+    uploadedAsset: CloudinaryAsset | null;
     error: string;
 }
 
@@ -62,9 +61,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 alt: '',
                 category: globalCategory,
                 status: 'pending' as const,
-                uploadedUrl: '',
-                width: 0,
-                height: 0,
+                uploadedAsset: null,
                 error: '',
             }));
 
@@ -138,7 +135,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
             try {
                 const uploadResult = await uploadGalleryImageAction(formData);
                 if (uploadResult.success) {
-                    results[index] = { ...results[index], status: 'success', uploadedUrl: uploadResult.url, width: uploadResult.width, height: uploadResult.height };
+                    results[index] = { ...results[index], status: 'success', uploadedAsset: uploadResult.asset };
                 } else {
                     results[index] = { ...results[index], status: 'error', error: uploadResult.error || 'Erreur' };
                 }
@@ -159,15 +156,13 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
 
         // Save metadata for all successful uploads
         const successfulImages: GalleryImage[] = results
-            .filter((img) => img.status === 'success')
+            .filter((img) => img.status === 'success' && img.uploadedAsset)
             .map((img) => ({
                 id: img.id,
                 title: img.title.trim(),
                 alt: img.alt.trim(),
                 category: img.category,
-                src: img.uploadedUrl,
-                width: img.width,
-                height: img.height,
+                asset: img.uploadedAsset!,
                 order: 0,
             }));
 
@@ -296,7 +291,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-slate-100 shrink-0">
                                             <img
                                                 src={img.preview}
-                                                alt=""
+                                                alt={`Aperçu de ${img.file.name}`}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>

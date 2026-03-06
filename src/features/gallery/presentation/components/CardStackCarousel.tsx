@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import Image from 'next/image';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { useLightbox } from '@/features/gallery/presentation/hooks/useLightbox';
 import { Lightbox } from '@/features/gallery/presentation/components/Lightbox';
-import { getCloudinaryBlurUrl } from '@/features/gallery/lib/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
 import styles from './CardStackCarousel.module.css';
 
 const DRAG_THRESHOLD = 50;
@@ -157,7 +156,6 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
           {images.map((image, index) => {
             const offset = getOffset(index);
             const positionClass = getPositionClass(offset);
-            const blurUrl = getCloudinaryBlurUrl(image.src);
 
             return (
               <div
@@ -168,16 +166,14 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
                 tabIndex={offset === 0 ? 0 : -1}
                 aria-label={image.alt || image.title}
               >
-                <Image
-                  className={styles.cardImage}
-                  src={image.src}
+                <CloudImage
+                  asset={image.asset}
                   alt={image.alt || image.title}
-                  width={image.width || 800}
-                  height={image.height || 600}
+                  width={image.asset.width || 800}
+                  height={image.asset.height || 600}
                   sizes="400px"
+                  className={styles.cardImage}
                   draggable={false}
-                  placeholder={blurUrl ? 'blur' : undefined}
-                  blurDataURL={blurUrl || undefined}
                 />
               </div>
             );

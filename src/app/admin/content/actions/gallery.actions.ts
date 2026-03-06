@@ -12,6 +12,8 @@ import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.mod
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
 import { uploadPublicImage } from '@/shared/lib/upload';
+import { deleteCloudinaryAsset, deleteCloudinaryAssets } from '@/shared/lib/cloudinary';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 
 export async function getAllGalleryImagesAction() {
     const repository = new GalleryImageRepositoryImpl();
@@ -48,28 +50,63 @@ export async function saveGalleryImageAction(data: GalleryImage) {
 
 export async function deleteGalleryImageAction(id: string) {
     const repository = new GalleryImageRepositoryImpl();
-    const useCase = new DeleteGalleryImageUseCase(repository);
 
-    return useCase.execute(id).match(
+    // Fetch image first for Cloudinary cleanup
+    const image = await repository.getById(id).match(
+        (img) => img,
+        () => null
+    );
+
+    const useCase = new DeleteGalleryImageUseCase(repository);
+    const result = await useCase.execute(id).match(
         () => {
             revalidatePath('/content/gallery');
             return { success: true as const };
         },
         (error) => ({ success: false as const, error })
     );
+
+    // Clean up Cloudinary (best effort)
+    if (result.success && image) {
+        try {
+            await deleteCloudinaryAsset(image.asset);
+        } catch (e) {
+            console.error('Cloudinary cleanup failed:', e);
+        }
+    }
+
+    return result;
 }
 
 export async function bulkDeleteGalleryImagesAction(ids: string[]) {
     const repository = new GalleryImageRepositoryImpl();
-    const useCase = new BulkDeleteGalleryImagesUseCase(repository);
 
-    return useCase.execute(ids).match(
+    // Fetch images first for Cloudinary cleanup
+    const images = await repository.getAll().match(
+        (allImages) => allImages.filter(img => ids.includes(img.id)),
+        () => [] as GalleryImage[]
+    );
+
+    const useCase = new BulkDeleteGalleryImagesUseCase(repository);
+    const result = await useCase.execute(ids).match(
         () => {
             revalidatePath('/content/gallery');
             return { success: true as const };
         },
         (error) => ({ success: false as const, error })
     );
+
+    // Clean up Cloudinary (best effort)
+    if (result.success && images.length > 0) {
+        try {
+            const assets = images.map(img => img.asset);
+            await deleteCloudinaryAssets(assets);
+        } catch (e) {
+            console.error('Cloudinary cleanup failed:', e);
+        }
+    }
+
+    return result;
 }
 
 export async function bulkSaveGalleryImagesAction(images: GalleryImage[]) {
@@ -106,13 +143,13 @@ export async function uploadGalleryImageAction(formData: FormData) {
     // 2. Utilisation de la librairie partagée (Abstraction Cloudinary)
     // On wrap l'appel dans ResultAsync pour maintenir la cohérence de gestion d'erreur du projet
     return ResultAsync.fromPromise(
-        uploadPublicImage(file, 'gallery'), // 'gallery' est le sous-dossier Cloudinary
+        uploadPublicImage(file, 'gallery'),
         (error: unknown) => {
             console.error('Cloudinary Upload Error:', error);
             return error instanceof Error ? error.message : "Erreur lors de l'upload sur le cloud";
         }
     ).match(
-        (result) => ({ success: true as const, url: result.url, width: result.width, height: result.height }),
+        (asset: CloudinaryAsset) => ({ success: true as const, asset }),
         (error) => ({ success: false as const, error })
     );
 }

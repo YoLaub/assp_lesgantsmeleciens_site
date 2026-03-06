@@ -1,7 +1,6 @@
 'use client';
 
 import React, {useRef, useState} from 'react';
-import Image from 'next/image';
 import {Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload} from 'lucide-react';
 import {Editor} from "@tiptap/core";
 import {EditorContent, useEditor} from "@tiptap/react";
@@ -9,6 +8,8 @@ import StarterKit from "@tiptap/starter-kit";
 import { saveDisciplineAction, uploadPhotoAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Discipline } from '../../../domain/models/discipline.model';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
 
 
 // Barre d'outils isolée pour l'éditeur
@@ -60,12 +61,12 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     const [error, setError] = useState<string | null>(null);
 
     // --- États et Refs pour la Galerie ---
-    const [photos, setPhotos] = useState<string[]>(initialData?.photo || []);
+    const [photos, setPhotos] = useState<CloudinaryAsset[]>(initialData?.photos || []);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // --- États et Refs pour le Coach ---
-    const [photoCoach, setPhotoCoach] = useState<string | undefined>(initialData?.photo_coach ?? undefined);
+    const [photoCoach, setPhotoCoach] = useState<CloudinaryAsset | null>(initialData?.coachPhoto ?? null);
     const [isCoachUploading, setIsCoachUploading] = useState(false);
     const coachFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -90,9 +91,9 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
 
         try {
             const result = await uploadPhotoAction(formData);
-            if (result.success && result.url) {
+            if (result.success && result.asset) {
                 const newPhotos = [...photos];
-                newPhotos[index] = result.url;
+                newPhotos[index] = result.asset;
                 setPhotos(newPhotos);
             } else {
                 setError(result.error || 'Upload failed');
@@ -123,8 +124,8 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
 
         try {
             const result = await uploadPhotoAction(formData);
-            if (result.success && result.url) {
-                setPhotoCoach(result.url);
+            if (result.success && result.asset) {
+                setPhotoCoach(result.asset);
             } else {
                 setError(result.error || 'Upload failed');
             }
@@ -141,7 +142,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     };
 
     const handleCoachPhotoRemove = () => {
-        setPhotoCoach(undefined);
+        setPhotoCoach(null);
     };
 
     // --- Soumission du formulaire ---
@@ -161,12 +162,12 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             id: id || '',
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
-            photo_coach: photoCoach,
+            coachPhoto: photoCoach,
             citation: formData.get('citation') as string,
             category: formData.get('category') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
-            photo: photos,
+            photos: photos,
             seo: {
                 metaTitle: formData.get('metaTitle') as string,
                 metaDescription: formData.get('metaDescription') as string,
@@ -261,7 +262,7 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                     <Upload className="w-6 h-6 text-red-600 animate-pulse" />
                                 ) : photoCoach ? (
                                     <>
-                                        <Image src={photoCoach} alt="Coach" fill sizes="64px" className="object-cover" />
+                                        <CloudImage asset={photoCoach} alt={`Photo du coach`} fill sizes="64px" className="object-cover" placeholder="empty" />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button
                                                 type="button"
@@ -373,12 +374,13 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                                         </div>
                                     ) : photo ? (
                                         <>
-                                            <Image
-                                                src={photo}
+                                            <CloudImage
+                                                asset={photo}
                                                 alt={`Photo ${index + 1}`}
                                                 fill
                                                 sizes="200px"
                                                 className="object-cover rounded-xl"
+                                                placeholder="empty"
                                             />
                                             <button
                                                 type="button"

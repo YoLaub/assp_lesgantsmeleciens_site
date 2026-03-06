@@ -14,8 +14,8 @@ export class SaveManyGalleryImagesUseCase {
             if (!img.title || img.title.length < 2) {
                 return errAsync(`Titre trop court pour "${img.title}" (minimum 2 caractères).`);
             }
-            if (!img.src) {
-                return errAsync(`URL manquante pour "${img.title}".`);
+            if (!img.asset?.publicId) {
+                return errAsync(`Métadonnées Cloudinary manquantes pour "${img.title}".`);
             }
         }
 

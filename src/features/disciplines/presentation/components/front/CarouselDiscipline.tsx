@@ -1,25 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
 
-export default function DisciplineCarousel({ images }: { images: string[] }) {
+export default function DisciplineCarousel({ photos }: { photos: CloudinaryAsset[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    if (!images || images.length === 0) {
+    if (!photos || photos.length === 0) {
         return null;
     }
 
     const goToPrevious = () => {
         setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? images.length - 1 : prevIndex - 1
+            prevIndex === 0 ? photos.length - 1 : prevIndex - 1
         );
     };
 
     const goToNext = () => {
         setCurrentIndex((prevIndex) =>
-            prevIndex === images.length - 1 ? 0 : prevIndex + 1
+            prevIndex === photos.length - 1 ? 0 : prevIndex + 1
         );
     };
 
@@ -27,12 +28,20 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
         setCurrentIndex(index);
     };
 
+    const currentPhoto = photos[currentIndex];
+
     return (
         <div className="w-full border-4 border-brand-red rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-[500px] flex items-center justify-center relative overflow-hidden">
             <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
                 {/* Image principale */}
-                <div className="relative w-full aspect-video"> {/* Utilise aspect-ratio pour être sûr */}
-                    <Image src={images[currentIndex]} alt={images[currentIndex].slice(0,5)} fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
+                <div className="relative w-full aspect-video">
+                    <CloudImage
+                        asset={currentPhoto}
+                        alt={`Photo de la discipline - ${currentIndex + 1} sur ${photos.length}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 800px"
+                        className="object-cover"
+                    />
                 </div>
 
                 {/* Bouton Précédent */}
@@ -55,7 +64,7 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
 
                 {/* Indicateurs de pagination (dots) */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    {images.map((_, index) => (
+                    {photos.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => goToSlide(index)}

@@ -1,6 +1,7 @@
 import {Instagram, Twitter, Youtube} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import logoNoir from "@/../public/logoNoir.webp";
 
 export function Footer() {
     const currentYear = new Date().getFullYear();
@@ -13,10 +14,11 @@ export function Footer() {
                     <div className="flex justify-center md:justify-start">
                         <div className="w-48 h-48 relative overflow-hidden">
                             <Image
-                                src="/logoNoir.webp"
+                                src={logoNoir}
                                 alt="Logo Les Gants Meleciens"
                                 fill
                                 sizes="192px"
+                                placeholder="blur"
                                 className="object-contain"
                             />
                         </div>

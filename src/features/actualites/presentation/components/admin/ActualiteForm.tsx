@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import { Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload } from 'lucide-react';
 import { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -9,6 +8,8 @@ import StarterKit from "@tiptap/starter-kit";
 import { saveActualiteAction, uploadActualitePhotoAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Actualite } from '../../../domain/models/actualite.model';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
@@ -57,7 +58,7 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [photos, setPhotos] = useState<string[]>(initialData?.photo || []);
+    const [photos, setPhotos] = useState<CloudinaryAsset[]>(initialData?.photos || []);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -83,9 +84,9 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
 
         try {
             const result = await uploadActualitePhotoAction(formData);
-            if (result.success && result.url) {
+            if (result.success && result.asset) {
                 const newPhotos = [...photos];
-                newPhotos[index] = result.url;
+                newPhotos[index] = result.asset;
                 setPhotos(newPhotos);
             } else {
                 setError(result.error || 'Upload failed');
@@ -124,7 +125,7 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
             title: formData.get('title') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
-            photo: photos,
+            photos: photos,
             seo: {
                 metaTitle: formData.get('metaTitle') as string,
                 metaDescription: formData.get('metaDescription') as string,
@@ -283,12 +284,13 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
                                         </div>
                                     ) : photo ? (
                                         <>
-                                            <Image
-                                                src={photo}
+                                            <CloudImage
+                                                asset={photo}
                                                 alt={`Photo ${index + 1}`}
                                                 fill
                                                 sizes="200px"
                                                 className="object-cover rounded-xl"
+                                                placeholder="empty"
                                             />
                                             <button
                                                 type="button"

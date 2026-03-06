@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { X, Loader2 } from 'lucide-react';
 import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
 import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
 import { saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
+import { CloudImage } from '@/shared/components/CloudImage';
 
 interface EditImageDialogProps {
     image: GalleryImage | null;
@@ -82,13 +82,14 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
                 <div className="p-6 space-y-5">
                     {/* Preview */}
                     <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
-                        <Image
-                            src={image.src}
+                        <CloudImage
+                            asset={image.asset}
                             alt={image.alt || image.title}
-                            width={image.width || 400}
-                            height={image.height || 300}
+                            width={image.asset.width || 400}
+                            height={image.asset.height || 300}
                             sizes="400px"
                             className="max-h-48 w-auto h-auto object-contain"
+                            placeholder="empty"
                         />
                     </div>
 

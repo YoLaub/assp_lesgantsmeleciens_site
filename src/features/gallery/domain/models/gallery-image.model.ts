@@ -1,11 +1,11 @@
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+
 export type GalleryImage = {
     id: string;
     title: string;
     alt: string;
     category: string;
-    src: string;
-    width: number;
-    height: number;
+    asset: CloudinaryAsset;
     order: number;
     createdAt?: Date;
     updatedAt?: Date;

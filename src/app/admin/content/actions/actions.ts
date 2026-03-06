@@ -60,12 +60,8 @@ export async function uploadPhotoAction(formData: FormData) {
             return { success: false, error: 'Invalid file type. Use JPG, PNG or WebP' };
         }
 
-        // 2. Magie Cloudinary : on appelle juste notre librairie
-        // Elle se charge de convertir le fichier et de l'envoyer dans le cloud
-        const result = await uploadPublicImage(file, 'disciplines');
-
-        // On retourne la vraie URL en https://res.cloudinary.com/...
-        return { success: true, url: result.url };
+        const asset = await uploadPublicImage(file, 'disciplines');
+        return { success: true, asset };
 
     } catch (error: unknown) {
         console.error('Upload error:', error);
@@ -149,8 +145,8 @@ export async function uploadActualitePhotoAction(formData: FormData) {
             return { success: false, error: 'Invalid file type. Use JPG, PNG or WebP' };
         }
 
-        const result = await uploadPublicImage(file, 'actualites');
-        return { success: true, url: result.url };
+        const asset = await uploadPublicImage(file, 'actualites');
+        return { success: true, asset };
 
     } catch (error: unknown) {
         console.error('Upload error:', error);

@@ -28,6 +28,7 @@ export default function InscriptionSection() {
                                 src="/images/placeholder-boxe.jpg"
                                 alt="Enfants en cours de boxe"
                                 fill
+                                sizes="(max-width: 1024px) 100vw, 50vw"
                                 className="object-cover"
                             />
                         </div>

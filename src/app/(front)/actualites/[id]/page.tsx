@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { getActualiteAction } from '@/app/(front)/actualites/actions/actualite.actions';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import CTAInscription from '@/app/(front)/_components/CTA-inscription';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { CloudImage } from '@/shared/components/CloudImage';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -31,7 +31,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
     }
 
     const actualite = result.data;
-    const coverImage = actualite.photo[0];
+    const coverPhoto = actualite.photos[0];
 
     return (
         <main className="container flex flex-col gap-16 pb-20 mx-auto px-5 md:px-0 max-w-4xl">
@@ -42,10 +42,10 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                 </Link>
             </div>
 
-            {coverImage && (
+            {coverPhoto && (
                 <div className="relative w-full aspect-video border-4 border-brand-red rounded-2xl overflow-hidden">
-                    <Image
-                        src={coverImage}
+                    <CloudImage
+                        asset={coverPhoto}
                         alt={actualite.title}
                         fill
                         sizes="(max-width: 900px) 100vw, 900px"
@@ -75,12 +75,12 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                     dangerouslySetInnerHTML={{ __html: actualite.description }}
                 />
 
-                {actualite.photo.length > 1 && (
+                {actualite.photos.length > 1 && (
                     <div className="grid grid-cols-2 gap-4 mt-4">
-                        {actualite.photo.slice(1).map((src, index) => (
+                        {actualite.photos.slice(1).map((photo, index) => (
                             <div key={index} className="relative aspect-video overflow-hidden rounded-xl border border-slate-100">
-                                <Image
-                                    src={src}
+                                <CloudImage
+                                    asset={photo}
                                     alt={`${actualite.title} - photo ${index + 2}`}
                                     fill
                                     sizes="(max-width: 768px) 50vw, 400px"

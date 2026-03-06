@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import DisciplineCarousel from "@/features/disciplines/presentation/components/front/CarouselDiscipline";
 import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
+import { CloudImage } from '@/shared/components/CloudImage';
 
 interface DisciplineSectionProps {
     discipline: Discipline;
@@ -38,13 +38,22 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                         <div className="border-4 border-brand-orange rounded-3xl p-8 bg-white shadow-lg ">
                             <div className="flex flex-col items-start justify-center gap-6">
                                 <div className="w-full h-full flex-shrink-0">
-                                    <Image
-                                        src={discipline.photo_coach || '/default-coach.jpg'}
-                                        alt={discipline.coach}
-                                        width={150}
-                                        height={150}
-                                        className="rounded-lg object-cover w-full h-full grayscale"
-                                    />
+                                    {discipline.coachPhoto ? (
+                                        <CloudImage
+                                            asset={discipline.coachPhoto}
+                                            alt={`Coach ${discipline.coach}`}
+                                            width={150}
+                                            height={150}
+                                            crop="fill"
+                                            gravity="face"
+                                            sizes="150px"
+                                            className="rounded-lg object-cover w-full h-full grayscale"
+                                        />
+                                    ) : (
+                                        <div className="w-full aspect-square bg-slate-200 rounded-lg flex items-center justify-center">
+                                            <span className="text-slate-400 text-sm">Pas de photo</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-1 ">
                                     <h3 className="text-3xl font-bold mb-2">{discipline.coach}</h3>
@@ -54,7 +63,7 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                     </div>
                 </div>
 
-                <DisciplineCarousel images={discipline.photo}/>
+                <DisciplineCarousel photos={discipline.photos}/>
             </div>
         </section>
     );

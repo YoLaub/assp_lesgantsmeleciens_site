@@ -1,3 +1,5 @@
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+
 export type Actualite = {
     id: string;
     title: string;
@@ -5,7 +7,7 @@ export type Actualite = {
     tags: string[];
     active: boolean;
     featured: boolean;
-    photo: string[];
+    photos: CloudinaryAsset[];
     seo: {
         metaTitle: string;
         metaDescription: string;

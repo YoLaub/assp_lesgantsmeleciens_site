@@ -1,5 +1,7 @@
 import Image from "next/image";
 import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
+import gantDeBoxe from "@/../public/gant_de_boxe.jpg";
+import accueilValeur from "@/../public/accueil_valeur.png";
 import { getGalleryImagesByCategoryAction } from "@/app/admin/content/actions/gallery.actions";
 import { CardStackCarousel } from "@/features/gallery/presentation/components/CardStackCarousel";
 import { ActualitesSection } from "@/features/actualites/presentation/components/front/ActualitesSection";
@@ -83,11 +85,12 @@ export default async function HomePage() {
 
                                 <div className="w-full aspect-[3/4] overflow-hidden shadow-2xl relative ml-4 md:ml-6">
                                     <Image
-                                        src="/gant_de_boxe.jpg"
+                                        src={gantDeBoxe}
                                         alt="Gants de boxe"
                                         width={768}
                                         height={1024}
                                         sizes="(max-width: 768px) 100vw, 384px"
+                                        placeholder="blur"
                                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 transform group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-1000"></div>
@@ -141,10 +144,11 @@ export default async function HomePage() {
                     <div className="relative flex flex-col items-center">
                         <div className="relative w-full aspect-square max-w-[400px] overflow-hidden shadow-lg border border-gray-100">
                             <Image
-                                src="/accueil_valeur.png"
+                                src={accueilValeur}
                                 alt="Entraînement boxe"
                                 fill
                                 sizes="(max-width: 768px) 100vw, 400px"
+                                placeholder="blur"
                                 className="object-cover grayscale"
                             />
                         </div>

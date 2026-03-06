@@ -1,14 +1,16 @@
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+
 export type Discipline = {
     id: string;
     title: string;
     coach: string;
-    photo_coach?: string | null;
+    coachPhoto?: CloudinaryAsset | null;
     citation: string;
     category: string;
     description: string;
     tags: string[];
     active: boolean;
-    photo: string[];
+    photos: CloudinaryAsset[];
     seo: {
         metaTitle: string;
         metaDescription: string;

@@ -524,19 +524,55 @@ With `CldImage`, Cloudinary's `q_auto` analyzes each image individually and pick
 
 ---
 
-## Implementation Priority & Effort
+## Implementation Progress
 
-| Phase | What | Impact | Effort | When |
-|-------|------|--------|--------|------|
-| **P0** | `CloudinaryAsset` type + schema + upload pipeline + migration | **Critical** | Medium-Large | **1st — foundation** |
-| **P1** | `next-cloudinary` + `CloudImage` wrapper | High | Medium | **1st — with P0** |
-| **P2.1** | Remove `unoptimized` from Header | Critical | Tiny | **Immediate (standalone)** |
-| **P2.2** | Cloudinary delete on record removal | High | Small | **2nd — after P0** |
-| **P2.3** | Remove `picsum.photos` | Low | Tiny | **Immediate** |
-| **P3** | Universal blur placeholders | Medium | Free (with P0+P1) | **Automatic** |
-| **P4** | Fix alt text | Medium | Small | **2nd** |
-| **P5** | Static asset cleanup | Low | Small | **2nd** |
-| **P6** | Fine-tune sizes/priority | Medium | Small | **3rd** |
+> Last updated: 2026-03-06 — branch `jlx-image-overall`
+
+| # | Task | Status |
+|---|------|--------|
+| **P0.1** | Define `CloudinaryAsset` type (`src/shared/types/cloudinary.ts`) | DONE |
+| **P0.2** | Build URL utilities (`buildCloudinaryUrl`, `buildBlurUrl`) | DONE |
+| **P0.3** | Update Prisma schema (new fields + legacy columns kept) | DONE |
+| **P0.4** | Update upload pipeline, domain models, datasources, server actions, components | DONE |
+| **P0.5** | Data migration script (`scripts/migrate-cloudinary-metadata.ts`) | DONE |
+| **P1.1** | Install `next-cloudinary` | DONE |
+| **P1.2** | Update `next.config.ts` (formats, deviceSizes, remove picsum) | DONE |
+| **P1.3** | Create `<CloudImage>` wrapper component | DONE |
+| **P1.4** | Adopt `<CloudImage>` in all features | DONE |
+| **P1.5** | Delete old `features/gallery/lib/cloudinary.ts` utilities | DONE |
+| **P2.1** | Remove `unoptimized` from Header (use static import) | DONE |
+| **P2.2** | Cloudinary cleanup on delete (server actions) | DONE |
+| **P2.3** | Remove `picsum.photos` from `next.config.ts` | DONE |
+| **P3** | Universal blur placeholders (verify across all features) | DONE |
+| **P4.1** | Fix `CarouselDiscipline` alt text | DONE |
+| **P4.2** | Fix `DisciplineForm` coach photo alt | DONE |
+| **P4.3** | Fix `AddImagesDialog` preview alt | DONE |
+| **P5.1** | Delete unused files from `public/` | SKIPPED |
+| **P5.2** | Convert local assets to static imports | DONE |
+| **P5.3** | Verify `default-coach.jpg` exists | DONE |
+| **P6.1** | Audit `sizes` accuracy | DONE |
+| **P6.2** | Add `priority` to LCP candidates | DONE |
+
+### Notes on completed work
+
+- **P0.4** was the largest task — cascaded through ~25 files: upload.ts, 3 domain models, 3 datasources, 3 server actions, 2 use cases, 10 components, 1 test fixture.
+- **P4.1** was fixed during P0.4 when CarouselDiscipline was rewritten to accept `CloudinaryAsset[]`.
+- All production TypeScript errors are resolved. Remaining test file errors are pre-existing mock typing issues.
+- Legacy DB columns (`src`, `photo`, `photo_coach`) are kept with defaults for migration — remove after running migration script.
+- **P1.2+P2.3** done together — added `formats`, `deviceSizes`, `imageSizes`, removed `picsum.photos`.
+- **P1.3** — `CloudImage` wrapper at `src/shared/components/CloudImage.tsx`, wraps `CldImage` for Cloudinary assets, `next/image` for local.
+- **P1.4** — Adopted `CloudImage` in 12 components: GalleryCard, CardStackCarousel, Lightbox, GalleryListRow, EditImageDialog, AddImageDialog, ActualiteCard, ActualitesSection, ActualiteDetailPage, CarouselDiscipline, DisciplineSection, DisciplineForm, ActualiteForm.
+- **P1.5** — Deleted `features/gallery/lib/cloudinary.ts` and empty `lib/` directory. No remaining imports.
+- **P2.1** — Header uses static import of `Header.webp` with `placeholder="blur"`, `unoptimized` removed.
+- **P2.2** — Added `deleteCloudinaryAsset`/`deleteCloudinaryAssets` to `shared/lib/cloudinary.ts`. Wired into `deleteGalleryImageAction` and `bulkDeleteGalleryImagesAction` (best-effort cleanup after DB delete).
+- **P3** — All CloudImage usages default to `placeholder="blur"`. Admin previews and thumbnails use `placeholder="empty"`.
+- **P4.2** — Coach photo alt changed from `"Coach"` to `"Photo du coach"`.
+- **P5.3** — `default-coach.jpg` does not exist. DisciplineSection now shows a placeholder div with "Pas de photo" text instead of referencing a missing file.
+- **P4.3** — `AddImagesDialog` preview alt changed from `""` to `` `Aperçu de ${img.file.name}` ``.
+- **P5.1** — Skipped (user deferred file deletion).
+- **P5.2** — Converted 4 local assets to static imports with `placeholder="blur"`: `logoBlanc.webp` (Header), `logoNoir.webp` (Footer), `gant_de_boxe.jpg` and `accueil_valeur.png` (page.tsx).
+- **P6.1** — All `sizes` values audited and correct. One fix: added missing `sizes="(max-width: 1024px) 100vw, 50vw"` to InscriptionSection.
+- **P6.2** — All LCP candidates already have `priority` (Header bg, logo blanc, actualite detail cover). No additions needed — remaining images are below the fold.
 
 ---
 
@@ -544,11 +580,11 @@ With `CldImage`, Cloudinary's `q_auto` analyzes each image individually and pick
 
 These can ship independently, right now:
 
-1. **Remove `unoptimized` from `Header.tsx`** — use static import instead
-2. **Delete 8 unused files from `public/`**
-3. **Remove `picsum.photos`** from `next.config.ts`
-4. **Add `formats: ['image/avif', 'image/webp']`** to `next.config.ts`
-5. **Fix `CarouselDiscipline` alt text**
+1. ~~**Remove `unoptimized` from `Header.tsx`** — use static import instead~~ → P2.1
+2. ~~**Delete 8 unused files from `public/`**~~ → P5.1
+3. ~~**Remove `picsum.photos`** from `next.config.ts`~~ → P2.3
+4. ~~**Add `formats: ['image/avif', 'image/webp']`** to `next.config.ts`~~ → P1.2
+5. ~~**Fix `CarouselDiscipline` alt text**~~ → DONE (P4.1)
 
 ---
 

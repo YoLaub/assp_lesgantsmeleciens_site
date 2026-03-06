@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { getActiveActualitesAction, getFeaturedActualiteAction } from '@/app/(front)/actualites/actions/actualite.actions';
 import { ActualitesCarousel } from './ActualitesCarousel';
+import { CloudImage } from '@/shared/components/CloudImage';
 
 export async function ActualitesSection() {
     const [featuredResult, allResult] = await Promise.all([
@@ -32,10 +32,10 @@ export async function ActualitesSection() {
             {featured && (
                 <div className="w-full mb-16">
                     <Link href={`/actualites/${featured.id}`} className="group flex flex-col items-center gap-6">
-                        {featured.photo[0] && (
+                        {featured.photos[0] && (
                             <div className="relative w-full max-w-2xl aspect-video border-4 border-brand-red rounded-2xl overflow-hidden">
-                                <Image
-                                    src={featured.photo[0]}
+                                <CloudImage
+                                    asset={featured.photos[0]}
                                     alt={featured.title}
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 800px"

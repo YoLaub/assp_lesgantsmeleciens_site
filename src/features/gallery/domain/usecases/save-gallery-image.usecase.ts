@@ -10,8 +10,8 @@ export class SaveGalleryImageUseCase {
             return errAsync("Le titre de l'image est trop court (minimum 2 caractères).");
         }
 
-        if (!image.src) {
-            return errAsync("L'URL de l'image est requise.");
+        if (!image.asset?.publicId) {
+            return errAsync("Les métadonnées Cloudinary de l'image sont requises.");
         }
 
         return this.repository.save(image);
