@@ -6,7 +6,7 @@ export default function CTAFAQ() {
                     {/* Texte */}
                     <div className="flex-1">
                         <h3 className="text-lg md:text-2xl lg:text-3xl font-bold tracking-tight uppercase leading-tight">
-                            Pour encore plus d'infos n'hésitez pas à aller voir la FAQ
+                            Pour encore plus d&apos;infos n&apos;hésitez pas à aller voir la FAQ
                         </h3>
                     </div>
 

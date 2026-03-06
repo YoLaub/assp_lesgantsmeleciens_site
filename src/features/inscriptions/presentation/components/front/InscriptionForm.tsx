@@ -73,7 +73,7 @@ export default function InscriptionForm() {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left">
             <h3 className="text-xl font-bold text-center mb-6 text-gray-900">
-                Dossier d'inscription
+                Dossier d&apos;inscription
             </h3>
 
             {/* Informations personnelles */}

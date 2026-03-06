@@ -28,22 +28,22 @@ export default function MentionsLegalesPage() {
 
                 <section>
                     <h2 className="text-xl font-bold text-brand-red uppercase tracking-widest mb-4">2. Directeur de la publication</h2>
-                    <p>Le responsable du site est <strong>Christophe Barbereau</strong>, en sa qualité de gestionnaire/président de l'association.</p>
+                    <p>Le responsable du site est <strong>Christophe Barbereau</strong>, en sa qualité de gestionnaire/président de l&apos;association.</p>
                 </section>
 
                 <section>
                     <h2 className="text-xl font-bold text-brand-red uppercase tracking-widest mb-4">3. Hébergement</h2>
                     <p>Ce site est hébergé par :<br />
-                        <strong>[Nom de l'hébergeur, ex: Vercel Inc. / Hostinger]</strong><br />
-                        [Adresse de l'hébergeur]</p>
+                        <strong>[Nom de l&apos;hébergeur, ex: Vercel Inc. / Hostinger]</strong><br />
+                        [Adresse de l&apos;hébergeur]</p>
                 </section>
 
                 <section>
                     <h2 className="text-xl font-bold text-brand-red uppercase tracking-widest mb-4">4. Propriété intellectuelle</h2>
                     <p className="text-justify leading-relaxed">
-                        L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle.
+                        L&apos;ensemble de ce site relève de la législation française et internationale sur le droit d&apos;auteur et la propriété intellectuelle.
                         Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables et les représentations iconographiques.
-                        La reproduction de tout ou partie de ce site sur un support quel qu'il soit est formellement interdite sauf autorisation expresse du directeur de la publication.
+                        La reproduction de tout ou partie de ce site sur un support quel qu&apos;il soit est formellement interdite sauf autorisation expresse du directeur de la publication.
                     </p>
                 </section>
 
@@ -78,7 +78,7 @@ export default function MentionsLegalesPage() {
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-white/10 text-xs text-slate-400">
-                            <p>Pour exercer vos droits d'accès, de rectification ou de suppression, contactez-nous à : <span className="text-white">lesgantsmeleciens@gmail.com</span></p>
+                            <p>Pour exercer vos droits d&apos;accès, de rectification ou de suppression, contactez-nous à : <span className="text-white">lesgantsmeleciens@gmail.com</span></p>
                         </div>
                     </div>
                     {/* Décoration en arrière-plan */}

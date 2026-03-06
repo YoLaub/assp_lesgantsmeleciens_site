@@ -8,7 +8,7 @@ export default function InscriptionPage() {
             <div className="max-w-6xl mx-auto bg-amber-50 border-l-4 border-amber-500 p-4 mb-8 flex items-center gap-3">
                 <Info className="text-amber-500 shrink-0" />
                 <p className="text-amber-800 font-bold uppercase text-sm tracking-tight">
-                    Offre : 3 cours d'essai avant inscription !
+                    Offre : 3 cours d&apos;essai avant inscription !
                 </p>
             </div>
 

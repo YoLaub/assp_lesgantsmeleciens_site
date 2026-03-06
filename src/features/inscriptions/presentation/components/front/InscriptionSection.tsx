@@ -50,7 +50,7 @@ export default function InscriptionSection() {
                         {/* Bloc Modalités */}
                         <div className="flex flex-col items-center lg:items-start">
                             <h3 className="text-xl font-bold tracking-[0.2em] mb-4 text-gray-900">
-                                MODALITÉS<br />D'INSCRIPTIONS
+                                MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
                             <p className="text-[11px] leading-relaxed text-gray-600 mb-6 max-w-sm text-justify">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

@@ -29,7 +29,7 @@ export function Footer() {
                             <div className="absolute bottom-0 left-0 w-full h-1 bg-brand-orange"></div>
                         </div>
                         <div className="text-zinc-600 space-y-4 text-lg leading-relaxed">
-                            <p>Besoin d'une information ?<br/>Contactez-nous !</p>
+                            <p>Besoin d&apos;une information ?<br/>Contactez-nous !</p>
                             <p>
                                 <span className="font-medium text-zinc-800">Mail :</span><br/>
                                 <a href="mailto:lesgantsmeleciens@gmail.com" className="hover:text-brand-red transition-colors underline decoration-gray-300 underline-offset-4">lesgantsmeleciens@gmail.com</a>

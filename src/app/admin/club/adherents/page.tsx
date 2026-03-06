@@ -14,7 +14,7 @@ export default async function AdminAdherentsPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">Gestion des Adhérents</h1>
-                    <p className="text-slate-500 text-sm">Consultez et validez les dossiers d'inscription.</p>
+                    <p className="text-slate-500 text-sm">Consultez et validez les dossiers d&apos;inscription.</p>
                 </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
                     <Download className="w-4 h-4" /> Export CSV
