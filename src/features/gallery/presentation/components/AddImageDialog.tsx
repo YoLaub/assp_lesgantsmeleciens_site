@@ -2,8 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
+import { IMAGE_CATEGORIES, type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import { CloudImage } from '@/shared/components/CloudImage';
 import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
@@ -11,15 +11,16 @@ import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/admin/co
 interface AddImageDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onImageAdded: (image: GalleryImage) => void;
+    onImageAdded: (image: Image) => void;
 }
 
 export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialogProps) {
     const [step, setStep] = useState<'upload' | 'metadata'>('upload');
     const [uploadedAsset, setUploadedAsset] = useState<CloudinaryAsset | null>(null);
+    const [uploadedCategoryId, setUploadedCategoryId] = useState<string>('');
     const [title, setTitle] = useState('');
     const [alt, setAlt] = useState('');
-    const [category, setCategory] = useState<GalleryCategory | ''>('');
+    const [categorySlug, setCategorySlug] = useState<ImageCategorySlug | ''>('');
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -31,9 +32,10 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
     function resetForm() {
         setStep('upload');
         setUploadedAsset(null);
+        setUploadedCategoryId('');
         setTitle('');
         setAlt('');
-        setCategory('');
+        setCategorySlug('');
         setError('');
         setIsUploading(false);
         setIsSaving(false);
@@ -51,11 +53,13 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('categoryId', categorySlug);
 
         const result = await uploadGalleryImageAction(formData);
 
         if (result.success) {
             setUploadedAsset(result.asset);
+            setUploadedCategoryId(result.categoryId);
             setTitle(file.name.replace(/\.[^/.]+$/, ''));
             setStep('metadata');
         } else {
@@ -86,13 +90,26 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
         setIsSaving(true);
         setError('');
 
-        const imageData: GalleryImage = {
+        const selectedCat = IMAGE_CATEGORIES.find((c) => c.slug === categorySlug);
+        const imageData: Image = {
             id: crypto.randomUUID(),
             title: title.trim(),
             alt: alt.trim(),
-            category: category.trim(),
-            asset: uploadedAsset!,
+            publicId: uploadedAsset!.publicId,
+            version: uploadedAsset!.version,
+            format: uploadedAsset!.format,
+            width: uploadedAsset!.width,
+            height: uploadedAsset!.height,
+            bytes: uploadedAsset!.bytes,
             order: 0,
+            categoryId: uploadedCategoryId,
+            category: {
+                id: uploadedCategoryId,
+                slug: selectedCat?.slug || 'autre',
+                name: selectedCat?.name || 'Autre',
+            },
+            createdAt: new Date(),
+            updatedAt: new Date(),
         };
 
         const result = await saveGalleryImageAction(imageData);
@@ -219,20 +236,20 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                     Catégorie
                                 </label>
                                 <div className="flex flex-wrap gap-2">
-                                    {GALLERY_CATEGORIES.map((cat) => (
+                                    {IMAGE_CATEGORIES.map((cat) => (
                                         <button
-                                            key={cat.value}
+                                            key={cat.slug}
                                             type="button"
-                                            onClick={() => setCategory(
-                                                category === cat.value ? '' : cat.value
+                                            onClick={() => setCategorySlug(
+                                                categorySlug === cat.slug ? '' : cat.slug
                                             )}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                                ${category === cat.value
+                                                ${categorySlug === cat.slug
                                                     ? 'bg-red-600 text-white shadow-sm'
                                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                 }`}
                                         >
-                                            {cat.label}
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>

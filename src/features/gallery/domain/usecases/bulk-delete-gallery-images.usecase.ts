@@ -1,8 +1,8 @@
 import { ResultAsync, errAsync } from '@/shared/lib/result';
-import { GalleryImageRepository } from '../repositories/gallery-image.repository';
+import { ImageRepository } from '../repositories/image.repository';
 
 export class BulkDeleteGalleryImagesUseCase {
-    constructor(private repository: GalleryImageRepository) {}
+    constructor(private repository: ImageRepository) {}
 
     execute(ids: string[]): ResultAsync<void, string> {
         if (!ids.length) {

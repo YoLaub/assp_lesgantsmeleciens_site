@@ -1,6 +1,44 @@
 import { prisma } from "@/shared/lib/prisma";
 import { Actualite } from '../../domain/models/actualite.model';
-import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import { type Image } from '@/features/gallery/domain/models/image.model';
+
+const imageInclude = {
+    images: { include: { category: true }, orderBy: { order: 'asc' as const } },
+} as const;
+
+function mapToImage(img: {
+    id: string;
+    title: string;
+    alt: string;
+    publicId: string;
+    version: number;
+    format: string;
+    width: number;
+    height: number;
+    bytes: number;
+    order: number;
+    categoryId: string;
+    category: { id: string; name: string; slug: string };
+    createdAt: Date;
+    updatedAt: Date;
+}): Image {
+    return {
+        id: img.id,
+        title: img.title,
+        alt: img.alt,
+        publicId: img.publicId,
+        version: img.version,
+        format: img.format,
+        width: img.width,
+        height: img.height,
+        bytes: img.bytes,
+        order: img.order,
+        category: img.category,
+        categoryId: img.categoryId,
+        createdAt: img.createdAt,
+        updatedAt: img.updatedAt,
+    };
+}
 
 function mapToActualite(a: {
     id: string;
@@ -9,7 +47,8 @@ function mapToActualite(a: {
     tags: string[];
     active: boolean;
     featured: boolean;
-    photos: unknown;
+    images: Parameters<typeof mapToImage>[0][];
+    imageOrder: string[];
     seo: unknown;
     publishedAt: Date | null;
     createdAt: Date;
@@ -20,10 +59,11 @@ function mapToActualite(a: {
         title: a.title,
         description: a.description,
         tags: a.tags,
-        photos: (a.photos as CloudinaryAsset[]) ?? [],
-        seo: (a.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
         active: a.active,
         featured: a.featured,
+        images: a.images.map(mapToImage),
+        imageOrder: a.imageOrder,
+        seo: (a.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
         publishedAt: a.publishedAt,
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
@@ -34,13 +74,16 @@ export class ActualitePostgresDataSource {
 
     async upsertActualite(actualite: Actualite): Promise<void> {
         const seoPayload = actualite.seo ?? { metaTitle: '', metaDescription: '' };
+        const imageIds = actualite.imageOrder ?? actualite.images.map((i) => i.id);
+
         await prisma.actualite.upsert({
             where: { id: actualite.id || '' },
             update: {
                 title: actualite.title,
                 description: actualite.description,
                 tags: actualite.tags,
-                photos: actualite.photos as unknown as object[],
+                images: { set: [], connect: imageIds.map((id) => ({ id })) },
+                imageOrder: imageIds,
                 seo: seoPayload,
                 active: actualite.active ?? true,
                 featured: actualite.featured ?? false,
@@ -51,7 +94,8 @@ export class ActualitePostgresDataSource {
                 title: actualite.title,
                 description: actualite.description,
                 tags: actualite.tags,
-                photos: actualite.photos as unknown as object[],
+                images: { connect: imageIds.map((id) => ({ id })) },
+                imageOrder: imageIds,
                 seo: seoPayload,
                 active: actualite.active ?? true,
                 featured: actualite.featured ?? false,
@@ -63,12 +107,16 @@ export class ActualitePostgresDataSource {
     async getActualites(): Promise<Actualite[]> {
         const rows = await prisma.actualite.findMany({
             orderBy: { createdAt: 'desc' },
+            include: imageInclude,
         });
         return rows.map(mapToActualite);
     }
 
     async getActualiteById(id: string): Promise<Actualite | null> {
-        const a = await prisma.actualite.findUnique({ where: { id } });
+        const a = await prisma.actualite.findUnique({
+            where: { id },
+            include: imageInclude,
+        });
         if (!a) return null;
         return mapToActualite(a);
     }
@@ -77,6 +125,7 @@ export class ActualitePostgresDataSource {
         const rows = await prisma.actualite.findMany({
             where: { active: true },
             orderBy: { createdAt: 'desc' },
+            include: imageInclude,
         });
         return rows.map(mapToActualite);
     }
@@ -85,6 +134,7 @@ export class ActualitePostgresDataSource {
         const a = await prisma.actualite.findFirst({
             where: { featured: true, active: true },
             orderBy: { createdAt: 'desc' },
+            include: imageInclude,
         });
         if (!a) return null;
         return mapToActualite(a);

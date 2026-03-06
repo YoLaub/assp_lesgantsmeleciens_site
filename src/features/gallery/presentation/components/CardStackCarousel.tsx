@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { type Image } from '@/features/gallery/domain/models/image.model';
 import { useLightbox } from '@/features/gallery/presentation/hooks/useLightbox';
 import { Lightbox } from '@/features/gallery/presentation/components/Lightbox';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 import styles from './CardStackCarousel.module.css';
 
 const DRAG_THRESHOLD = 50;
@@ -27,7 +28,7 @@ function getPositionClass(offset: number): string {
 }
 
 interface CardStackCarouselProps {
-  images: GalleryImage[];
+  images: Image[];
 }
 
 export function CardStackCarousel({ images }: CardStackCarouselProps) {
@@ -167,10 +168,10 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
                 aria-label={image.alt || image.title}
               >
                 <CloudImage
-                  asset={image.asset}
+                  asset={toCloudinaryAsset(image)}
                   alt={image.alt || image.title}
-                  width={image.asset.width || 800}
-                  height={image.asset.height || 600}
+                  width={image.width || 800}
+                  height={image.height || 600}
                   sizes="400px"
                   className={styles.cardImage}
                   draggable={false}

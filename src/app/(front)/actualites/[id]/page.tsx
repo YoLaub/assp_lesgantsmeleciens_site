@@ -7,6 +7,7 @@ import CTAInscription from '@/app/(front)/_components/CTA-inscription';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -31,7 +32,12 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
     }
 
     const actualite = result.data;
-    const coverPhoto = actualite.photos[0];
+    const sortedImages = [...actualite.images].sort((a, b) => {
+        const aIdx = actualite.imageOrder.indexOf(a.id);
+        const bIdx = actualite.imageOrder.indexOf(b.id);
+        return (aIdx === -1 ? Infinity : aIdx) - (bIdx === -1 ? Infinity : bIdx);
+    });
+    const coverImage = sortedImages[0];
 
     return (
         <main className="container flex flex-col gap-16 pb-20 mx-auto px-5 md:px-0 max-w-4xl">
@@ -42,11 +48,11 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                 </Link>
             </div>
 
-            {coverPhoto && (
+            {coverImage && (
                 <div className="relative w-full aspect-video border-4 border-brand-red rounded-2xl overflow-hidden">
                     <CloudImage
-                        asset={coverPhoto}
-                        alt={actualite.title}
+                        asset={toCloudinaryAsset(coverImage)}
+                        alt={coverImage.alt || actualite.title}
                         fill
                         sizes="(max-width: 900px) 100vw, 900px"
                         className="object-cover"
@@ -75,13 +81,13 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                     dangerouslySetInnerHTML={{ __html: actualite.description }}
                 />
 
-                {actualite.photos.length > 1 && (
+                {sortedImages.length > 1 && (
                     <div className="grid grid-cols-2 gap-4 mt-4">
-                        {actualite.photos.slice(1).map((photo, index) => (
-                            <div key={index} className="relative aspect-video overflow-hidden rounded-xl border border-slate-100">
+                        {sortedImages.slice(1).map((image, index) => (
+                            <div key={image.id} className="relative aspect-video overflow-hidden rounded-xl border border-slate-100">
                                 <CloudImage
-                                    asset={photo}
-                                    alt={`${actualite.title} - photo ${index + 2}`}
+                                    asset={toCloudinaryAsset(image)}
+                                    alt={image.alt || `${actualite.title} - photo ${index + 2}`}
                                     fill
                                     sizes="(max-width: 768px) 50vw, 400px"
                                     className="object-cover"

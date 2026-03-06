@@ -2,12 +2,13 @@
 
 import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface GalleryListRowProps {
-    image: GalleryImage;
+    image: Image;
     index: number;
     isSelected: boolean;
     onToggleSelect: () => void;
@@ -63,7 +64,7 @@ export function GalleryListRow({
             <div className="py-2">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
                     <CloudImage
-                        asset={image.asset}
+                        asset={toCloudinaryAsset(image)}
                         alt={image.alt || image.title}
                         fill
                         sizes="48px"
@@ -87,16 +88,16 @@ export function GalleryListRow({
             <div className="px-3 py-3">
                 {image.category && (
                     <span className="inline-block px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                        {getCategoryLabel(image.category)}
+                        {getCategoryLabel(image.category.slug)}
                     </span>
                 )}
             </div>
 
             {/* Dimensions */}
             <div className="px-3 py-3 hidden lg:block">
-                {image.asset.width && image.asset.height ? (
+                {image.width && image.height ? (
                     <span className="text-xs text-slate-400">
-                        {image.asset.width} × {image.asset.height}
+                        {image.width} × {image.height}
                     </span>
                 ) : (
                     <span className="text-xs text-slate-300">—</span>

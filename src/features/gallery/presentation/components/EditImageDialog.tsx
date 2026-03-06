@@ -2,21 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
+import { IMAGE_CATEGORIES, type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
 import { saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface EditImageDialogProps {
-    image: GalleryImage | null;
+    image: Image | null;
     onClose: () => void;
-    onSaved: (updated: GalleryImage) => void;
+    onSaved: (updated: Image) => void;
 }
 
 export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProps) {
     const [title, setTitle] = useState('');
     const [alt, setAlt] = useState('');
-    const [category, setCategory] = useState<GalleryCategory | ''>('');
+    const [categorySlug, setCategorySlug] = useState<ImageCategorySlug | ''>('');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
 
@@ -24,7 +25,7 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
         if (image) {
             setTitle(image.title);
             setAlt(image.alt);
-            setCategory(image.category as GalleryCategory | '');
+            setCategorySlug(image.category.slug as ImageCategorySlug | '');
             setError('');
             setIsSaving(false);
         }
@@ -41,11 +42,15 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
         setIsSaving(true);
         setError('');
 
-        const updated: GalleryImage = {
+        const selectedCat = IMAGE_CATEGORIES.find((c) => c.slug === categorySlug);
+        const updated: Image = {
             ...image!,
             title: title.trim(),
             alt: alt.trim(),
-            category,
+            category: selectedCat
+                ? { id: image!.category.id, slug: selectedCat.slug, name: selectedCat.name }
+                : image!.category,
+            categoryId: image!.categoryId,
         };
 
         const result = await saveGalleryImageAction(updated);
@@ -83,10 +88,10 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
                     {/* Preview */}
                     <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
                         <CloudImage
-                            asset={image.asset}
+                            asset={toCloudinaryAsset(image)}
                             alt={image.alt || image.title}
-                            width={image.asset.width || 400}
-                            height={image.asset.height || 300}
+                            width={image.width || 400}
+                            height={image.height || 300}
                             sizes="400px"
                             className="max-h-48 w-auto h-auto object-contain"
                             placeholder="empty"
@@ -129,20 +134,20 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
                             Catégorie
                         </label>
                         <div className="flex flex-wrap gap-2">
-                            {GALLERY_CATEGORIES.map((cat) => (
+                            {IMAGE_CATEGORIES.map((cat) => (
                                 <button
-                                    key={cat.value}
+                                    key={cat.slug}
                                     type="button"
-                                    onClick={() => setCategory(
-                                        category === cat.value ? '' : cat.value
+                                    onClick={() => setCategorySlug(
+                                        categorySlug === cat.slug ? '' : cat.slug
                                     )}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                        ${category === cat.value
+                                        ${categorySlug === cat.slug
                                             ? 'bg-red-600 text-white shadow-sm'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                 >
-                                    {cat.label}
+                                    {cat.name}
                                 </button>
                             ))}
                         </div>

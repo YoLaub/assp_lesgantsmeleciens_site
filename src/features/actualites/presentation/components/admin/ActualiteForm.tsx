@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Save, Image as ImageIcon, Bold, Italic, Heading2, List } from 'lucide-react';
 import { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { saveActualiteAction, uploadActualitePhotoAction } from '@/app/admin/content/actions/actions';
+import { saveActualiteAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Actualite } from '../../../domain/models/actualite.model';
-import { type CloudinaryAsset } from '@/shared/types/cloudinary';
-import { CloudImage } from '@/shared/components/CloudImage';
+import { ACTUALITE_IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
+import { ImagePicker } from '@/shared/components/ImagePicker';
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
@@ -58,9 +58,9 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [photos, setPhotos] = useState<CloudinaryAsset[]>(initialData?.photos || []);
-    const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
-    const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [imageOrder, setImageOrder] = useState<string[]>(
+        initialData?.imageOrder ?? initialData?.images?.map((i) => i.id) ?? []
+    );
 
     const [activeState, setActiveState] = useState(initialData?.active ?? true);
     const [featuredState, setFeaturedState] = useState(initialData?.featured ?? false);
@@ -75,38 +75,6 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
             },
         },
     });
-
-    const handlePhotoSelect = async (index: number, file: File) => {
-        setUploadingIndex(index);
-        setError(null);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const result = await uploadActualitePhotoAction(formData);
-            if (result.success && result.asset) {
-                const newPhotos = [...photos];
-                newPhotos[index] = result.asset;
-                setPhotos(newPhotos);
-            } else {
-                setError(result.error || 'Upload failed');
-            }
-        } catch (err) {
-            console.error(err);
-            setError('Upload failed');
-        } finally {
-            setUploadingIndex(null);
-        }
-    };
-
-    const handlePhotoClick = (index: number) => {
-        fileInputRefs.current[index]?.click();
-    };
-
-    const handlePhotoRemove = (index: number) => {
-        const newPhotos = photos.filter((_, i) => i !== index);
-        setPhotos(newPhotos);
-    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -125,13 +93,17 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
             title: formData.get('title') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
-            photos: photos,
+            images: [],
+            imageOrder: imageOrder,
             seo: {
                 metaTitle: formData.get('metaTitle') as string,
                 metaDescription: formData.get('metaDescription') as string,
             },
             active: activeState,
             featured: featuredState,
+            publishedAt: initialData?.publishedAt ?? null,
+            createdAt: initialData?.createdAt ?? new Date(),
+            updatedAt: new Date(),
         };
 
         try {
@@ -150,8 +122,6 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
             setIsLoading(false);
         }
     };
-
-    const photoSlots = Array(5).fill(null).map((_, index) => photos[index] || null);
 
     return (
         <form className="space-y-8" onSubmit={handleSubmit}>
@@ -253,73 +223,24 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
                     </div>
                 </div>
 
-                {/* COLONNE DROITE : Galerie */}
+                {/* COLONNE DROITE : Image Picker */}
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie (Max 5)
+                            <ImageIcon className="w-4 h-4 text-red-600" /> Photos
                         </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {photoSlots.map((photo, index) => (
-                                <div
-                                    key={index}
-                                    className={`relative aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${index === 0 ? 'col-span-2' : ''} ${photo ? 'border-slate-200 bg-slate-50' : 'border-slate-100 hover:border-red-200 hover:bg-red-50 cursor-pointer'}`}
-                                    onClick={() => !photo && uploadingIndex !== index && handlePhotoClick(index)}
-                                >
-                                    <input
-                                        type="file"
-                                        ref={(el) => { fileInputRefs.current[index] = el; }}
-                                        className="hidden"
-                                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handlePhotoSelect(index, file);
-                                        }}
-                                    />
-
-                                    {uploadingIndex === index ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Upload className="w-6 h-6 text-red-600 animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Upload...</span>
-                                        </div>
-                                    ) : photo ? (
-                                        <>
-                                            <CloudImage
-                                                asset={photo}
-                                                alt={`Photo ${index + 1}`}
-                                                fill
-                                                sizes="200px"
-                                                className="object-cover rounded-xl"
-                                                placeholder="empty"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlePhotoRemove(index);
-                                                }}
-                                                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Plus className="w-6 h-6 text-slate-300" />
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Ajouter</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="mt-4 text-[10px] text-slate-400 italic">
-                            Format: JPG/WebP 800x800px max 5MB.
-                        </p>
+                        <ImagePicker
+                            categorySlugs={ACTUALITE_IMAGE_CATEGORIES}
+                            selected={imageOrder}
+                            onSelect={setImageOrder}
+                            multiple
+                            label="Sélectionner des images"
+                        />
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isLoading || uploadingIndex !== null}
+                        disabled={isLoading}
                         className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save className="w-5 h-5" />

@@ -1,8 +1,8 @@
 import { ResultAsync, okAsync } from '@/shared/lib/result';
-import { GalleryImageRepository } from '../repositories/gallery-image.repository';
+import { ImageRepository } from '../repositories/image.repository';
 
 export class ReorderGalleryImagesUseCase {
-    constructor(private repository: GalleryImageRepository) {}
+    constructor(private repository: ImageRepository) {}
 
     execute(items: { id: string; order: number }[]): ResultAsync<void, string> {
         if (items.length === 0) {

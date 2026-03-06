@@ -1,7 +1,7 @@
 'use client';
 
 import { Search, MousePointer2, LayoutGrid, List, ArrowUpDown } from 'lucide-react';
-import { GALLERY_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
+import { IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
 
 export type ViewMode = 'masonry' | 'list';
 export type SortField = 'date' | 'title' | 'category';
@@ -138,19 +138,19 @@ export function GalleryToolbar({
                 >
                     Tout
                 </button>
-                {GALLERY_CATEGORIES.map((cat) => (
+                {IMAGE_CATEGORIES.map((cat) => (
                     <button
-                        key={cat.value}
+                        key={cat.slug}
                         onClick={() => onCategoryChange(
-                            activeCategory === cat.value ? null : cat.value
+                            activeCategory === cat.slug ? null : cat.slug
                         )}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                            ${activeCategory === cat.value
+                            ${activeCategory === cat.slug
                                 ? 'bg-red-600 text-white shadow-sm'
                                 : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                             }`}
                     >
-                        {cat.label}
+                        {cat.name}
                     </button>
                 ))}
             </div>

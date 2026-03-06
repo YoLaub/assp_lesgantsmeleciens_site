@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { X, Upload, Loader2, Trash2, Check, AlertCircle } from 'lucide-react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
+import { IMAGE_CATEGORIES, type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import {
     uploadGalleryImageAction,
@@ -18,23 +18,24 @@ interface PendingImage {
     preview: string;
     title: string;
     alt: string;
-    category: GalleryCategory | '';
+    categorySlug: ImageCategorySlug | '';
     status: UploadStatus;
     uploadedAsset: CloudinaryAsset | null;
+    uploadedCategoryId: string | null;
     error: string;
 }
 
 interface AddImagesDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onImagesAdded: (images: GalleryImage[]) => void;
+    onImagesAdded: (images: Image[]) => void;
 }
 
 export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDialogProps) {
     const [step, setStep] = useState<'select' | 'metadata' | 'uploading'>('select');
     const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
     const [dragActive, setDragActive] = useState(false);
-    const [globalCategory, setGlobalCategory] = useState<GalleryCategory | ''>('');
+    const [globalCategory, setGlobalCategory] = useState<ImageCategorySlug | ''>('');
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,9 +60,10 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 preview: URL.createObjectURL(file),
                 title: file.name.replace(/\.[^/.]+$/, ''),
                 alt: '',
-                category: globalCategory,
+                categorySlug: globalCategory,
                 status: 'pending' as const,
                 uploadedAsset: null,
+                uploadedCategoryId: null,
                 error: '',
             }));
 
@@ -102,10 +104,10 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
         );
     }
 
-    function applyGlobalCategory(cat: GalleryCategory | '') {
+    function applyGlobalCategory(cat: ImageCategorySlug | '') {
         setGlobalCategory(cat);
         setPendingImages((prev) =>
-            prev.map((img) => ({ ...img, category: cat }))
+            prev.map((img) => ({ ...img, categorySlug: cat }))
         );
     }
 
@@ -131,11 +133,17 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
 
             const formData = new FormData();
             formData.append('file', img.file);
+            formData.append('categoryId', img.categorySlug); // Will be resolved server-side or via separate step
 
             try {
                 const uploadResult = await uploadGalleryImageAction(formData);
                 if (uploadResult.success) {
-                    results[index] = { ...results[index], status: 'success', uploadedAsset: uploadResult.asset };
+                    results[index] = {
+                        ...results[index],
+                        status: 'success',
+                        uploadedAsset: uploadResult.asset,
+                        uploadedCategoryId: uploadResult.categoryId,
+                    };
                 } else {
                     results[index] = { ...results[index], status: 'error', error: uploadResult.error || 'Erreur' };
                 }
@@ -155,15 +163,27 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
         }
 
         // Save metadata for all successful uploads
-        const successfulImages: GalleryImage[] = results
+        const successfulImages: Image[] = results
             .filter((img) => img.status === 'success' && img.uploadedAsset)
             .map((img) => ({
                 id: img.id,
                 title: img.title.trim(),
                 alt: img.alt.trim(),
-                category: img.category,
-                asset: img.uploadedAsset!,
+                publicId: img.uploadedAsset!.publicId,
+                version: img.uploadedAsset!.version,
+                format: img.uploadedAsset!.format,
+                width: img.uploadedAsset!.width,
+                height: img.uploadedAsset!.height,
+                bytes: img.uploadedAsset!.bytes,
                 order: 0,
+                categoryId: img.uploadedCategoryId || '',
+                category: {
+                    id: img.uploadedCategoryId || '',
+                    slug: img.categorySlug || 'autre',
+                    name: IMAGE_CATEGORIES.find((c) => c.slug === img.categorySlug)?.name || 'Autre',
+                },
+                createdAt: new Date(),
+                updatedAt: new Date(),
             }));
 
         if (successfulImages.length > 0) {
@@ -255,20 +275,20 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                                         Catégorie pour toutes les images
                                     </label>
                                     <div className="flex flex-wrap gap-2">
-                                        {GALLERY_CATEGORIES.map((cat) => (
+                                        {IMAGE_CATEGORIES.map((cat) => (
                                             <button
-                                                key={cat.value}
+                                                key={cat.slug}
                                                 type="button"
                                                 onClick={() => applyGlobalCategory(
-                                                    globalCategory === cat.value ? '' : cat.value
+                                                    globalCategory === cat.slug ? '' : cat.slug
                                                 )}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                                    ${globalCategory === cat.value
+                                                    ${globalCategory === cat.slug
                                                         ? 'bg-red-600 text-white shadow-sm'
                                                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                     }`}
                                             >
-                                                {cat.label}
+                                                {cat.name}
                                             </button>
                                         ))}
                                     </div>

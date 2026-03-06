@@ -1,18 +1,16 @@
 'use client';
 
-import React, {useRef, useState} from 'react';
-import {Save, Image as ImageIcon, X, Plus, Bold, Italic, Heading2, List, Upload} from 'lucide-react';
-import {Editor} from "@tiptap/core";
-import {EditorContent, useEditor} from "@tiptap/react";
+import React, { useState } from 'react';
+import { Save, Image as ImageIcon, Bold, Italic, Heading2, List } from 'lucide-react';
+import { Editor } from "@tiptap/core";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { saveDisciplineAction, uploadPhotoAction } from '@/app/admin/content/actions/actions';
+import { saveDisciplineAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Discipline } from '../../../domain/models/discipline.model';
-import { type CloudinaryAsset } from '@/shared/types/cloudinary';
-import { CloudImage } from '@/shared/components/CloudImage';
+import { DISCIPLINE_IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
+import { ImagePicker } from '@/shared/components/ImagePicker';
 
-
-// Barre d'outils isolée pour l'éditeur
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
 
@@ -60,17 +58,14 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // --- États et Refs pour la Galerie ---
-    const [photos, setPhotos] = useState<CloudinaryAsset[]>(initialData?.photos || []);
-    const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
-    const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [imageOrder, setImageOrder] = useState<string[]>(
+        initialData?.imageOrder ?? initialData?.images?.map((i) => i.id) ?? []
+    );
 
-    // --- États et Refs pour le Coach ---
-    const [photoCoach, setPhotoCoach] = useState<CloudinaryAsset | null>(initialData?.coachPhoto ?? null);
-    const [isCoachUploading, setIsCoachUploading] = useState(false);
-    const coachFileInputRef = useRef<HTMLInputElement | null>(null);
+    const [coachImageIds, setCoachImageIds] = useState<string[]>(
+        initialData?.coachImageId ? [initialData.coachImageId] : []
+    );
 
-    // Configuration de l'éditeur Tiptap
     const editor = useEditor({
         extensions: [StarterKit],
         content: initialData?.description || '<p>Décrivez la discipline ici...</p>',
@@ -82,70 +77,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
         },
     });
 
-    // --- Gestion de la Galerie ---
-    const handlePhotoSelect = async (index: number, file: File) => {
-        setUploadingIndex(index);
-        setError(null);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const result = await uploadPhotoAction(formData);
-            if (result.success && result.asset) {
-                const newPhotos = [...photos];
-                newPhotos[index] = result.asset;
-                setPhotos(newPhotos);
-            } else {
-                setError(result.error || 'Upload failed');
-            }
-        } catch (err) {
-            console.error(err);
-            setError('Upload failed');
-        } finally {
-            setUploadingIndex(null);
-        }
-    };
-
-    const handlePhotoClick = (index: number) => {
-        fileInputRefs.current[index]?.click();
-    };
-
-    const handlePhotoRemove = (index: number) => {
-        const newPhotos = photos.filter((_, i) => i !== index);
-        setPhotos(newPhotos);
-    };
-
-    // --- Gestion de la photo du Coach ---
-    const handleCoachPhotoSelect = async (file: File) => {
-        setIsCoachUploading(true);
-        setError(null);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const result = await uploadPhotoAction(formData);
-            if (result.success && result.asset) {
-                setPhotoCoach(result.asset);
-            } else {
-                setError(result.error || 'Upload failed');
-            }
-        } catch (err) {
-            console.error(err);
-            setError('Upload failed');
-        } finally {
-            setIsCoachUploading(false);
-        }
-    };
-
-    const handleCoachPhotoClick = () => {
-        coachFileInputRef.current?.click();
-    };
-
-    const handleCoachPhotoRemove = () => {
-        setPhotoCoach(null);
-    };
-
-    // --- Soumission du formulaire ---
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -162,18 +93,22 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             id: id || '',
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
-            coachPhoto: photoCoach,
+            coachImage: initialData?.coachImage ?? {} as Discipline['coachImage'],
+            coachImageId: coachImageIds[0] || '',
             citation: formData.get('citation') as string,
             category: formData.get('category') as string,
             description: editor?.getHTML() || '',
             tags: tagsArray,
-            photos: photos,
+            images: [],
+            imageOrder: imageOrder,
             seo: {
                 metaTitle: formData.get('metaTitle') as string,
                 metaDescription: formData.get('metaDescription') as string,
             },
             active: true,
-            order: 0,
+            order: initialData?.order ?? 0,
+            createdAt: initialData?.createdAt ?? new Date(),
+            updatedAt: new Date(),
         };
 
         try {
@@ -192,8 +127,6 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             setIsLoading(false);
         }
     };
-
-    const photoSlots = Array(5).fill(null).map((_, index) => photos[index] || null);
 
     return (
         <form className="space-y-8" onSubmit={handleSubmit}>
@@ -236,57 +169,21 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                             <label className="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Citation</label>
                             <textarea
                                 name="citation"
-                                defaultValue={initialData?.citation}
+                                defaultValue={initialData?.citation ?? ''}
                                 rows={3}
                                 className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-red-500 outline-none transition-all"
                                 placeholder="Une phrase inspirante pour cette discipline..."
                             />
                         </div>
-                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div
-                                className="relative w-16 h-16 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-red-500 transition-colors group"
-                                onClick={() => !isCoachUploading && handleCoachPhotoClick()}
-                            >
-                                <input
-                                    type="file"
-                                    ref={coachFileInputRef}
-                                    className="hidden"
-                                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleCoachPhotoSelect(file);
-                                    }}
-                                />
-
-                                {isCoachUploading ? (
-                                    <Upload className="w-6 h-6 text-red-600 animate-pulse" />
-                                ) : photoCoach ? (
-                                    <>
-                                        <CloudImage asset={photoCoach} alt={`Photo du coach`} fill sizes="64px" className="object-cover" placeholder="empty" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleCoachPhotoRemove();
-                                                }}
-                                                className="p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                            >
-                                                <X size={14}/>
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <Plus className="w-6 h-6 text-slate-300 group-hover:text-red-500 transition-colors" />
-                                )}
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Photo du Coach</label>
-                                <p className="text-xs text-slate-500">Portrait carré recommandé.</p>
-                            </div>
+                        <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                            <ImagePicker
+                                categorySlugs={['portraits']}
+                                selected={coachImageIds}
+                                onSelect={setCoachImageIds}
+                                multiple={false}
+                                label="Photo du Coach"
+                            />
                         </div>
-                        {/* --- FIN BLOC PHOTO COACH --- */}
-
                         <div>
                             <label className="block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1">Categorie</label>
                             <input
@@ -341,75 +238,24 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                     </div>
                 </div>
 
-                {/* COLONNE DROITE : Galerie Photos (5 slots) */}
+                {/* COLONNE DROITE : Galerie Photos */}
                 <div className="space-y-6">
-
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie (Max 5)
+                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie Photos
                         </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {photoSlots.map((photo, index) => (
-                                <div
-                                    key={index}
-                                    className={`relative aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${index === 0 ? 'col-span-2' : ''} ${photo ? 'border-slate-200 bg-slate-50' : 'border-slate-100 hover:border-red-200 hover:bg-red-50 cursor-pointer'}`}
-                                    onClick={() => !photo && uploadingIndex !== index && handlePhotoClick(index)}
-                                >
-                                    {/* Hidden file input */}
-                                    <input
-                                        type="file"
-                                        ref={(el) => { fileInputRefs.current[index] = el; }}
-                                        className="hidden"
-                                        accept="image/jpeg,image/jpg,image/png,image/webp"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) handlePhotoSelect(index, file);
-                                        }}
-                                    />
-
-                                    {uploadingIndex === index ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            <Upload className="w-6 h-6 text-red-600 animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Upload...</span>
-                                        </div>
-                                    ) : photo ? (
-                                        <>
-                                            <CloudImage
-                                                asset={photo}
-                                                alt={`Photo ${index + 1}`}
-                                                fill
-                                                sizes="200px"
-                                                className="object-cover rounded-xl"
-                                                placeholder="empty"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handlePhotoRemove(index);
-                                                }}
-                                                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                            >
-                                                <X size={12}/>
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Plus className="w-6 h-6 text-slate-300" />
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Ajouter</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="mt-4 text-[10px] text-slate-400 italic">
-                            Format: JPG/WebP 800x800px max 5MB.
-                        </p>
+                        <ImagePicker
+                            categorySlugs={DISCIPLINE_IMAGE_CATEGORIES}
+                            selected={imageOrder}
+                            onSelect={setImageOrder}
+                            multiple
+                            label="Sélectionner des images"
+                        />
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isLoading || uploadingIndex !== null || isCoachUploading}
+                        disabled={isLoading}
                         className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-600/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save className="w-5 h-5" />

@@ -1,21 +1,27 @@
 import Link from 'next/link';
 import { Actualite } from '@/features/actualites/domain/models/actualite.model';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface ActualiteCardProps {
     actualite: Actualite;
 }
 
 export function ActualiteCard({ actualite }: ActualiteCardProps) {
-    const coverPhoto = actualite.photos[0];
+    const sortedImages = [...actualite.images].sort((a, b) => {
+        const aIdx = actualite.imageOrder.indexOf(a.id);
+        const bIdx = actualite.imageOrder.indexOf(b.id);
+        return (aIdx === -1 ? Infinity : aIdx) - (bIdx === -1 ? Infinity : bIdx);
+    });
+    const coverImage = sortedImages[0];
 
     return (
         <Link href={`/actualites/${actualite.id}`} className="group flex flex-col gap-3">
             <div className="relative aspect-video overflow-hidden border-2 border-brand-orange rounded-xl">
-                {coverPhoto ? (
+                {coverImage ? (
                     <CloudImage
-                        asset={coverPhoto}
-                        alt={actualite.title}
+                        asset={toCloudinaryAsset(coverImage)}
+                        alt={coverImage.alt || actualite.title}
                         fill
                         sizes="(max-width: 768px) 100vw, 300px"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"

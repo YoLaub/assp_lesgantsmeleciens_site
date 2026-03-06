@@ -1,12 +1,13 @@
 'use client';
 
 import { Pencil } from 'lucide-react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface GalleryCardProps {
-    image: GalleryImage;
+    image: Image;
     index: number;
     isSelected: boolean;
     isDimmed: boolean;
@@ -24,9 +25,8 @@ export function GalleryCard({
     onContextMenu,
     onEdit,
 }: GalleryCardProps) {
-    const { width, height } = image.asset;
-    const hasRealDimensions = width > 0 && height > 0;
-    const aspectRatio = hasRealDimensions ? (height / width) * 100 : 0;
+    const hasRealDimensions = image.width > 0 && image.height > 0;
+    const aspectRatio = hasRealDimensions ? (image.height / image.width) * 100 : 0;
 
     return (
         <div
@@ -55,11 +55,11 @@ export function GalleryCard({
                 style={hasRealDimensions ? { paddingBottom: `${aspectRatio}%` } : undefined}
             >
                 <CloudImage
-                    asset={image.asset}
+                    asset={toCloudinaryAsset(image)}
                     alt={image.alt || image.title}
                     fill={hasRealDimensions}
-                    width={hasRealDimensions ? undefined : (width || 800)}
-                    height={hasRealDimensions ? undefined : (height || 600)}
+                    width={hasRealDimensions ? undefined : (image.width || 800)}
+                    height={hasRealDimensions ? undefined : (image.height || 600)}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className={hasRealDimensions ? 'object-cover' : 'block w-full h-auto pointer-events-none'}
                 />
@@ -86,7 +86,7 @@ export function GalleryCard({
                 <p className="text-white text-sm font-semibold truncate">{image.title}</p>
                 {image.category && (
                     <span className="inline-block mt-1 px-2 py-0.5 bg-white/20 rounded-md text-white text-[10px] font-bold uppercase tracking-wide">
-                        {getCategoryLabel(image.category)}
+                        {getCategoryLabel(image.category.slug)}
                     </span>
                 )}
             </div>

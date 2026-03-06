@@ -1,6 +1,7 @@
 import DisciplineCarousel from "@/features/disciplines/presentation/components/front/CarouselDiscipline";
 import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
 import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface DisciplineSectionProps {
     discipline: Discipline;
@@ -38,9 +39,9 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                         <div className="border-4 border-brand-orange rounded-3xl p-8 bg-white shadow-lg ">
                             <div className="flex flex-col items-start justify-center gap-6">
                                 <div className="w-full h-full flex-shrink-0">
-                                    {discipline.coachPhoto ? (
+                                    {discipline.coachImage ? (
                                         <CloudImage
-                                            asset={discipline.coachPhoto}
+                                            asset={toCloudinaryAsset(discipline.coachImage)}
                                             alt={`Coach ${discipline.coach}`}
                                             width={150}
                                             height={150}
@@ -63,7 +64,11 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                     </div>
                 </div>
 
-                <DisciplineCarousel photos={discipline.photos}/>
+                <DisciplineCarousel
+                    images={discipline.images}
+                    imageOrder={discipline.imageOrder}
+                    disciplineName={discipline.title}
+                />
             </div>
         </section>
     );

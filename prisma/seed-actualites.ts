@@ -15,14 +15,11 @@ const actualites = [
   {
     title: "Ouverture des inscriptions saison 2025-2026",
     description:
-      "Les inscriptions pour la nouvelle saison sont ouvertes ! Rendez-vous au gymnase ou sur notre site pour vous inscrire. Tarifs préférentiels pour les familles et les étudiants. N'hésitez pas à venir faire un cours d'essai gratuit avant de vous engager.",
+      "Les inscriptions pour la nouvelle saison sont ouvertes ! Rendez-vous au gymnase ou sur notre site pour vous inscrire. Tarifs préférentiels pour les familles et les étudiants. N\u2019hésitez pas à venir faire un cours d\u2019essai gratuit avant de vous engager.",
     tags: ["inscriptions", "saison", "nouveaux-membres"],
     active: true,
     featured: true,
-    photo: [
-      "https://picsum.photos/seed/actu1a/1200/800",
-      "https://picsum.photos/seed/actu1b/1200/800",
-    ],
+    photoCount: 2,
     seo: {
       title: "Inscriptions saison 2025-2026 - Les Gants Méléciens",
       description:
@@ -33,14 +30,11 @@ const actualites = [
   {
     title: "Résultats du championnat départemental",
     description:
-      "Nos boxeurs ont brillé lors du championnat départemental ce week-end. 3 médailles d'or, 2 d'argent et 4 de bronze. Félicitations à tous les participants pour leur engagement et leur esprit sportif. Un grand merci aux coachs pour leur préparation.",
+      "Nos boxeurs ont brillé lors du championnat départemental ce week-end. 3 médailles d\u2019or, 2 d\u2019argent et 4 de bronze. Félicitations à tous les participants pour leur engagement et leur esprit sportif. Un grand merci aux coachs pour leur préparation.",
     tags: ["compétition", "résultats", "championnat"],
     active: true,
     featured: true,
-    photo: [
-      "https://picsum.photos/seed/actu2a/1200/800",
-      "https://picsum.photos/seed/actu2b/1200/800",
-    ],
+    photoCount: 2,
     seo: {
       title: "Résultats championnat départemental - Les Gants Méléciens",
       description:
@@ -55,7 +49,7 @@ const actualites = [
     tags: ["stage", "muay-thai", "vacances"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu3a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Stage Muay Thaï vacances février - Les Gants Méléciens",
       description:
@@ -70,7 +64,7 @@ const actualites = [
     tags: ["planning", "cardio-boxing", "nouveau-cours"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu4a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Nouveau cours cardio-boxing - Les Gants Méléciens",
       description:
@@ -85,11 +79,7 @@ const actualites = [
     tags: ["gala", "événement", "combats"],
     active: true,
     featured: true,
-    photo: [
-      "https://picsum.photos/seed/actu5a/1200/800",
-      "https://picsum.photos/seed/actu5b/1200/800",
-      "https://picsum.photos/seed/actu5c/1200/800",
-    ],
+    photoCount: 3,
     seo: {
       title: "Gala de boxe annuel - Les Gants Méléciens",
       description:
@@ -104,7 +94,7 @@ const actualites = [
     tags: ["portes-ouvertes", "découverte", "initiation"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu6a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Portes ouvertes - Les Gants Méléciens",
       description:
@@ -119,7 +109,7 @@ const actualites = [
     tags: ["fermeture", "info-pratique"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu7a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Fermeture 1er mai - Les Gants Méléciens",
       description: "Le club Les Gants Méléciens sera fermé le 1er mai.",
@@ -129,11 +119,11 @@ const actualites = [
   {
     title: "Nos jeunes boxeurs sélectionnés en équipe régionale",
     description:
-      "Deux de nos jeunes boxeurs, Yanis (15 ans) et Léa (14 ans), ont été sélectionnés en équipe régionale Île-de-France. Une belle reconnaissance de leur travail et de leur talent. Toute l'équipe du club est fière d'eux !",
+      "Deux de nos jeunes boxeurs, Yanis (15 ans) et Léa (14 ans), ont été sélectionnés en équipe régionale Île-de-France. Une belle reconnaissance de leur travail et de leur talent. Toute l\u2019équipe du club est fière d\u2019eux !",
     tags: ["sélection", "jeunes", "équipe-régionale"],
     active: true,
     featured: true,
-    photo: ["https://picsum.photos/seed/actu8a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Sélection équipe régionale - Les Gants Méléciens",
       description:
@@ -144,11 +134,11 @@ const actualites = [
   {
     title: "Assemblée générale du club",
     description:
-      "L'assemblée générale annuelle se tiendra le vendredi 7 février à 19h au gymnase. Bilan de la saison, projets pour l'année prochaine et élection du bureau. La présence de tous les adhérents est souhaitée.",
+      "L\u2019assemblée générale annuelle se tiendra le vendredi 7 février à 19h au gymnase. Bilan de la saison, projets pour l\u2019année prochaine et élection du bureau. La présence de tous les adhérents est souhaitée.",
     tags: ["assemblée-générale", "club", "vie-associative"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu9a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Assemblée générale - Les Gants Méléciens",
       description:
@@ -159,11 +149,11 @@ const actualites = [
   {
     title: "Partenariat avec la salle de musculation FitZone",
     description:
-      "Le club a signé un partenariat avec la salle FitZone. Tous les adhérents des Gants Méléciens bénéficient désormais de -20% sur l'abonnement FitZone. Renseignements à l'accueil du club.",
+      "Le club a signé un partenariat avec la salle FitZone. Tous les adhérents des Gants Méléciens bénéficient désormais de -20% sur l\u2019abonnement FitZone. Renseignements à l\u2019accueil du club.",
     tags: ["partenariat", "musculation", "avantage-adhérents"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu10a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Partenariat FitZone - Les Gants Méléciens",
       description:
@@ -174,15 +164,11 @@ const actualites = [
   {
     title: "Retour en images sur le tournoi inter-clubs",
     description:
-      "Revivez les meilleurs moments du tournoi inter-clubs qui s'est tenu le week-end dernier. Plus de 50 combats, 8 clubs représentés et une ambiance de folie. Retrouvez toutes les photos dans notre galerie.",
+      "Revivez les meilleurs moments du tournoi inter-clubs qui s\u2019est tenu le week-end dernier. Plus de 50 combats, 8 clubs représentés et une ambiance de folie. Retrouvez toutes les photos dans notre galerie.",
     tags: ["tournoi", "inter-clubs", "photos"],
     active: true,
     featured: false,
-    photo: [
-      "https://picsum.photos/seed/actu11a/1200/800",
-      "https://picsum.photos/seed/actu11b/1200/800",
-      "https://picsum.photos/seed/actu11c/1200/800",
-    ],
+    photoCount: 3,
     seo: {
       title: "Tournoi inter-clubs - Les Gants Méléciens",
       description:
@@ -191,28 +177,28 @@ const actualites = [
     publishedAt: daysAgo(40),
   },
   {
-    title: "Changement d'horaires pour les cours enfants",
+    title: "Changement d\u2019horaires pour les cours enfants",
     description:
-      "À compter du 15 mars, les cours de boxe éducative enfants passent de 14h-15h à 14h30-15h30 le mercredi. Ce changement permet de mieux s'adapter aux horaires de sortie scolaire. Les cours du samedi restent inchangés.",
+      "À compter du 15 mars, les cours de boxe éducative enfants passent de 14h-15h à 14h30-15h30 le mercredi. Ce changement permet de mieux s\u2019adapter aux horaires de sortie scolaire. Les cours du samedi restent inchangés.",
     tags: ["horaires", "enfants", "info-pratique"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu12a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Nouveaux horaires cours enfants - Les Gants Méléciens",
       description:
-        "Changement d'horaires pour les cours enfants au club Les Gants Méléciens.",
+        "Changement d\u2019horaires pour les cours enfants au club Les Gants Méléciens.",
     },
     publishedAt: daysAgo(18),
   },
   {
     title: "Le club recherche des bénévoles",
     description:
-      "Pour le bon fonctionnement du club et l'organisation de nos événements, nous recherchons des bénévoles. Que ce soit pour l'accueil, l'accompagnement aux compétitions ou l'organisation du gala, toute aide est la bienvenue. Contactez-nous !",
+      "Pour le bon fonctionnement du club et l\u2019organisation de nos événements, nous recherchons des bénévoles. Que ce soit pour l\u2019accueil, l\u2019accompagnement aux compétitions ou l\u2019organisation du gala, toute aide est la bienvenue. Contactez-nous !",
     tags: ["bénévolat", "vie-associative", "recrutement"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu13a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Recherche bénévoles - Les Gants Méléciens",
       description:
@@ -223,11 +209,11 @@ const actualites = [
   {
     title: "Interview de notre champion Karim en vidéo",
     description:
-      "Découvrez l'interview exclusive de Karim Benziane, coach et ancien champion régional, qui revient sur son parcours et sa vision de la boxe. Une discussion inspirante sur la discipline, le dépassement de soi et la transmission.",
+      "Découvrez l\u2019interview exclusive de Karim Benziane, coach et ancien champion régional, qui revient sur son parcours et sa vision de la boxe. Une discussion inspirante sur la discipline, le dépassement de soi et la transmission.",
     tags: ["interview", "vidéo", "coach"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu14a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Interview coach Karim - Les Gants Méléciens",
       description:
@@ -238,11 +224,11 @@ const actualites = [
   {
     title: "Collecte de matériel pour les clubs partenaires au Sénégal",
     description:
-      "Le club organise une collecte de matériel de boxe (gants, protège-dents, casques, bandages) à destination de clubs partenaires au Sénégal. Déposez vos dons à l'accueil jusqu'au 30 mars. Merci pour votre générosité !",
+      "Le club organise une collecte de matériel de boxe (gants, protège-dents, casques, bandages) à destination de clubs partenaires au Sénégal. Déposez vos dons à l\u2019accueil jusqu\u2019au 30 mars. Merci pour votre générosité !",
     tags: ["solidarité", "collecte", "international"],
     active: true,
     featured: false,
-    photo: ["https://picsum.photos/seed/actu15a/1200/800"],
+    photoCount: 1,
     seo: {
       title: "Collecte matériel Sénégal - Les Gants Méléciens",
       description:
@@ -252,22 +238,67 @@ const actualites = [
   },
 ];
 
-async function main() {
-  console.log("Deleting existing actualités...");
-  const { count: deleted } = await prisma.actualite.deleteMany();
-  console.log(`Deleted ${deleted} existing actualités.`);
+export async function seedActualites(categoryRecords: Record<string, string>) {
+  const evenementsCategoryId = categoryRecords["evenements"];
 
-  console.log("Inserting actualités...");
-  const { count } = await prisma.actualite.createMany({ data: actualites });
-  console.log(`Inserted ${count} actualités.`);
+  console.log("Deleting existing actualités...");
+  await prisma.actualite.deleteMany();
+
+  console.log("Inserting actualités with image relations...");
+  let imgIndex = 0;
+  for (const actu of actualites) {
+    const { photoCount, ...actuData } = actu;
+
+    // Create Image records for this actualite
+    const imageIds: string[] = [];
+    for (let j = 0; j < photoCount; j++) {
+      const img = await prisma.image.create({
+        data: {
+          title: `${actu.title} - photo ${j + 1}`,
+          alt: `Photo de ${actu.title}`,
+          categoryId: evenementsCategoryId,
+          publicId: `gants-meleciens/actualites/seed-${imgIndex}`,
+          version: 1719307544,
+          format: "jpg",
+          width: 1200,
+          height: 800,
+          bytes: 150000,
+          order: j,
+        },
+      });
+      imageIds.push(img.id);
+      imgIndex++;
+    }
+
+    await prisma.actualite.create({
+      data: {
+        ...actuData,
+        images: { connect: imageIds.map((id) => ({ id })) },
+        imageOrder: imageIds,
+      },
+    });
+  }
+  console.log(`Inserted ${actualites.length} actualités.`);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+// Allow running standalone
+if (require.main === module) {
+  // When running standalone, we need to fetch existing category records
+  prisma.imageCategory
+    .findMany()
+    .then((cats) => {
+      const categoryRecords: Record<string, string> = {};
+      for (const cat of cats) {
+        categoryRecords[cat.slug] = cat.id;
+      }
+      return seedActualites(categoryRecords);
+    })
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+      await pool.end();
+    });
+}

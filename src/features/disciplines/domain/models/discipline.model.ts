@@ -1,21 +1,23 @@
-import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import type { Image } from '@/features/gallery/domain/models/image.model'
 
 export type Discipline = {
-    id: string;
-    title: string;
-    coach: string;
-    coachPhoto?: CloudinaryAsset | null;
-    citation: string;
-    category: string;
-    description: string;
-    tags: string[];
-    active: boolean;
-    photos: CloudinaryAsset[];
-    seo: {
-        metaTitle: string;
-        metaDescription: string;
-    };
-    order: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-};
+  id: string
+  title: string
+  coach: string
+  coachImage: Image
+  coachImageId: string
+  citation: string | null
+  category: string
+  description: string
+  tags: string[]
+  active: boolean
+  images: Image[]
+  imageOrder: string[]
+  seo: {
+    metaTitle: string
+    metaDescription: string
+  }
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}

@@ -1,15 +1,15 @@
 'use client';
 
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { GalleryCard } from './GalleryCard';
 
 interface GalleryGridProps {
-    images: GalleryImage[];
+    images: Image[];
     selectedIds: Set<string>;
     hasSelection: boolean;
     onCardClick: (id: string, index: number, e: React.MouseEvent) => void;
     onCardContextMenu: (e: React.MouseEvent, id: string) => void;
-    onEdit?: (image: GalleryImage) => void;
+    onEdit?: (image: Image) => void;
 }
 
 export function GalleryGrid({

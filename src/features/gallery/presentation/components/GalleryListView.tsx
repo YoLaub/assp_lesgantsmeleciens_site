@@ -2,16 +2,16 @@
 
 import { DragDropProvider } from '@dnd-kit/react';
 import { isSortable } from '@dnd-kit/react/sortable';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { GalleryListRow } from './GalleryListRow';
 
 interface GalleryListViewProps {
-    images: GalleryImage[];
+    images: Image[];
     selectedIds: Set<string>;
     hasSelection: boolean;
     onCardClick: (id: string, index: number, e: React.MouseEvent) => void;
     onToggleSelect: (id: string) => void;
-    onEdit: (image: GalleryImage) => void;
+    onEdit: (image: Image) => void;
     onDelete: (id: string) => void;
     onSelectAll: () => void;
     onClearSelection: () => void;

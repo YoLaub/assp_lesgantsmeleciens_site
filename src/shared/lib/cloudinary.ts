@@ -24,6 +24,29 @@ export function buildBlurUrl(asset: CloudinaryAsset): string {
     return buildCloudinaryUrl(asset, ['w_30', 'e_blur:1000', 'q_1', 'f_auto'])
 }
 
+/**
+ * Convert an Image-like object (flat Cloudinary fields) to a CloudinaryAsset.
+ * Use when passing Image data to CloudImage or buildBlurUrl.
+ */
+export function toCloudinaryAsset(img: {
+    publicId: string
+    version: number
+    format: string
+    width: number
+    height: number
+    bytes: number
+}): CloudinaryAsset {
+    return {
+        publicId: img.publicId,
+        version: img.version,
+        format: img.format,
+        width: img.width,
+        height: img.height,
+        bytes: img.bytes,
+        resourceType: 'image',
+    }
+}
+
 export async function deleteCloudinaryAsset(asset: CloudinaryAsset): Promise<void> {
     await cloudinary.uploader.destroy(asset.publicId)
 }
