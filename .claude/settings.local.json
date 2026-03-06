@@ -17,7 +17,10 @@
       "Bash(xargs grep -l \"cloudinary\\\\|Cloudinary\")",
       "Bash(npx vitest run --reporter=verbose)",
       "Bash(npm run build)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(xargs grep -l \"GalleryImage\\\\|Actualite\\\\|Discipline\")",
+      "Bash(xargs grep -l \"photo\\\\|image\")",
+      "Bash(xargs grep -l \"carousel\\\\|Carousel\")"
     ]
   }
 }
