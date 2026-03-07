@@ -12,7 +12,7 @@ import { Image } from '@/features/gallery/domain/models/image.model';
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
 import { uploadPublicImage } from '@/shared/lib/upload';
-import { deleteCloudinaryAsset, deleteCloudinaryAssets } from '@/shared/lib/cloudinary';
+import { deleteCloudinaryAsset, deleteCloudinaryAssets } from '@/shared/lib/cloudinary.server';
 
 function toCloudinaryAsset(image: Image) {
     return {

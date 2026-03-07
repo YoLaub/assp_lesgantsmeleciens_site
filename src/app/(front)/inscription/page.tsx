@@ -1,7 +1,12 @@
 import { Info } from 'lucide-react';
 import InscriptionSection from '@/features/inscriptions/presentation/components/front/InscriptionSection';
+import { getActiveDisciplinesAction } from '@/app/(front)/disciplines/actions/discipline.actions';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
-export default function InscriptionPage() {
+export default async function InscriptionPage() {
+    const result = await getActiveDisciplinesAction();
+    const firstImage = result.success && result.data?.[0]?.images?.[0];
+    const image = firstImage ? toCloudinaryAsset(firstImage) : undefined;
     return (
         <main className="container mx-auto py-20 px-5">
             {/* Ta bannière promotionnelle */}
@@ -13,7 +18,7 @@ export default function InscriptionPage() {
             </div>
 
             {/* Le Smart Component qui contient l'image, les tarifs et le formulaire dépliable */}
-            <InscriptionSection />
+            <InscriptionSection image={image} />
         </main>
     );
 }

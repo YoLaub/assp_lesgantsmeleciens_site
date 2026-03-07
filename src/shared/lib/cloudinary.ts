@@ -1,4 +1,3 @@
-import { v2 as cloudinary } from 'cloudinary'
 import { type CloudinaryAsset } from '@/shared/types/cloudinary'
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!
@@ -45,13 +44,4 @@ export function toCloudinaryAsset(img: {
         bytes: img.bytes,
         resourceType: 'image',
     }
-}
-
-export async function deleteCloudinaryAsset(asset: CloudinaryAsset): Promise<void> {
-    await cloudinary.uploader.destroy(asset.publicId)
-}
-
-export async function deleteCloudinaryAssets(assets: CloudinaryAsset[]): Promise<void> {
-    const publicIds = assets.map(a => a.publicId)
-    await cloudinary.api.delete_resources(publicIds)
 }

@@ -2,6 +2,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+import { fetchAndUploadImageThrottled, cleanupSeedImages } from "./seed-utils";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -56,7 +57,9 @@ function randomDate(monthsBack: number): Date {
 }
 
 export async function seedGallery() {
-  console.log("Deleting existing images and categories...");
+  console.log("Deleting existing data...");
+  await prisma.actualite.deleteMany();
+  await prisma.discipline.deleteMany();
   await prisma.image.deleteMany();
   await prisma.imageCategory.deleteMany();
 
@@ -68,31 +71,105 @@ export async function seedGallery() {
   }
   console.log(`Created ${IMAGE_CATEGORIES.length} categories.`);
 
-  const categorySlugs = IMAGE_CATEGORIES.map((c) => c.slug);
+  console.log("Cleaning up old seed images from Cloudinary...");
+  await cleanupSeedImages();
 
-  console.log("Creating 100 gallery images...");
-  for (let i = 0; i < 100; i++) {
-    const dim = dimensions[i % dimensions.length];
-    const title = titles[i % titles.length];
-    const slug = categorySlugs[i % categorySlugs.length];
+  const categorySeeds: {
+    slug: string;
+    count: number;
+    width: number;
+    height: number;
+    titles: string[];
+  }[] = [
+    {
+      slug: "carousel",
+      count: 6,
+      width: 1920,
+      height: 1080,
+      titles: ["Carousel"],
+    },
+    {
+      slug: "entrainements",
+      count: 6,
+      width: 1200,
+      height: 800,
+      titles: [
+        "Entraînement boxe anglaise",
+        "Séance de sparring",
+        "Échauffement collectif",
+        "Entraînement sac de frappe",
+        "Cours technique pieds-poings",
+        "Séance cardio-boxing",
+      ],
+    },
+    {
+      slug: "competitions",
+      count: 6,
+      width: 1200,
+      height: 800,
+      titles: [
+        "Open de boxe régional",
+        "Compétition départementale",
+        "Tournoi inter-clubs",
+        "Remise des médailles",
+        "Combat exhibition",
+        "Remise des ceintures",
+      ],
+    },
+    {
+      slug: "evenements",
+      count: 6,
+      width: 1200,
+      height: 800,
+      titles: [
+        "Gala annuel 2024",
+        "Soirée portes ouvertes",
+        "Stage été boxe thaï",
+        "Initiation self-défense",
+        "Cours enfants",
+        "Photo de groupe club",
+      ],
+    },
+    {
+      slug: "portraits",
+      count: 4,
+      width: 800,
+      height: 800,
+      titles: ["Portrait boxeur", "Portrait coach", "Portrait adhérent", "Portrait équipe"],
+    },
+    {
+      slug: "installations",
+      count: 4,
+      width: 1600,
+      height: 1200,
+      titles: ["Salle de boxe", "Ring", "Espace musculation", "Vestiaires"],
+    },
+  ];
 
-    await prisma.image.create({
-      data: {
-        title: `${title} #${i + 1}`,
-        alt: `Photo - ${title}`,
-        categoryId: categoryRecords[slug],
-        publicId: `gants-meleciens/gallery/seed-${i}`,
-        version: 1719307544,
-        format: "jpg",
-        width: dim.width,
-        height: dim.height,
-        bytes: Math.floor(Math.random() * 500000) + 50000,
-        order: i,
-        createdAt: randomDate(6),
-      },
-    });
+  const totalImages = categorySeeds.reduce((sum, c) => sum + c.count, 0);
+  let uploaded = 0;
+
+  for (const cat of categorySeeds) {
+    console.log(`\nUploading ${cat.count} images for "${cat.slug}"...`);
+    for (let i = 0; i < cat.count; i++) {
+      uploaded++;
+      const title = cat.titles[i % cat.titles.length];
+      console.log(`  [${uploaded}/${totalImages}] ${title} (${cat.width}x${cat.height})...`);
+      const imageData = await fetchAndUploadImageThrottled(cat.width, cat.height, "seed/gallery");
+
+      await prisma.image.create({
+        data: {
+          title: cat.count > cat.titles.length ? `${title} #${i + 1}` : title,
+          alt: `Photo - ${title}`,
+          categoryId: categoryRecords[cat.slug],
+          ...imageData,
+          order: i,
+          createdAt: randomDate(6),
+        },
+      });
+    }
   }
-  console.log("Inserted 100 images.");
+  console.log(`\nInserted ${totalImages} gallery images.`);
 
   return categoryRecords;
 }

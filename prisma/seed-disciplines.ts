@@ -2,6 +2,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+import { fetchAndUploadImageThrottled } from "./seed-utils";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -188,46 +189,39 @@ export async function seedDisciplines(categoryRecords: Record<string, string>) {
   await prisma.discipline.deleteMany();
 
   console.log("Inserting disciplines with image relations...");
-  let imgIndex = 0;
-  for (const disc of disciplines) {
+  for (let i = 0; i < disciplines.length; i++) {
+    const disc = disciplines[i];
     const { photoCount, ...discData } = disc;
+    console.log(`  [${i + 1}/${disciplines.length}] ${disc.title}`);
 
     // Create coach image
+    console.log(`    Uploading coach portrait for ${disc.coach}...`);
+    const coachImageData = await fetchAndUploadImageThrottled(400, 400, "seed/coaches");
     const coachImage = await prisma.image.create({
       data: {
         title: `Coach ${disc.coach}`,
         alt: `Photo de ${disc.coach}, coach de ${disc.title}`,
         categoryId: portraitsCategoryId,
-        publicId: `gants-meleciens/coaches/seed-${imgIndex}`,
-        version: 1719307544,
-        format: "jpg",
-        width: 400,
-        height: 400,
-        bytes: 80000,
+        ...coachImageData,
         order: 0,
       },
     });
-    imgIndex++;
 
     // Create discipline gallery images
     const imageIds: string[] = [];
     for (let j = 0; j < photoCount; j++) {
+      console.log(`    Uploading gallery image ${j + 1}/${photoCount}...`);
+      const galleryImageData = await fetchAndUploadImageThrottled(1200, 800, "seed/disciplines");
       const img = await prisma.image.create({
         data: {
           title: `${disc.title} - photo ${j + 1}`,
           alt: `Photo de ${disc.title}`,
           categoryId: entrainementsCategoryId,
-          publicId: `gants-meleciens/disciplines/seed-${imgIndex}`,
-          version: 1719307544,
-          format: "jpg",
-          width: 1200,
-          height: 800,
-          bytes: 150000,
+          ...galleryImageData,
           order: j,
         },
       });
       imageIds.push(img.id);
-      imgIndex++;
     }
 
     await prisma.discipline.create({

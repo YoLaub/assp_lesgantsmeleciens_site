@@ -2,6 +2,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+import { fetchAndUploadImageThrottled } from "./seed-utils";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -245,29 +246,26 @@ export async function seedActualites(categoryRecords: Record<string, string>) {
   await prisma.actualite.deleteMany();
 
   console.log("Inserting actualités with image relations...");
-  let imgIndex = 0;
-  for (const actu of actualites) {
+  for (let i = 0; i < actualites.length; i++) {
+    const actu = actualites[i];
     const { photoCount, ...actuData } = actu;
+    console.log(`  [${i + 1}/${actualites.length}] ${actu.title}`);
 
     // Create Image records for this actualite
     const imageIds: string[] = [];
     for (let j = 0; j < photoCount; j++) {
+      console.log(`    Uploading image ${j + 1}/${photoCount}...`);
+      const imageData = await fetchAndUploadImageThrottled(1200, 800, "seed/actualites");
       const img = await prisma.image.create({
         data: {
           title: `${actu.title} - photo ${j + 1}`,
           alt: `Photo de ${actu.title}`,
           categoryId: evenementsCategoryId,
-          publicId: `gants-meleciens/actualites/seed-${imgIndex}`,
-          version: 1719307544,
-          format: "jpg",
-          width: 1200,
-          height: 800,
-          bytes: 150000,
+          ...imageData,
           order: j,
         },
       });
       imageIds.push(img.id);
-      imgIndex++;
     }
 
     await prisma.actualite.create({

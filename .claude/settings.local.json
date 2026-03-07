@@ -20,7 +20,8 @@
       "Bash(npx tsc --noEmit)",
       "Bash(xargs grep -l \"GalleryImage\\\\|Actualite\\\\|Discipline\")",
       "Bash(xargs grep -l \"photo\\\\|image\")",
-      "Bash(xargs grep -l \"carousel\\\\|Carousel\")"
+      "Bash(xargs grep -l \"carousel\\\\|Carousel\")",
+      "Bash(grep:*)"
     ]
   }
 }

@@ -71,6 +71,7 @@ export function CloudImage({
                 alt={alt}
                 sizes={sizes}
                 priority={priority}
+                placeholder={placeholder}
                 className={className}
                 draggable={draggable}
                 onLoad={onLoad}
