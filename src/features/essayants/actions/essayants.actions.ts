@@ -253,7 +253,6 @@ export async function getEssayantsForCoachAction(coachToken: string) {
     const essayants = await prisma.essayant.findMany({
         where: { adherent: null }, // non convertis uniquement
         orderBy: { nom: 'asc' },
-        include: { presences: { orderBy: { pointeLe: 'desc' }, take: 1 } },
         select: {
             id: true,
             numeroAdherent: true,
@@ -261,7 +260,7 @@ export async function getEssayantsForCoachAction(coachToken: string) {
             prenom: true,
             nombrePresences: true,
             accesBloque: true,
-            presences: true,
+            presences: { orderBy: { pointeLe: 'desc' }, take: 1 },
         },
     });
 
