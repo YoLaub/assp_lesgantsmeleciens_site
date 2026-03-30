@@ -1,0 +1,678 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import {
+    getMonDossierAction,
+    requestAccesDossierAction,
+    createCheckoutAction,
+    soumettreQuestionnaireAction,
+    signerReglementAction,
+    setTypePaiementAction,
+    declarerCertificatAction,
+} from "@/features/adherents/actions/mon-dossier.actions";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type StatutDocument = "non_fourni" | "declare" | "valide";
+
+interface Questionnaire {
+    q1: boolean; q2: boolean; q3: boolean; q4: boolean; q5: boolean;
+    q6: boolean; q7: boolean; q8: boolean; q9: boolean;
+}
+
+interface DossierData {
+    id: number;
+    numeroAdherent: string;
+    nom: string;
+    prenom: string;
+    email: string;
+    categorie: string;
+    dateDeNaissance: Date;
+    reglementSigne: StatutDocument;
+    certificatMedical: StatutDocument;
+    certificatMedicalReq: boolean;
+    autorisationParentale: StatutDocument;
+    couponSport: StatutDocument;
+    bonCaf: StatutDocument;
+    montantSnapshot: number | null;
+    typePaiement: string | null;
+    inscriptionValide: boolean;
+    stripeSessionId: string | null;
+    questionnaire: Questionnaire | null;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function isMineur(dateDeNaissance: Date | string): boolean {
+    const d = new Date(dateDeNaissance);
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+    return age < 18;
+}
+
+function StatutBadge({ statut }: { statut: StatutDocument }) {
+    const styles: Record<StatutDocument, string> = {
+        non_fourni: "bg-gray-100 text-gray-600",
+        declare: "bg-orange-100 text-orange-700",
+        valide: "bg-green-100 text-green-700",
+    };
+    const labels: Record<StatutDocument, string> = {
+        non_fourni: "Non fourni",
+        declare: "Déclaré — en attente de validation",
+        valide: "Validé",
+    };
+    return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${styles[statut]}`}>{labels[statut]}</span>;
+}
+
+const QUESTIONS = [
+    { id: "q1" as const, label: "Un membre de votre famille est-il décédé subitement d'une cause cardiaque ou inexpliquée ?" },
+    { id: "q2" as const, label: "Avez-vous ressenti une douleur dans la poitrine, des palpitations, un essoufflement inhabituel ou un malaise ?" },
+    { id: "q3" as const, label: "Avez-vous eu un épisode de respiration sifflante (asthme) ?" },
+    { id: "q4" as const, label: "Avez-vous eu une perte de connaissance ?" },
+    { id: "q5" as const, label: "Si vous avez arrêté le sport pendant 30 jours ou plus pour des raisons de santé, avez-vous repris sans l'accord d'un médecin ?" },
+    { id: "q6" as const, label: "Avez-vous débuté un traitement médical de longue durée (hors contraception et désensibilisation aux allergies) ?" },
+    { id: "q7" as const, label: "Ressentez-vous une douleur, un manque de force ou une raideur suite à un problème osseux, articulaire ou musculaire survenu durant les 12 derniers mois ?" },
+    { id: "q8" as const, label: "Votre pratique sportive est-elle interrompue pour des raisons de santé ?" },
+    { id: "q9" as const, label: "Pensez-vous avoir besoin d'un avis médical pour poursuivre votre pratique sportive ?" },
+] as const;
+
+// ─── Étape 1 — Identification ─────────────────────────────────────────────────
+
+function IdentificationForm() {
+    const hcaptchaRef = useRef<HCaptcha>(null);
+    const [email, setEmail] = useState("");
+    const [numeroAdherent, setNumeroAdherent] = useState("");
+    const [hcaptchaToken, setHcaptchaToken] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!hcaptchaToken) { setError("Veuillez compléter le captcha."); return; }
+        setSubmitting(true);
+        setError(null);
+
+        const result = await requestAccesDossierAction({ email, numeroAdherent, hcaptchaToken });
+
+        hcaptchaRef.current?.resetCaptcha();
+        setHcaptchaToken(null);
+        setSubmitting(false);
+
+        if (result.success) {
+            setSubmitted(true);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    if (submitted) {
+        return (
+            <div className="text-center py-8">
+                <p className="text-gray-700 font-medium">
+                    Si ces informations correspondent à un dossier, un email vient d'être envoyé.
+                </p>
+            </div>
+        );
+    }
+
+    const inputCls = "mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-[#FF8A00] focus:outline-none focus:ring-1 focus:ring-[#FF8A00]";
+
+    return (
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 text-center mb-6">Accéder à mon dossier</h2>
+            <div>
+                <label htmlFor="email-dossier" className="block text-sm font-medium text-gray-700">Email</label>
+                <input id="email-dossier" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+                <label htmlFor="numero-dossier" className="block text-sm font-medium text-gray-700">Numéro d'adhérent</label>
+                <input
+                    id="numero-dossier"
+                    required
+                    value={numeroAdherent}
+                    onChange={(e) => setNumeroAdherent(e.target.value.toUpperCase())}
+                    placeholder="ex. ADH-X7K2P"
+                    className={inputCls}
+                />
+            </div>
+            <div className="flex justify-center">
+                <HCaptcha
+                    ref={hcaptchaRef}
+                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY ?? "10000000-ffff-ffff-ffff-000000000001"}
+                    onVerify={(t) => setHcaptchaToken(t)}
+                    onExpire={() => setHcaptchaToken(null)}
+                />
+            </div>
+            {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+            <button
+                type="submit"
+                disabled={submitting || !hcaptchaToken}
+                className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition-colors"
+            >
+                {submitting ? "Envoi..." : "Recevoir mon lien d'accès"}
+            </button>
+        </form>
+    );
+}
+
+// ─── Section Questionnaire santé ──────────────────────────────────────────────
+
+function QuestionnaireSection({ token, onDone }: { token: string; onDone: (certificatReq: boolean) => void }) {
+    const [reponses, setReponses] = useState<Partial<Record<keyof Questionnaire, boolean>>>({});
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const toutesRepondues = QUESTIONS.every(({ id }) => reponses[id] !== undefined);
+    const certificatRequis = QUESTIONS.some(({ id }) => reponses[id] === true);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!toutesRepondues) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await soumettreQuestionnaireAction(token, reponses as Questionnaire);
+        setSubmitting(false);
+
+        if (result.success) {
+            onDone(result.certificatMedicalReq ?? false);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div>
+                <h3 className="font-semibold text-gray-900">Questionnaire de santé QS-Sport</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                    Cerfa 15699-01 — détermine si un certificat médical est nécessaire.
+                </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {QUESTIONS.map(({ id, label }) => (
+                    <div key={id} className="space-y-1">
+                        <p className="text-sm text-gray-800">{label}</p>
+                        <div className="flex gap-6">
+                            {(["true", "false"] as const).map((val) => (
+                                <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        name={id}
+                                        value={val}
+                                        checked={reponses[id] === (val === "true")}
+                                        onChange={() => setReponses((r) => ({ ...r, [id]: val === "true" }))}
+                                        className="text-[#FF8A00] focus:ring-[#FF8A00]"
+                                    />
+                                    {val === "true" ? "OUI" : "NON"}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+
+                {toutesRepondues && (
+                    <div className={`p-3 rounded-lg text-sm font-medium ${certificatRequis ? "bg-orange-50 text-orange-700 border border-orange-200" : "bg-green-50 text-green-700 border border-green-200"}`}>
+                        {certificatRequis
+                            ? "⚠️ Un certificat médical est obligatoire. Consultez un médecin et apportez-le au club."
+                            : "✓ Aucun certificat médical requis."}
+                    </div>
+                )}
+
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+
+                <button
+                    type="submit"
+                    disabled={!toutesRepondues || submitting}
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Valider le questionnaire"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Section Règlement intérieur ──────────────────────────────────────────────
+
+function ReglementSection({ token, onDone }: { token: string; onDone: () => void }) {
+    const [checked, setChecked] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!checked) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await signerReglementAction(token);
+        setSubmitting(false);
+
+        if (result.success) {
+            onDone();
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <h3 className="font-semibold text-gray-900">Règlement intérieur</h3>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => setChecked(e.target.checked)}
+                        className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
+                    />
+                    <span className="text-sm text-gray-700">
+                        J'ai pris connaissance du règlement intérieur du club et je m'engage à le respecter.{" "}
+                        <span className="text-red-500">*</span>
+                    </span>
+                </label>
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={!checked || submitting}
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Confirmer"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Section Type de paiement ─────────────────────────────────────────────────
+
+function TypePaiementSection({ token, onDone }: { token: string; onDone: (type: string) => void }) {
+    const [choix, setChoix] = useState<"sur_place" | "en_ligne" | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!choix) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await setTypePaiementAction(token, choix);
+        setSubmitting(false);
+
+        if (result.success) {
+            onDone(choix);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <h3 className="font-semibold text-gray-900">Mode de paiement</h3>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                {(["sur_place", "en_ligne"] as const).map((val) => (
+                    <label key={val} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 gap-3">
+                        <input
+                            type="radio"
+                            name="typePaiement"
+                            value={val}
+                            checked={choix === val}
+                            onChange={() => setChoix(val)}
+                            className="text-[#FF8A00] focus:ring-[#FF8A00]"
+                        />
+                        <span className="text-sm font-medium text-gray-900">
+                            {val === "sur_place" ? "Sur place (chèque / espèces)" : "En ligne (carte bancaire via Stripe)"}
+                        </span>
+                    </label>
+                ))}
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={!choix || submitting}
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Confirmer"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Section Certificat médical ───────────────────────────────────────────────
+
+function CertificatSection({ token, onDone }: { token: string; onDone: () => void }) {
+    const [checked, setChecked] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!checked) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await declarerCertificatAction(token);
+        setSubmitting(false);
+
+        if (result.success) {
+            onDone();
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-5 space-y-3">
+            <div>
+                <h3 className="font-semibold text-orange-900">⚠️ Certificat médical obligatoire</h3>
+                <p className="text-sm text-orange-800 mt-1">
+                    Votre questionnaire de santé nécessite un certificat médical. Consultez un médecin et apportez-le au club.
+                </p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => setChecked(e.target.checked)}
+                        className="mt-0.5 text-orange-600"
+                    />
+                    <span className="text-sm text-orange-800">
+                        Je fournirai un certificat médical au club <span className="text-red-500">*</span>
+                    </span>
+                </label>
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={!checked || submitting}
+                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Je m'engage à fournir le certificat"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Vue dossier ──────────────────────────────────────────────────────────────
+
+function DossierVue({
+    dossier: initial,
+    paiementStatus,
+    token,
+}: {
+    dossier: DossierData;
+    paiementStatus?: "succes" | "annule";
+    token: string;
+}) {
+    const [dossier, setDossier] = useState(initial);
+    const [checkoutLoading, setCheckoutLoading] = useState(false);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+    const mineur = isMineur(dossier.dateDeNaissance);
+
+    // Étapes à compléter
+    const questionnaireManquant = dossier.questionnaire === null;
+    const reglementManquant = dossier.reglementSigne === "non_fourni";
+    const typePaiementManquant = dossier.typePaiement === null;
+    const certificatADeclarer =
+        dossier.certificatMedicalReq && dossier.certificatMedical === "non_fourni";
+
+    // Statut global
+    const documentsRequis: StatutDocument[] = [
+        dossier.reglementSigne,
+        ...(dossier.certificatMedicalReq ? [dossier.certificatMedical] : []),
+        ...(mineur ? [dossier.autorisationParentale] : []),
+    ];
+    const tousValides = documentsRequis.every((s) => s === "valide");
+    const tousDeciares = documentsRequis.every((s) => s !== "non_fourni");
+    const documentsManquants = documentsRequis.some((s) => s === "non_fourni");
+    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant;
+
+    let statutLabel = "";
+    let statutColor = "";
+    if (dossier.inscriptionValide) {
+        statutLabel = "Votre inscription est confirmée. Bienvenue !";
+        statutColor = "bg-green-100 text-green-800 border-green-200";
+    } else if (dossierIncomplet || documentsManquants) {
+        statutLabel = "Votre dossier est incomplet.";
+        statutColor = "bg-red-100 text-red-800 border-red-200";
+    } else if (tousValides && dossier.typePaiement === "en_ligne") {
+        statutLabel = "Votre dossier est validé. Vous pouvez procéder au paiement.";
+        statutColor = "bg-blue-100 text-blue-800 border-blue-200";
+    } else if (tousValides && dossier.typePaiement === "sur_place") {
+        statutLabel = "Votre dossier est validé. Merci de régler sur place.";
+        statutColor = "bg-blue-100 text-blue-800 border-blue-200";
+    } else if (tousDeciares) {
+        statutLabel = "Votre dossier est complet. Un gestionnaire va le valider.";
+        statutColor = "bg-orange-100 text-orange-800 border-orange-200";
+    } else {
+        statutLabel = "Votre dossier est incomplet.";
+        statutColor = "bg-red-100 text-red-800 border-red-200";
+    }
+
+    const handlePayer = async () => {
+        setCheckoutLoading(true);
+        setCheckoutError(null);
+        const result = await createCheckoutAction(token);
+        setCheckoutLoading(false);
+        if (result.success && result.url) {
+            window.location.href = result.url;
+        } else {
+            setCheckoutError(result.error ?? "Erreur lors de la création du paiement.");
+        }
+    };
+
+    const afficherBoutonPaiement =
+        dossier.typePaiement === "en_ligne" && !dossier.inscriptionValide && tousValides;
+
+    return (
+        <div className="max-w-2xl mx-auto space-y-6">
+            <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                    Dossier de {dossier.prenom} {dossier.nom}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                    Numéro d'adhérent : <strong>{dossier.numeroAdherent}</strong>
+                </p>
+            </div>
+
+            {/* Retour Stripe */}
+            {paiementStatus === "succes" && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
+                    ✓ Paiement reçu ! Votre inscription est confirmée.
+                </div>
+            )}
+            {paiementStatus === "annule" && (
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-orange-800">
+                    Paiement annulé. Vous pouvez réessayer ci-dessous.
+                </div>
+            )}
+
+            {/* Statut global */}
+            <div className={`p-4 rounded-lg border font-medium ${statutColor}`}>
+                {statutLabel}
+            </div>
+
+            {/* ── Étapes à compléter ─────────────────────────────────────────── */}
+
+            {questionnaireManquant && (
+                <QuestionnaireSection
+                    token={token}
+                    onDone={(certReq) =>
+                        setDossier((d) => ({
+                            ...d,
+                            questionnaire: { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false, q8: false, q9: false },
+                            certificatMedicalReq: certReq,
+                        }))
+                    }
+                />
+            )}
+
+            {!questionnaireManquant && reglementManquant && (
+                <ReglementSection
+                    token={token}
+                    onDone={() => setDossier((d) => ({ ...d, reglementSigne: "declare" }))}
+                />
+            )}
+
+            {!questionnaireManquant && !reglementManquant && certificatADeclarer && (
+                <CertificatSection
+                    token={token}
+                    onDone={() => setDossier((d) => ({ ...d, certificatMedical: "declare" }))}
+                />
+            )}
+
+            {!questionnaireManquant && !reglementManquant && typePaiementManquant && (
+                <TypePaiementSection
+                    token={token}
+                    onDone={(type) => setDossier((d) => ({ ...d, typePaiement: type }))}
+                />
+            )}
+
+            {/* ── Documents ──────────────────────────────────────────────────── */}
+            {!dossierIncomplet && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                    <h3 className="font-semibold text-gray-900">Documents</h3>
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-700">Règlement intérieur</span>
+                            <StatutBadge statut={dossier.reglementSigne} />
+                        </div>
+                        {dossier.certificatMedicalReq && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-700">Certificat médical</span>
+                                <StatutBadge statut={dossier.certificatMedical} />
+                            </div>
+                        )}
+                        {mineur && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-700">Autorisation parentale</span>
+                                <StatutBadge statut={dossier.autorisationParentale} />
+                            </div>
+                        )}
+                        {dossier.couponSport !== "non_fourni" && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-700">Pass Sport</span>
+                                <StatutBadge statut={dossier.couponSport} />
+                            </div>
+                        )}
+                        {dossier.bonCaf !== "non_fourni" && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-700">Bon CAF</span>
+                                <StatutBadge statut={dossier.bonCaf} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Montant & paiement ─────────────────────────────────────────── */}
+            {dossier.montantSnapshot !== null && dossier.typePaiement && (
+                <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-1 text-sm">
+                    <h3 className="font-semibold text-gray-900 mb-2">Paiement</h3>
+                    <div className="flex justify-between">
+                        <span className="text-gray-700">Montant à régler</span>
+                        <span className="font-bold">{Number(dossier.montantSnapshot).toFixed(2)} €</span>
+                    </div>
+                    <div className="flex justify-between text-gray-500">
+                        <span>Mode</span>
+                        <span>{dossier.typePaiement === "en_ligne" ? "En ligne (carte bancaire)" : "Sur place (chèque / espèces)"}</span>
+                    </div>
+                </div>
+            )}
+
+            {afficherBoutonPaiement && (
+                <div className="space-y-3">
+                    {checkoutError && <p className="text-red-600 text-sm text-center">{checkoutError}</p>}
+                    <button
+                        type="button"
+                        onClick={handlePayer}
+                        disabled={checkoutLoading}
+                        className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition-colors"
+                    >
+                        {checkoutLoading
+                            ? "Redirection..."
+                            : `Payer ${Number(dossier.montantSnapshot).toFixed(2)} € par carte`}
+                    </button>
+                </div>
+            )}
+
+            {dossier.inscriptionValide && (
+                <div className="text-center text-sm text-gray-500">Paiement reçu ✓</div>
+            )}
+        </div>
+    );
+}
+
+// ─── Composant principal ──────────────────────────────────────────────────────
+
+interface MonDossierViewProps {
+    token?: string;
+    paiementStatus?: "succes" | "annule";
+}
+
+export default function MonDossierView({ token, paiementStatus }: MonDossierViewProps) {
+    const [dossier, setDossier] = useState<DossierData | null>(null);
+    const [loading, setLoading] = useState(!!token);
+    const [tokenError, setTokenError] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+
+    useEffect(() => {
+        if (!token) return;
+        getMonDossierAction(token).then((result) => {
+            setLoading(false);
+            if (result.success && result.adherent) {
+                setDossier(result.adherent as unknown as DossierData);
+            } else {
+                setTokenError(true);
+            }
+        });
+    }, [token]);
+
+    if (!token || showForm) {
+        return (
+            <main className="min-h-screen bg-gray-50 py-20 px-4">
+                <IdentificationForm />
+            </main>
+        );
+    }
+
+    if (loading) {
+        return (
+            <main className="min-h-screen bg-gray-50 py-20 px-4 flex items-center justify-center">
+                <p className="text-gray-500">Chargement de votre dossier...</p>
+            </main>
+        );
+    }
+
+    if (tokenError) {
+        return (
+            <main className="min-h-screen bg-gray-50 py-20 px-4">
+                <div className="max-w-md mx-auto text-center space-y-4">
+                    <p className="text-red-700 font-medium">Ce lien est invalide ou a expiré.</p>
+                    <button
+                        type="button"
+                        onClick={() => setShowForm(true)}
+                        className="bg-black text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-800 transition-colors"
+                    >
+                        Faire une nouvelle demande
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="min-h-screen bg-gray-50 py-20 px-4">
+            {dossier && <DossierVue dossier={dossier} paiementStatus={paiementStatus} token={token} />}
+        </main>
+    );
+}
