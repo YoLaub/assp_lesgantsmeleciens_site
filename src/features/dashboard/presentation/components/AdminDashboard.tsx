@@ -6,8 +6,7 @@ import {
 
 import { ModuleCard } from '@/features/dashboard/presentation/components/ModuleCard';
 import { ActivityItem } from '@/features/dashboard/presentation/components/ActivityItem';
-import { InscriptionsRepositoryImpl } from '@/features/inscriptions/data/repositories/inscriptions.repository.impl';
-import { InscriptionStatus } from '@/generated/prisma/enums';
+import { getAdherentsAction } from '@/features/adherents/actions/admin-adherents.actions';
 
 function getTimeAgo(dateInput: Date | string | undefined): string {
     if (!dateInput) return "Récemment";
@@ -24,16 +23,12 @@ function getTimeAgo(dateInput: Date | string | undefined): string {
     return `Il y a ${days} jours`;
 }
 
-// C'est maintenant un simple composant serveur exporté
 export async function AdminDashboard() {
-    const repo = new InscriptionsRepositoryImpl();
-    const adherents = await repo.getAll();
+    const adherents = await getAdherentsAction();
 
-    const pendingInscriptionsCount = adherents.filter(
-        (adh) => adh.status === InscriptionStatus.PENDING || adh.status === InscriptionStatus.INCOMPLETE
-    ).length;
-
-    const formattedPendingCount = pendingInscriptionsCount.toString().padStart(2, '0');
+    // Dossiers en attente = non validés ET questionnaire rempli
+    const pendingCount = adherents.filter((adh) => !adh.inscriptionValide).length;
+    const formattedPendingCount = pendingCount.toString().padStart(2, '0');
     const recentActivities = adherents.slice(0, 4);
 
     return (
@@ -103,9 +98,8 @@ export async function AdminDashboard() {
                                     <ActivityItem
                                         key={adh.id}
                                         type="club"
-                                        text={`Nouvelle inscription : ${adh.firstName} ${adh.lastName}`}
-                                        // Si tu n'as pas de champ createdAt dans ton Zod, assure-toi qu'il vient de Prisma !
-                                        time={getTimeAgo((adh).createdAt)}
+                                        text={`Nouvelle inscription : ${adh.prenom} ${adh.nom}`}
+                                        time={getTimeAgo(adh.dateInscription)}
                                         icon={PlusCircle}
                                         dotColor="bg-slate-900"
                                     />

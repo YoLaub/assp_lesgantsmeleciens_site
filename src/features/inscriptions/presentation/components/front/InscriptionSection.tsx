@@ -2,10 +2,24 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import InscriptionForm from "./InscriptionForm";
+import AdherentForm from "@/features/adherents/presentation/components/front/AdherentForm";
 
-export default function InscriptionSection() {
-    const [isOpen, setIsOpen] = useState(false);
+interface PrefillData {
+    nom?: string;
+    prenom?: string;
+    email?: string;
+    telephone1?: string;
+    dateDeNaissance?: string;
+    numeroAdherentExistant?: string;
+    essayantId?: number;
+}
+
+interface InscriptionSectionProps {
+    prefill?: PrefillData;
+}
+
+export default function InscriptionSection({ prefill }: InscriptionSectionProps) {
+    const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     return (
         <section className="py-16 bg-white w-full">
@@ -21,9 +35,8 @@ export default function InscriptionSection() {
 
                     {/* Colonne Gauche : Image + Lignes rouges */}
                     <div className="flex flex-col items-center w-full">
-                        <div className="w-3/4 h-[2px] bg-[#E33535] mb-8"></div> {/* Ligne rouge haut */}
-                        <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden bg-gray-100 shadow-md">
-                            {/* Remplace le src par ton image */}
+                        <div className="w-3/4 h-0.5 bg-[#E33535] mb-8"></div>
+                        <div className="relative w-full aspect-4/3 rounded-sm overflow-hidden bg-gray-100 shadow-md">
                             <Image
                                 src="/images/placeholder-boxe.jpg"
                                 alt="Enfants en cours de boxe"
@@ -31,7 +44,7 @@ export default function InscriptionSection() {
                                 className="object-cover"
                             />
                         </div>
-                        <div className="w-3/4 h-[2px] bg-[#E33535] mt-8"></div> {/* Ligne rouge bas */}
+                        <div className="w-3/4 h-0.5 bg-[#E33535] mt-8"></div>
                     </div>
 
                     {/* Colonne Droite : Tarifs et Modalités */}
@@ -53,9 +66,9 @@ export default function InscriptionSection() {
                                 MODALITÉS<br />D'INSCRIPTIONS
                             </h3>
                             <p className="text-[11px] leading-relaxed text-gray-600 mb-6 max-w-sm text-justify">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
-                            <button className="border border-[#E33535] text-gray-700 text-xs px-6 py-2 rounded-sm hover:bg-red-50 transition-colors duration-300">
+                            <button type="button" className="border border-[#E33535] text-gray-700 text-xs px-6 py-2 rounded-sm hover:bg-red-50 transition-colors duration-300">
                                 Voir plus
                             </button>
                         </div>
@@ -65,6 +78,7 @@ export default function InscriptionSection() {
                 {/* Bouton d'action (Toggle Formulaire) */}
                 <div className="flex justify-center relative z-10">
                     <button
+                        type="button"
                         onClick={() => setIsOpen(!isOpen)}
                         className="bg-[#FF8A00] hover:bg-[#e67a00] text-white font-bold py-3 px-10 rounded-full transition-all duration-300 uppercase tracking-widest shadow-lg transform hover:scale-105 active:scale-95"
                     >
@@ -72,9 +86,7 @@ export default function InscriptionSection() {
                     </button>
                 </div>
 
-                {/* Le Formulaire avec Animation de Déploiement
-          L'astuce magique de Tailwind : grid-rows-[0fr] vers grid-rows-[1fr]
-        */}
+                {/* Le Formulaire avec Animation de Déploiement */}
                 <div
                     className={`grid transition-all duration-700 ease-in-out origin-top ${
                         isOpen ? "grid-rows-[1fr] opacity-100 mt-8" : "grid-rows-[0fr] opacity-0 mt-0"
@@ -82,12 +94,12 @@ export default function InscriptionSection() {
                 >
                     <div className="overflow-hidden">
                         <div className="pt-8 border-t border-gray-200">
-
-                            {/* C'est ici que tu appelleras ton Dumb Component InscriptionForm */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500 shadow-inner">
-                                <InscriptionForm/>
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 shadow-inner">
+                                <AdherentForm
+                                    prefill={prefill}
+                                    readonlyFields={prefill ? ["nom", "prenom", "email", "telephone1", "dateDeNaissance"] : []}
+                                />
                             </div>
-
                         </div>
                     </div>
                 </div>
