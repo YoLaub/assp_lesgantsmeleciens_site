@@ -16,6 +16,9 @@ interface ImageSlotPickerProps {
     selectedIds: string[];
     onChange: (ids: string[]) => void;
     label?: string;
+    layout?: 'row' | 'gallery';
+    variant?: 'default' | 'portrait';
+    formatHint?: string;
 }
 
 export function ImageSlotPicker({
@@ -24,6 +27,9 @@ export function ImageSlotPicker({
     selectedIds,
     onChange,
     label = 'Images',
+    layout = 'row',
+    variant = 'default',
+    formatHint,
 }: ImageSlotPickerProps) {
     const [allImages, setAllImages] = useState<Image[]>([]);
     const [loading, setLoading] = useState(true);
@@ -88,23 +94,47 @@ export function ImageSlotPicker({
 
     const enableDnD = maxSlots > 1 && filledImages.length > 1;
 
-    const slotElements = slots.map((img, index) => (
-        <div key={img?.id ?? `empty-${index}`} className="flex-1 min-w-0">
-            <ImageSlot
-                image={img}
-                index={index}
-                onClickEmpty={() => handleSlotClick(index)}
-                onRemove={() => handleRemove(index)}
-                draggable={enableDnD && img !== null}
-            />
-        </div>
-    ));
+    const slotElements = slots.map((img, index) => {
+        const isHero = layout === 'gallery' && index === 0;
+        const isPortrait = variant === 'portrait';
+        return (
+            <div
+                key={img?.id ?? `empty-${index}`}
+                className={
+                    layout === 'gallery'
+                        ? (isHero ? 'col-span-2' : '')
+                        : isPortrait
+                            ? 'w-16 h-16 shrink-0'
+                            : 'flex-1 min-w-0'
+                }
+            >
+                <ImageSlot
+                    image={img}
+                    index={index}
+                    onClickEmpty={() => handleSlotClick(index)}
+                    onRemove={() => handleRemove(index)}
+                    draggable={enableDnD && img !== null}
+                    aspectRatio={isHero ? 'aspect-[4/3]' : 'aspect-square'}
+                    rounded={isPortrait ? 'rounded-full' : 'rounded-xl'}
+                />
+            </div>
+        );
+    });
+
+    const containerClass =
+        layout === 'gallery'
+            ? 'grid grid-cols-2 gap-3'
+            : variant === 'portrait'
+                ? 'flex items-center gap-4'
+                : 'flex gap-2';
 
     return (
         <div>
-            <label className="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-1">
-                {label}
-            </label>
+            {variant !== 'portrait' && (
+                <label className="block text-[10px] font-black uppercase text-slate-400 mb-2 ml-1">
+                    {label}
+                </label>
+            )}
 
             {loading ? (
                 <div className="flex items-center justify-center py-8">
@@ -123,16 +153,36 @@ export function ImageSlotPicker({
                         }
                     }}
                 >
-                    <div className="flex gap-2">{slotElements}</div>
+                    <div className={containerClass}>
+                        {slotElements}
+                        {variant === 'portrait' && (
+                            <div>
+                                <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
+                                <p className="text-xs text-slate-400">Portrait carré recommandé.</p>
+                            </div>
+                        )}
+                    </div>
                 </DragDropProvider>
             ) : (
-                <div className="flex gap-2">{slotElements}</div>
+                <div className={containerClass}>
+                    {slotElements}
+                    {variant === 'portrait' && (
+                        <div>
+                            <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
+                            <p className="text-xs text-slate-400">Portrait carré recommandé.</p>
+                        </div>
+                    )}
+                </div>
             )}
 
-            {selectedIds.length > 0 && (
+            {variant !== 'portrait' && selectedIds.length > 0 && (
                 <p className="text-xs text-slate-400 mt-2">
                     {selectedIds.length} / {maxSlots} image{selectedIds.length > 1 ? 's' : ''}
                 </p>
+            )}
+
+            {formatHint && (
+                <p className="text-[10px] text-slate-400 mt-2 italic">{formatHint}</p>
             )}
 
             <ImageSlotModal

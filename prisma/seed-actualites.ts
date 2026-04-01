@@ -240,7 +240,7 @@ const actualites = [
 ];
 
 export async function seedActualites(categoryRecords: Record<string, string>) {
-  const evenementsCategoryId = categoryRecords["evenements"];
+  const actualiteCategoryId = categoryRecords["actualite"];
 
   console.log("Deleting existing actualités...");
   await prisma.actualite.deleteMany();
@@ -260,7 +260,7 @@ export async function seedActualites(categoryRecords: Record<string, string>) {
         data: {
           title: `${actu.title} - photo ${j + 1}`,
           alt: `Photo de ${actu.title}`,
-          categoryId: evenementsCategoryId,
+          categoryId: actualiteCategoryId,
           ...imageData,
           order: j,
         },

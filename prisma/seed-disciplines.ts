@@ -182,8 +182,7 @@ const disciplines = [
 ];
 
 export async function seedDisciplines(categoryRecords: Record<string, string>) {
-  const entrainementsCategoryId = categoryRecords["entrainements"];
-  const portraitsCategoryId = categoryRecords["portraits"];
+  const disciplineCategoryId = categoryRecords["discipline"];
 
   console.log("Deleting existing disciplines...");
   await prisma.discipline.deleteMany();
@@ -201,7 +200,7 @@ export async function seedDisciplines(categoryRecords: Record<string, string>) {
       data: {
         title: `Coach ${disc.coach}`,
         alt: `Photo de ${disc.coach}, coach de ${disc.title}`,
-        categoryId: portraitsCategoryId,
+        categoryId: disciplineCategoryId,
         ...coachImageData,
         order: 0,
       },
@@ -216,7 +215,7 @@ export async function seedDisciplines(categoryRecords: Record<string, string>) {
         data: {
           title: `${disc.title} - photo ${j + 1}`,
           alt: `Photo de ${disc.title}`,
-          categoryId: entrainementsCategoryId,
+          categoryId: disciplineCategoryId,
           ...galleryImageData,
           order: j,
         },

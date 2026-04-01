@@ -12,15 +12,17 @@ interface ImageSlotProps {
     onClickEmpty: () => void;
     onRemove: () => void;
     draggable: boolean;
+    aspectRatio?: string;
+    rounded?: string;
 }
 
-function DraggableSlot({ image, index, onRemove }: { image: Image; index: number; onRemove: () => void }) {
+function DraggableSlot({ image, index, onRemove, aspectRatio = 'aspect-square', rounded = 'rounded-xl' }: { image: Image; index: number; onRemove: () => void; aspectRatio?: string; rounded?: string }) {
     const { ref, handleRef, isDragging } = useSortable({ id: image.id, index });
 
     return (
         <div
             ref={ref}
-            className={`relative rounded-xl aspect-square overflow-hidden ring-1 ring-slate-200
+            className={`relative ${rounded} ${aspectRatio} overflow-hidden ring-1 ring-slate-200
                 group transition-all
                 ${isDragging ? 'opacity-50 ring-2 ring-red-400 z-50' : 'hover:ring-red-300'}`}
         >
@@ -48,9 +50,9 @@ function DraggableSlot({ image, index, onRemove }: { image: Image; index: number
     );
 }
 
-function StaticFilledSlot({ image, onRemove }: { image: Image; onRemove: () => void }) {
+function StaticFilledSlot({ image, onRemove, aspectRatio = 'aspect-square', rounded = 'rounded-xl' }: { image: Image; onRemove: () => void; aspectRatio?: string; rounded?: string }) {
     return (
-        <div className="relative rounded-xl aspect-square overflow-hidden ring-1 ring-slate-200 group transition-all hover:ring-red-300">
+        <div className={`relative ${rounded} ${aspectRatio} overflow-hidden ring-1 ring-slate-200 group transition-all hover:ring-red-300`}>
             <CloudImage
                 asset={toCloudinaryAsset(image)}
                 alt={image.alt || image.title}
@@ -73,14 +75,14 @@ function StaticFilledSlot({ image, onRemove }: { image: Image; onRemove: () => v
     );
 }
 
-function EmptySlot({ onClick }: { onClick: () => void }) {
+function EmptySlot({ onClick, aspectRatio = 'aspect-square', rounded = 'rounded-xl' }: { onClick: () => void; aspectRatio?: string; rounded?: string }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className="w-full aspect-square rounded-xl border-2 border-dashed border-slate-200
+            className={`w-full ${aspectRatio} ${rounded} border-2 border-dashed border-slate-200
                 hover:border-red-400 hover:bg-red-50 transition-all
-                flex flex-col items-center justify-center gap-1 cursor-pointer"
+                flex flex-col items-center justify-center gap-1 cursor-pointer`}
         >
             <Plus className="w-5 h-5 text-slate-400" />
             <span className="text-[10px] text-slate-400 font-medium">Ajouter</span>
@@ -88,12 +90,12 @@ function EmptySlot({ onClick }: { onClick: () => void }) {
     );
 }
 
-export function ImageSlot({ image, index, onClickEmpty, onRemove, draggable }: ImageSlotProps) {
+export function ImageSlot({ image, index, onClickEmpty, onRemove, draggable, aspectRatio, rounded }: ImageSlotProps) {
     if (!image) {
-        return <EmptySlot onClick={onClickEmpty} />;
+        return <EmptySlot onClick={onClickEmpty} aspectRatio={aspectRatio} rounded={rounded} />;
     }
     if (draggable) {
-        return <DraggableSlot image={image} index={index} onRemove={onRemove} />;
+        return <DraggableSlot image={image} index={index} onRemove={onRemove} aspectRatio={aspectRatio} rounded={rounded} />;
     }
-    return <StaticFilledSlot image={image} onRemove={onRemove} />;
+    return <StaticFilledSlot image={image} onRemove={onRemove} aspectRatio={aspectRatio} rounded={rounded} />;
 }

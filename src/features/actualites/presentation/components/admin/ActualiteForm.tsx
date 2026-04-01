@@ -228,14 +228,15 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-red-600" /> Photos
+                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie (Max 5)
                         </h3>
                         <ImageSlotPicker
                             maxSlots={5}
                             categorySlugs={ACTUALITE_IMAGE_CATEGORIES}
                             selectedIds={imageOrder}
                             onChange={setImageOrder}
-                            label="Sélectionner des images"
+                            layout="gallery"
+                            formatHint="Format: JPG/WebP 800x800px max 5MB."
                         />
                     </div>
 

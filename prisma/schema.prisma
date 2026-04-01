@@ -51,8 +51,8 @@ model Discipline {
 
   images       Image[]
   imageOrder   String[]
-  coachImage   Image    @relation("CoachImage", fields: [coachImageId], references: [id])
-  coachImageId String
+  coachImage   Image?   @relation("CoachImage", fields: [coachImageId], references: [id])
+  coachImageId String?
 
   seo       Json
   order     Int      @default(0)

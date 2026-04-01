@@ -9,12 +9,8 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 const IMAGE_CATEGORIES = [
-  { slug: "entrainements", name: "Entrainements" },
-  { slug: "competitions", name: "Competitions" },
-  { slug: "evenements", name: "Evenements" },
-  { slug: "portraits", name: "Portraits" },
-  { slug: "installations", name: "Installations" },
-  { slug: "autre", name: "Autre" },
+  { slug: "discipline", name: "Discipline" },
+  { slug: "actualite", name: "Actualité" },
   { slug: "carousel", name: "Carousel" },
 ];
 
@@ -89,8 +85,8 @@ export async function seedGallery() {
       titles: ["Carousel"],
     },
     {
-      slug: "entrainements",
-      count: 6,
+      slug: "discipline",
+      count: 10,
       width: 1200,
       height: 800,
       titles: [
@@ -100,11 +96,15 @@ export async function seedGallery() {
         "Entraînement sac de frappe",
         "Cours technique pieds-poings",
         "Séance cardio-boxing",
+        "Portrait boxeur",
+        "Portrait coach",
+        "Salle de boxe",
+        "Ring",
       ],
     },
     {
-      slug: "competitions",
-      count: 6,
+      slug: "actualite",
+      count: 10,
       width: 1200,
       height: 800,
       titles: [
@@ -112,16 +112,6 @@ export async function seedGallery() {
         "Compétition départementale",
         "Tournoi inter-clubs",
         "Remise des médailles",
-        "Combat exhibition",
-        "Remise des ceintures",
-      ],
-    },
-    {
-      slug: "evenements",
-      count: 6,
-      width: 1200,
-      height: 800,
-      titles: [
         "Gala annuel 2024",
         "Soirée portes ouvertes",
         "Stage été boxe thaï",
@@ -129,20 +119,6 @@ export async function seedGallery() {
         "Cours enfants",
         "Photo de groupe club",
       ],
-    },
-    {
-      slug: "portraits",
-      count: 4,
-      width: 800,
-      height: 800,
-      titles: ["Portrait boxeur", "Portrait coach", "Portrait adhérent", "Portrait équipe"],
-    },
-    {
-      slug: "installations",
-      count: 4,
-      width: 1600,
-      height: 1200,
-      titles: ["Salle de boxe", "Ring", "Espace musculation", "Vestiaires"],
     },
   ];
 

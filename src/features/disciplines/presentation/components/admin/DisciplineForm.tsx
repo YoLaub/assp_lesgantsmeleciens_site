@@ -93,8 +93,8 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
             id: id || '',
             title: formData.get('title') as string,
             coach: formData.get('coach') as string,
-            coachImage: initialData?.coachImage ?? {} as Discipline['coachImage'],
-            coachImageId: coachImageIds[0] || '',
+            coachImage: initialData?.coachImage ?? null,
+            coachImageId: coachImageIds[0] || null,
             citation: formData.get('citation') as string,
             category: formData.get('category') as string,
             description: editor?.getHTML() || '',
@@ -178,9 +178,10 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                         <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
                             <ImageSlotPicker
                                 maxSlots={1}
-                                categorySlugs={['portraits']}
+                                categorySlugs={['discipline']}
                                 selectedIds={coachImageIds}
                                 onChange={setCoachImageIds}
+                                variant="portrait"
                                 label="Photo du Coach"
                             />
                         </div>
@@ -242,14 +243,15 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                 <div className="space-y-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie Photos
+                            <ImageIcon className="w-4 h-4 text-red-600" /> Galerie (Max 5)
                         </h3>
                         <ImageSlotPicker
-                            maxSlots={4}
+                            maxSlots={5}
                             categorySlugs={DISCIPLINE_IMAGE_CATEGORIES}
                             selectedIds={imageOrder}
                             onChange={setImageOrder}
-                            label="Sélectionner des images"
+                            layout="gallery"
+                            formatHint="Format: JPG/WebP 800x800px max 5MB."
                         />
                     </div>
 

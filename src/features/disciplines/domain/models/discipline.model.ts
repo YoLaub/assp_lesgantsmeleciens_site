@@ -4,8 +4,8 @@ export type Discipline = {
   id: string
   title: string
   coach: string
-  coachImage: Image
-  coachImageId: string
+  coachImage: Image | null
+  coachImageId: string | null
   citation: string | null
   category: string
   description: string

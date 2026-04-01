@@ -107,6 +107,7 @@ export class ImagePostgresDataSource {
                     updatedAt: new Date(),
                 },
                 create: {
+                    id: image.id,
                     title: image.title,
                     alt: image.alt,
                     categoryId: image.categoryId,

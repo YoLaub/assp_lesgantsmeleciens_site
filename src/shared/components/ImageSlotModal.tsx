@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { X, Upload, Loader2, Check } from 'lucide-react';
 import { type Image } from '@/features/gallery/domain/models/image.model';
-import { type ImageCategorySlug, IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
+import { type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 import {
@@ -53,9 +53,6 @@ export function ImageSlotModal({
             return;
         }
 
-        const catSlug = categorySlugs[0] || 'autre';
-        const catMeta = IMAGE_CATEGORIES.find((c) => c.slug === catSlug);
-
         const newImage: Image = {
             id: crypto.randomUUID(),
             title: file.name.replace(/\.[^/.]+$/, ''),
@@ -71,8 +68,8 @@ export function ImageSlotModal({
             categoryId: uploadResult.categoryId,
             category: {
                 id: uploadResult.categoryId,
-                slug: catSlug,
-                name: catMeta?.name || catSlug,
+                slug: uploadResult.categorySlug,
+                name: uploadResult.categoryName,
             },
             createdAt: new Date(),
             updatedAt: new Date(),

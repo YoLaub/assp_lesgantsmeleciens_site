@@ -56,8 +56,8 @@ function mapToDiscipline(d: {
     active: boolean;
     images: PrismaImageRow[];
     imageOrder: string[];
-    coachImage: PrismaImageRow;
-    coachImageId: string;
+    coachImage: PrismaImageRow | null;
+    coachImageId: string | null;
     seo: unknown;
     order: number;
     createdAt: Date;
@@ -67,7 +67,7 @@ function mapToDiscipline(d: {
         id: d.id,
         title: d.title,
         coach: d.coach,
-        coachImage: mapToImage(d.coachImage),
+        coachImage: d.coachImage ? mapToImage(d.coachImage) : null,
         coachImageId: d.coachImageId,
         category: d.category,
         description: d.description,
@@ -93,7 +93,9 @@ export class DisciplinePostgresDataSource {
             update: {
                 title: discipline.title,
                 coach: discipline.coach,
-                coachImageId: discipline.coachImageId,
+                coachImage: discipline.coachImageId
+                    ? { connect: { id: discipline.coachImageId } }
+                    : { disconnect: true },
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
@@ -107,7 +109,9 @@ export class DisciplinePostgresDataSource {
             create: {
                 title: discipline.title,
                 coach: discipline.coach,
-                coachImageId: discipline.coachImageId,
+                ...(discipline.coachImageId
+                    ? { coachImage: { connect: { id: discipline.coachImageId } } }
+                    : {}),
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,

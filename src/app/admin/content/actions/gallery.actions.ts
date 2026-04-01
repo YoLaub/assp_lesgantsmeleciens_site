@@ -135,13 +135,13 @@ export async function bulkSaveGalleryImagesAction(images: Image[]) {
 
 export async function uploadGalleryImageAction(formData: FormData) {
     const file = formData.get('file') as File;
-    const categoryId = formData.get('categoryId') as string;
+    const categorySlug = formData.get('categoryId') as string;
 
     if (!file) {
         return { success: false as const, error: 'Aucun fichier fourni' };
     }
 
-    if (!categoryId) {
+    if (!categorySlug) {
         return { success: false as const, error: 'Catégorie requise' };
     }
 
@@ -156,6 +156,16 @@ export async function uploadGalleryImageAction(formData: FormData) {
         return { success: false as const, error: 'Type de fichier invalide. Utilisez JPG, PNG ou WebP' };
     }
 
+    // Resolve slug to real UUID
+    const { prisma } = await import('@/shared/lib/prisma');
+    const category = await prisma.imageCategory.findUnique({
+        where: { slug: categorySlug },
+    });
+
+    if (!category) {
+        return { success: false as const, error: `Catégorie inconnue : ${categorySlug}` };
+    }
+
     return ResultAsync.fromPromise(
         uploadPublicImage(file, 'gallery'),
         (error: unknown) => {
@@ -163,7 +173,14 @@ export async function uploadGalleryImageAction(formData: FormData) {
             return error instanceof Error ? error.message : "Erreur lors de l'upload sur le cloud";
         }
     ).match(
-        ({ blurDataUrl, ...asset }) => ({ success: true as const, asset, blurDataUrl, categoryId }),
+        ({ blurDataUrl, ...asset }) => ({
+            success: true as const,
+            asset,
+            blurDataUrl,
+            categoryId: category.id,
+            categorySlug: category.slug,
+            categoryName: category.name,
+        }),
         (error) => ({ success: false as const, error })
     );
 }
