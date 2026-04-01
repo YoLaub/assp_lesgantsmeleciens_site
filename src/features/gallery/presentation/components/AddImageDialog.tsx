@@ -176,7 +176,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                     : 'Glissez une image ici ou cliquez pour sélectionner'
                                 }
                             </p>
-                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 10 Mo</p>
+                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 5 Mo</p>
                             <input
                                 ref={fileInputRef}
                                 type="file"

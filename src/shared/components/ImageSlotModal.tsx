@@ -32,6 +32,7 @@ export function ImageSlotModal({
 }: ImageSlotModalProps) {
     const [activeTab, setActiveTab] = useState<'galerie' | 'importer'>('galerie');
     const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     if (!isOpen) return null;
@@ -42,6 +43,7 @@ export function ImageSlotModal({
         e.target.value = '';
 
         setUploading(true);
+        setUploadError(null);
 
         const formData = new FormData();
         formData.append('file', file);
@@ -49,6 +51,7 @@ export function ImageSlotModal({
 
         const uploadResult = await uploadGalleryImageAction(formData);
         if (!uploadResult.success) {
+            setUploadError(uploadResult.error || "Erreur lors de l'envoi de l'image");
             setUploading(false);
             return;
         }
@@ -211,6 +214,9 @@ export function ImageSlotModal({
                                 onChange={handleUpload}
                                 className="hidden"
                             />
+                            {uploadError && (
+                                <p className="text-sm text-red-600 font-medium">{uploadError}</p>
+                            )}
                         </div>
                     )}
                 </div>

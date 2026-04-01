@@ -53,7 +53,7 @@ export function ImageSlotPicker({
     }, [categorySlugs]);
 
     // Resolve IDs to Image objects; filled slots cluster left, empty slots pad right
-    const filledImages: (Image | null)[] = selectedIds
+    const filledImages: Image[] = selectedIds
         .map((id) => allImages.find((img) => img.id === id) ?? null)
         .filter((img): img is Image => img !== null);
 
@@ -70,8 +70,9 @@ export function ImageSlotPicker({
     }
 
     function handleRemove(slotIndex: number) {
-        // slotIndex maps directly to selectedIds index (filled slots are first)
-        const next = selectedIds.filter((_, i) => i !== slotIndex);
+        const image = filledImages[slotIndex];
+        if (!image) return;
+        const next = selectedIds.filter((id) => id !== image.id);
         onChange(next);
     }
 

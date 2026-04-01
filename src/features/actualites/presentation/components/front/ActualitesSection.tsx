@@ -34,18 +34,26 @@ export async function ActualitesSection() {
             {featured && (
                 <div className="w-full mb-16">
                     <Link href={`/actualites/${featured.id}`} className="group flex flex-col items-center gap-6">
-                        {featured.images[0] && (
-                            <div className="relative w-full max-w-2xl aspect-video border-4 border-brand-red rounded-2xl overflow-hidden">
-                                <CloudImage
-                                    asset={toCloudinaryAsset(featured.images[0])}
-                                    alt={featured.images[0].alt || featured.title}
-                                    fill
-                                    sizes="(max-width: 1024px) 100vw, 800px"
-                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                    blurDataUrl={featured.images[0].blurDataUrl}
-                                />
-                            </div>
-                        )}
+                        {(() => {
+                            const sortedImages = [...featured.images].sort((a, b) => {
+                                const aIdx = featured.imageOrder.indexOf(a.id);
+                                const bIdx = featured.imageOrder.indexOf(b.id);
+                                return (aIdx === -1 ? Infinity : aIdx) - (bIdx === -1 ? Infinity : bIdx);
+                            });
+                            const coverImage = sortedImages[0];
+                            return coverImage ? (
+                                <div className="relative w-full max-w-2xl aspect-video border-4 border-brand-red rounded-2xl overflow-hidden">
+                                    <CloudImage
+                                        asset={toCloudinaryAsset(coverImage)}
+                                        alt={coverImage.alt || featured.title}
+                                        fill
+                                        sizes="(max-width: 1024px) 100vw, 800px"
+                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                        blurDataUrl={coverImage.blurDataUrl}
+                                    />
+                                </div>
+                            ) : null;
+                        })()}
                         <h3 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 uppercase group-hover:text-brand-red transition-colors">
                             {featured.title}
                         </h3>

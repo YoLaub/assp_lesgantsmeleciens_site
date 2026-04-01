@@ -24,7 +24,9 @@
       "Bash(grep:*)",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
       "mcp__plugin_playwright_playwright__browser_wait_for",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'{len\\(data\\)} inline review comments on PR 36'\\)\")",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f'[{c[\\\\\"user\\\\\"][\\\\\"login\\\\\"]}]: {c[\\\\\"body\\\\\"][:500]}'\\) for c in data if c['user']['login'] != 'vercel[bot]']\")"
     ]
   }
 }
