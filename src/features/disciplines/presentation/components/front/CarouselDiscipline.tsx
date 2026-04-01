@@ -1,25 +1,39 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { type Image } from '@/features/gallery/domain/models/image.model';
+import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
-export default function DisciplineCarousel({ images }: { images: string[] }) {
+interface DisciplineCarouselProps {
+    images: Image[];
+    imageOrder: string[];
+    disciplineName: string;
+}
+
+export default function DisciplineCarousel({ images, imageOrder, disciplineName }: DisciplineCarouselProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    if (!images || images.length === 0) {
+    const sortedImages = [...images].sort((a, b) => {
+        const aIdx = imageOrder.indexOf(a.id);
+        const bIdx = imageOrder.indexOf(b.id);
+        return (aIdx === -1 ? Infinity : aIdx) - (bIdx === -1 ? Infinity : bIdx);
+    });
+
+    if (sortedImages.length === 0) {
         return null;
     }
 
     const goToPrevious = () => {
         setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? images.length - 1 : prevIndex - 1
+            prevIndex === 0 ? sortedImages.length - 1 : prevIndex - 1
         );
     };
 
     const goToNext = () => {
         setCurrentIndex((prevIndex) =>
-            prevIndex === images.length - 1 ? 0 : prevIndex + 1
+            prevIndex === sortedImages.length - 1 ? 0 : prevIndex + 1
         );
     };
 
@@ -27,12 +41,21 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
         setCurrentIndex(index);
     };
 
+    const currentImage = sortedImages[currentIndex];
+
     return (
         <div className="w-full border-4 border-brand-red rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-[500px] flex items-center justify-center relative overflow-hidden">
             <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
                 {/* Image principale */}
-                <div className="relative w-full aspect-video"> {/* Utilise aspect-ratio pour être sûr */}
-                    <Image src={images[currentIndex]} alt={images[currentIndex].slice(0,5)} fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover" />
+                <div className="relative w-full aspect-video">
+                    <CloudImage
+                        asset={toCloudinaryAsset(currentImage)}
+                        alt={currentImage.alt || `Photo de ${disciplineName}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 800px"
+                        className="object-cover"
+                        blurDataUrl={currentImage.blurDataUrl}
+                    />
                 </div>
 
                 {/* Bouton Précédent */}
@@ -55,7 +78,7 @@ export default function DisciplineCarousel({ images }: { images: string[] }) {
 
                 {/* Indicateurs de pagination (dots) */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    {images.map((_, index) => (
+                    {sortedImages.map((_, index) => (
                         <button
                             key={index}
                             onClick={() => goToSlide(index)}

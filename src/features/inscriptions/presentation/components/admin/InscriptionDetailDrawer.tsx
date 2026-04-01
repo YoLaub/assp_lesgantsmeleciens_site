@@ -47,7 +47,7 @@ export function InscriptionDetailDrawer({ adherent, onClose }: InscriptionDetail
                         <h2 className="text-xl font-black uppercase text-slate-900">
                             {adherent.firstName} {adherent.lastName}
                         </h2>
-                        <p className="text-sm text-slate-500">Dossier d'inscription</p>
+                        <p className="text-sm text-slate-500">Dossier d&apos;inscription</p>
                     </div>
                     <button
                         onClick={onClose}

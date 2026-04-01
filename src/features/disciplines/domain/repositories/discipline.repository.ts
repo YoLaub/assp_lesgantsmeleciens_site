@@ -5,4 +5,5 @@ export interface DisciplineRepository {
     save(discipline: Discipline): Promise<void>;
     delete(id: string): Promise<void>;
     getAllActive(): Promise<Discipline[]>;
+    reorderMany(items: { id: string; order: number }[]): Promise<void>;
 }

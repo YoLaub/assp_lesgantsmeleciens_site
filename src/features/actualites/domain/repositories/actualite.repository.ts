@@ -7,4 +7,5 @@ export interface ActualiteRepository {
     delete(id: string): Promise<void>;
     getAllActive(): Promise<Actualite[]>;
     getFeatured(): Promise<Actualite | null>;
+    reorderMany(items: { id: string; order: number }[]): Promise<void>;
 }

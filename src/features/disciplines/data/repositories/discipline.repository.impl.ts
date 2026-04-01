@@ -28,4 +28,8 @@ export class DisciplineRepositoryImpl implements DisciplineRepository {
     async getAllActive(): Promise<Discipline[]> {
         return await this.dataSource.getActiveDisciplines();
     }
+
+    async reorderMany(items: { id: string; order: number }[]): Promise<void> {
+        return await this.dataSource.reorderDisciplines(items);
+    }
 }

@@ -1,24 +1,27 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { X, Upload, Loader2 } from 'lucide-react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { GALLERY_CATEGORIES, type GalleryCategory } from '@/features/gallery/domain/models/gallery-category.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
+import { IMAGE_CATEGORIES, type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
 import { uploadGalleryImageAction, saveGalleryImageAction } from '@/app/admin/content/actions/gallery.actions';
 
 interface AddImageDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onImageAdded: (image: GalleryImage) => void;
+    onImageAdded: (image: Image) => void;
 }
 
 export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialogProps) {
     const [step, setStep] = useState<'upload' | 'metadata'>('upload');
-    const [uploadedUrl, setUploadedUrl] = useState('');
+    const [uploadedAsset, setUploadedAsset] = useState<CloudinaryAsset | null>(null);
+    const [uploadedCategoryId, setUploadedCategoryId] = useState<string>('');
+    const [uploadedBlurDataUrl, setUploadedBlurDataUrl] = useState<string>('');
     const [title, setTitle] = useState('');
     const [alt, setAlt] = useState('');
-    const [category, setCategory] = useState<GalleryCategory | ''>('');
+    const [categorySlug, setCategorySlug] = useState<ImageCategorySlug | ''>('');
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -29,10 +32,12 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
 
     function resetForm() {
         setStep('upload');
-        setUploadedUrl('');
+        setUploadedAsset(null);
+        setUploadedCategoryId('');
+        setUploadedBlurDataUrl('');
         setTitle('');
         setAlt('');
-        setCategory('');
+        setCategorySlug('');
         setError('');
         setIsUploading(false);
         setIsSaving(false);
@@ -50,11 +55,14 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('categoryId', categorySlug);
 
         const result = await uploadGalleryImageAction(formData);
 
         if (result.success) {
-            setUploadedUrl(result.url);
+            setUploadedAsset(result.asset);
+            setUploadedCategoryId(result.categoryId);
+            setUploadedBlurDataUrl(result.blurDataUrl);
             setTitle(file.name.replace(/\.[^/.]+$/, ''));
             setStep('metadata');
         } else {
@@ -85,15 +93,27 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
         setIsSaving(true);
         setError('');
 
-        const imageData: GalleryImage = {
+        const selectedCat = IMAGE_CATEGORIES.find((c) => c.slug === categorySlug);
+        const imageData: Image = {
             id: crypto.randomUUID(),
             title: title.trim(),
             alt: alt.trim(),
-            category: category.trim(),
-            src: uploadedUrl,
-            width: 0,
-            height: 0,
+            publicId: uploadedAsset!.publicId,
+            version: uploadedAsset!.version,
+            format: uploadedAsset!.format,
+            width: uploadedAsset!.width,
+            height: uploadedAsset!.height,
+            bytes: uploadedAsset!.bytes,
+            blurDataUrl: uploadedBlurDataUrl,
             order: 0,
+            categoryId: uploadedCategoryId,
+            category: {
+                id: uploadedCategoryId,
+                slug: selectedCat?.slug || 'autre',
+                name: selectedCat?.name || 'Autre',
+            },
+            createdAt: new Date(),
+            updatedAt: new Date(),
         };
 
         const result = await saveGalleryImageAction(imageData);
@@ -156,7 +176,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                     : 'Glissez une image ici ou cliquez pour sélectionner'
                                 }
                             </p>
-                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 10 Mo</p>
+                            <p className="text-xs text-slate-400 mt-1">JPG, PNG ou WebP — Max 5 Mo</p>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -170,16 +190,19 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                     {step === 'metadata' && (
                         <>
                             {/* Preview */}
-                            <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
-                                <Image
-                                    src={uploadedUrl}
-                                    alt="Aperçu"
-                                    width={400}
-                                    height={300}
-                                    sizes="400px"
-                                    className="max-h-48 w-auto h-auto object-contain"
-                                />
-                            </div>
+                            {uploadedAsset && (
+                                <div className="rounded-xl overflow-hidden bg-slate-50 max-h-48 flex items-center justify-center">
+                                    <CloudImage
+                                        asset={uploadedAsset}
+                                        alt="Aperçu"
+                                        width={400}
+                                        height={300}
+                                        sizes="400px"
+                                        className="max-h-48 w-auto h-auto object-contain"
+                                        placeholder="empty"
+                                    />
+                                </div>
+                            )}
 
                             {/* Title */}
                             <div>
@@ -217,20 +240,20 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
                                     Catégorie
                                 </label>
                                 <div className="flex flex-wrap gap-2">
-                                    {GALLERY_CATEGORIES.map((cat) => (
+                                    {IMAGE_CATEGORIES.map((cat) => (
                                         <button
-                                            key={cat.value}
+                                            key={cat.slug}
                                             type="button"
-                                            onClick={() => setCategory(
-                                                category === cat.value ? '' : cat.value
+                                            onClick={() => setCategorySlug(
+                                                categorySlug === cat.slug ? '' : cat.slug
                                             )}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                                                ${category === cat.value
+                                                ${categorySlug === cat.slug
                                                     ? 'bg-red-600 text-white shadow-sm'
                                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                                 }`}
                                         >
-                                            {cat.label}
+                                            {cat.name}
                                         </button>
                                     ))}
                                 </div>

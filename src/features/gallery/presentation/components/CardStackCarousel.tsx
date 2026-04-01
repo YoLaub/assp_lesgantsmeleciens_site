@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import Image from 'next/image';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import dynamic from 'next/dynamic';
+import { type Image } from '@/features/gallery/domain/models/image.model';
 import { useLightbox } from '@/features/gallery/presentation/hooks/useLightbox';
-import { Lightbox } from '@/features/gallery/presentation/components/Lightbox';
-import { getCloudinaryBlurUrl } from '@/features/gallery/lib/cloudinary';
+import { CloudImage } from '@/shared/components/CloudImage';
+
+const Lightbox = dynamic(
+  () => import('@/features/gallery/presentation/components/Lightbox').then(m => m.Lightbox),
+  { ssr: false }
+);
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 import styles from './CardStackCarousel.module.css';
 
 const DRAG_THRESHOLD = 50;
@@ -28,7 +33,7 @@ function getPositionClass(offset: number): string {
 }
 
 interface CardStackCarouselProps {
-  images: GalleryImage[];
+  images: Image[];
 }
 
 export function CardStackCarousel({ images }: CardStackCarouselProps) {
@@ -156,8 +161,8 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
         <div className={styles.cardsContainer}>
           {images.map((image, index) => {
             const offset = getOffset(index);
+            if (Math.abs(offset) > 2) return null;
             const positionClass = getPositionClass(offset);
-            const blurUrl = getCloudinaryBlurUrl(image.src);
 
             return (
               <div
@@ -168,16 +173,15 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
                 tabIndex={offset === 0 ? 0 : -1}
                 aria-label={image.alt || image.title}
               >
-                <Image
-                  className={styles.cardImage}
-                  src={image.src}
+                <CloudImage
+                  asset={toCloudinaryAsset(image)}
                   alt={image.alt || image.title}
                   width={image.width || 800}
                   height={image.height || 600}
                   sizes="400px"
+                  className={styles.cardImage}
                   draggable={false}
-                  placeholder={blurUrl ? 'blur' : undefined}
-                  blurDataURL={blurUrl || undefined}
+                  blurDataUrl={image.blurDataUrl}
                 />
               </div>
             );

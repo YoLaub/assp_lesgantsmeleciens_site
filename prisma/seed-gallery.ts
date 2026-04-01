@@ -2,12 +2,17 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
+import { fetchAndUploadImageThrottled, cleanupSeedImages } from "./seed-utils";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const categories = ["entrainements", "competitions", "evenements", "portraits", "installations", "autre", "carousel"];
+const IMAGE_CATEGORIES = [
+  { slug: "discipline", name: "Discipline" },
+  { slug: "actualite", name: "Actualité" },
+  { slug: "carousel", name: "Carousel" },
+];
 
 const titles = [
   "Entraînement boxe anglaise",
@@ -47,39 +52,113 @@ function randomDate(monthsBack: number): Date {
   return new Date(past + Math.random() * (now - past));
 }
 
-async function main() {
-  console.log("Deleting existing gallery images...");
-  const { count: deleted } = await prisma.galleryImage.deleteMany();
-  console.log(`Deleted ${deleted} existing images.`);
+export async function seedGallery() {
+  console.log("Deleting existing data...");
+  await prisma.actualite.deleteMany();
+  await prisma.discipline.deleteMany();
+  await prisma.image.deleteMany();
+  await prisma.imageCategory.deleteMany();
 
-  const images = Array.from({ length: 100 }, (_, i) => {
-    const dim = dimensions[i % dimensions.length];
-    const title = titles[i % titles.length];
-    const category = categories[i % categories.length];
+  console.log("Creating image categories...");
+  const categoryRecords: Record<string, string> = {};
+  for (const cat of IMAGE_CATEGORIES) {
+    const record = await prisma.imageCategory.create({ data: cat });
+    categoryRecords[cat.slug] = record.id;
+  }
+  console.log(`Created ${IMAGE_CATEGORIES.length} categories.`);
 
-    return {
-      title: `${title} #${i + 1}`,
-      alt: `Photo - ${title}`,
-      category,
-      src: `https://picsum.photos/seed/gallery${i}/${dim.width}/${dim.height}`,
-      width: dim.width,
-      height: dim.height,
-      order: i,
-      createdAt: randomDate(6),
-    };
-  });
+  console.log("Cleaning up old seed images from Cloudinary...");
+  await cleanupSeedImages();
 
-  console.log("Inserting 100 gallery images...");
-  const { count } = await prisma.galleryImage.createMany({ data: images });
-  console.log(`Inserted ${count} images.`);
+  const categorySeeds: {
+    slug: string;
+    count: number;
+    width: number;
+    height: number;
+    titles: string[];
+  }[] = [
+    {
+      slug: "carousel",
+      count: 6,
+      width: 1920,
+      height: 1080,
+      titles: ["Carousel"],
+    },
+    {
+      slug: "discipline",
+      count: 10,
+      width: 1200,
+      height: 800,
+      titles: [
+        "Entraînement boxe anglaise",
+        "Séance de sparring",
+        "Échauffement collectif",
+        "Entraînement sac de frappe",
+        "Cours technique pieds-poings",
+        "Séance cardio-boxing",
+        "Portrait boxeur",
+        "Portrait coach",
+        "Salle de boxe",
+        "Ring",
+      ],
+    },
+    {
+      slug: "actualite",
+      count: 10,
+      width: 1200,
+      height: 800,
+      titles: [
+        "Open de boxe régional",
+        "Compétition départementale",
+        "Tournoi inter-clubs",
+        "Remise des médailles",
+        "Gala annuel 2024",
+        "Soirée portes ouvertes",
+        "Stage été boxe thaï",
+        "Initiation self-défense",
+        "Cours enfants",
+        "Photo de groupe club",
+      ],
+    },
+  ];
+
+  const totalImages = categorySeeds.reduce((sum, c) => sum + c.count, 0);
+  let uploaded = 0;
+
+  for (const cat of categorySeeds) {
+    console.log(`\nUploading ${cat.count} images for "${cat.slug}"...`);
+    for (let i = 0; i < cat.count; i++) {
+      uploaded++;
+      const title = cat.titles[i % cat.titles.length];
+      console.log(`  [${uploaded}/${totalImages}] ${title} (${cat.width}x${cat.height})...`);
+      const imageData = await fetchAndUploadImageThrottled(cat.width, cat.height, "seed/gallery");
+
+      await prisma.image.create({
+        data: {
+          title: cat.count > cat.titles.length ? `${title} #${i + 1}` : title,
+          alt: `Photo - ${title}`,
+          categoryId: categoryRecords[cat.slug],
+          ...imageData,
+          order: i,
+          createdAt: randomDate(6),
+        },
+      });
+    }
+  }
+  console.log(`\nInserted ${totalImages} gallery images.`);
+
+  return categoryRecords;
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
-  });
+// Allow running standalone
+if (require.main === module) {
+  seedGallery()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+      await pool.end();
+    });
+}

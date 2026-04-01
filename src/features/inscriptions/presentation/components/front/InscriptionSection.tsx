@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import { CloudImage } from '@/shared/components/CloudImage';
+import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import InscriptionForm from "./InscriptionForm";
 
-export default function InscriptionSection() {
+type InscriptionSectionProps = {
+    image?: CloudinaryAsset;
+    blurDataUrl?: string;
+};
+
+export default function InscriptionSection({ image, blurDataUrl }: InscriptionSectionProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -23,13 +29,19 @@ export default function InscriptionSection() {
                     <div className="flex flex-col items-center w-full">
                         <div className="w-3/4 h-[2px] bg-[#E33535] mb-8"></div> {/* Ligne rouge haut */}
                         <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden bg-gray-100 shadow-md">
-                            {/* Remplace le src par ton image */}
-                            <Image
-                                src="/images/placeholder-boxe.jpg"
-                                alt="Enfants en cours de boxe"
-                                fill
-                                className="object-cover"
-                            />
+                            {image ? (
+                                <CloudImage
+                                    asset={image}
+                                    alt="Enfants en cours de boxe"
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
+                                    crop="fill"
+                                    className="object-cover"
+                                    blurDataUrl={blurDataUrl}
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gray-200" />
+                            )}
                         </div>
                         <div className="w-3/4 h-[2px] bg-[#E33535] mt-8"></div> {/* Ligne rouge bas */}
                     </div>
@@ -50,7 +62,7 @@ export default function InscriptionSection() {
                         {/* Bloc Modalités */}
                         <div className="flex flex-col items-center lg:items-start">
                             <h3 className="text-xl font-bold tracking-[0.2em] mb-4 text-gray-900">
-                                MODALITÉS<br />D'INSCRIPTIONS
+                                MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
                             <p className="text-[11px] leading-relaxed text-gray-600 mb-6 max-w-sm text-justify">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

@@ -32,4 +32,8 @@ export class ActualiteRepositoryImpl implements ActualiteRepository {
     async getFeatured(): Promise<Actualite | null> {
         return await this.dataSource.getFeaturedActualite();
     }
+
+    async reorderMany(items: { id: string; order: number }[]): Promise<void> {
+        return await this.dataSource.reorderActualites(items);
+    }
 }

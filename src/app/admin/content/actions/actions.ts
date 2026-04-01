@@ -7,19 +7,23 @@ import { revalidatePath } from 'next/cache';
 import { GetDisciplineUseCase } from "@/features/disciplines/domain/usecases/get-discipline.usecase";
 import { GetAllDisciplinesUseCase } from "@/features/disciplines/domain/usecases/getAll-discipline.usecase";
 import { uploadPublicImage } from '@/shared/lib/upload';
+import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 import { ActualiteRepositoryImpl } from '@/features/actualites/data/repositories/actualite.repository.impl';
 import { SaveActualiteUseCase } from '@/features/actualites/domain/usecases/save-actualite.usecase';
 import { GetActualiteUseCase } from '@/features/actualites/domain/usecases/get-actualite.usecase';
 import { GetAllActualitesUseCase } from '@/features/actualites/domain/usecases/getAll-actualite.usecase';
+import { ReorderActualitesUseCase } from '@/features/actualites/domain/usecases/reorder-actualites.usecase';
 import { Actualite } from '@/features/actualites/domain/models/actualite.model';
+import { ReorderDisciplinesUseCase } from '@/features/disciplines/domain/usecases/reorder-disciplines.usecase';
 
 export async function saveDisciplineAction(data: Discipline) {
+    const sanitizedData = { ...data, description: sanitizeRichText(data.description) };
     const repository = new DisciplineRepositoryImpl();
     const useCase = new SaveDisciplineUseCase(repository);
 
     try {
-        await useCase.execute(data);
+        await useCase.execute(sanitizedData);
         revalidatePath('/admin/content/disciplines');
         return { success: true };
     } catch (error: unknown) {
@@ -60,12 +64,8 @@ export async function uploadPhotoAction(formData: FormData) {
             return { success: false, error: 'Invalid file type. Use JPG, PNG or WebP' };
         }
 
-        // 2. Magie Cloudinary : on appelle juste notre librairie
-        // Elle se charge de convertir le fichier et de l'envoyer dans le cloud
-        const result = await uploadPublicImage(file, 'disciplines');
-
-        // On retourne la vraie URL en https://res.cloudinary.com/...
-        return { success: true, url: result.url };
+        const { blurDataUrl, ...asset } = await uploadPublicImage(file, 'disciplines');
+        return { success: true, asset, blurDataUrl };
 
     } catch (error: unknown) {
         console.error('Upload error:', error);
@@ -90,11 +90,12 @@ export async function getAllDisciplinesAction() {
 // ─── Actualités ───────────────────────────────────────────────
 
 export async function saveActualiteAction(data: Actualite) {
+    const sanitizedData = { ...data, description: sanitizeRichText(data.description) };
     const repository = new ActualiteRepositoryImpl();
     const useCase = new SaveActualiteUseCase(repository);
 
     try {
-        await useCase.execute(data);
+        await useCase.execute(sanitizedData);
         revalidatePath('/admin/content/actualites');
         revalidatePath('/actualites');
         revalidatePath('/');
@@ -149,12 +150,44 @@ export async function uploadActualitePhotoAction(formData: FormData) {
             return { success: false, error: 'Invalid file type. Use JPG, PNG or WebP' };
         }
 
-        const result = await uploadPublicImage(file, 'actualites');
-        return { success: true, url: result.url };
+        const { blurDataUrl, ...asset } = await uploadPublicImage(file, 'actualites');
+        return { success: true, asset, blurDataUrl };
 
     } catch (error: unknown) {
         console.error('Upload error:', error);
         const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'upload";
+        return { success: false, error: errorMessage };
+    }
+}
+
+// ─── Reorder ─────────────────────────────────────────────────
+
+export async function reorderDisciplinesAction(items: { id: string; order: number }[]) {
+    const repository = new DisciplineRepositoryImpl();
+    const useCase = new ReorderDisciplinesUseCase(repository);
+
+    try {
+        await useCase.execute(items);
+        revalidatePath('/admin/content/disciplines');
+        return { success: true };
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue";
+        return { success: false, error: errorMessage };
+    }
+}
+
+export async function reorderActualitesAction(items: { id: string; order: number }[]) {
+    const repository = new ActualiteRepositoryImpl();
+    const useCase = new ReorderActualitesUseCase(repository);
+
+    try {
+        await useCase.execute(items);
+        revalidatePath('/admin/content/actualites');
+        revalidatePath('/actualites');
+        revalidatePath('/');
+        return { success: true };
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue";
         return { success: false, error: errorMessage };
     }
 }

@@ -1,11 +1,11 @@
 import { ResultAsync } from '@/shared/lib/result';
-import { GalleryImage } from '../models/gallery-image.model';
-import { GalleryImageRepository } from '../repositories/gallery-image.repository';
+import { Image } from '../models/image.model';
+import { ImageRepository } from '../repositories/image.repository';
 
 export class GetAllGalleryImagesUseCase {
-    constructor(private repository: GalleryImageRepository) {}
+    constructor(private repository: ImageRepository) {}
 
-    execute(): ResultAsync<GalleryImage[], string> {
+    execute(): ResultAsync<Image[], string> {
         return this.repository.getAll();
     }
 }

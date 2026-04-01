@@ -1,11 +1,11 @@
 import { useReducer, useCallback } from 'react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 
 type Action =
-    | { type: 'SET_IMAGES'; images: GalleryImage[] }
-    | { type: 'ADD_IMAGE'; image: GalleryImage }
-    | { type: 'ADD_IMAGES'; images: GalleryImage[] }
-    | { type: 'UPDATE_IMAGE'; image: GalleryImage }
+    | { type: 'SET_IMAGES'; images: Image[] }
+    | { type: 'ADD_IMAGE'; image: Image }
+    | { type: 'ADD_IMAGES'; images: Image[] }
+    | { type: 'UPDATE_IMAGE'; image: Image }
     | { type: 'REMOVE_IMAGE'; id: string }
     | { type: 'TOGGLE_SELECT'; id: string }
     | { type: 'RANGE_SELECT'; fromId: string; toId: string }
@@ -15,7 +15,7 @@ type Action =
     | { type: 'REORDER'; fromId: string; toId: string };
 
 interface State {
-    images: GalleryImage[];
+    images: Image[];
     selectedIds: Set<string>;
 }
 
@@ -103,7 +103,7 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export function useImageCollection(initialImages: GalleryImage[] = []) {
+export function useImageCollection(initialImages: Image[] = []) {
     const [state, dispatch] = useReducer(reducer, {
         images: initialImages,
         selectedIds: new Set<string>(),

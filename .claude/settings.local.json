@@ -17,7 +17,16 @@
       "Bash(xargs grep -l \"cloudinary\\\\|Cloudinary\")",
       "Bash(npx vitest run --reporter=verbose)",
       "Bash(npm run build)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(xargs grep -l \"GalleryImage\\\\|Actualite\\\\|Discipline\")",
+      "Bash(xargs grep -l \"photo\\\\|image\")",
+      "Bash(xargs grep -l \"carousel\\\\|Carousel\")",
+      "Bash(grep:*)",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_wait_for",
+      "Bash(npx vitest:*)",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(f'{len\\(data\\)} inline review comments on PR 36'\\)\")",
+      "Bash(python -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f'[{c[\\\\\"user\\\\\"][\\\\\"login\\\\\"]}]: {c[\\\\\"body\\\\\"][:500]}'\\) for c in data if c['user']['login'] != 'vercel[bot]']\")"
     ]
   }
 }

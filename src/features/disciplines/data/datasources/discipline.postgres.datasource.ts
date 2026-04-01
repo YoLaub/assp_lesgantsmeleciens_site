@@ -1,21 +1,107 @@
-import {prisma} from "@/shared/lib/prisma";
+import { prisma } from "@/shared/lib/prisma";
 import { Discipline } from '../../domain/models/discipline.model';
+import { type Image } from '@/features/gallery/domain/models/image.model';
+
+const disciplineInclude = {
+    images: { include: { category: true }, orderBy: { order: 'asc' as const } },
+    coachImage: { include: { category: true } },
+} as const;
+
+type PrismaImageRow = {
+    id: string;
+    title: string;
+    alt: string;
+    publicId: string;
+    version: number;
+    format: string;
+    width: number;
+    height: number;
+    bytes: number;
+    blurDataUrl: string;
+    order: number;
+    categoryId: string;
+    category: { id: string; name: string; slug: string };
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+function mapToImage(img: PrismaImageRow): Image {
+    return {
+        id: img.id,
+        title: img.title,
+        alt: img.alt,
+        publicId: img.publicId,
+        version: img.version,
+        format: img.format,
+        width: img.width,
+        height: img.height,
+        bytes: img.bytes,
+        blurDataUrl: img.blurDataUrl,
+        order: img.order,
+        category: img.category,
+        categoryId: img.categoryId,
+        createdAt: img.createdAt,
+        updatedAt: img.updatedAt,
+    };
+}
+
+function mapToDiscipline(d: {
+    id: string;
+    title: string;
+    coach: string;
+    category: string;
+    citation: string | null;
+    description: string;
+    tags: string[];
+    active: boolean;
+    images: PrismaImageRow[];
+    imageOrder: string[];
+    coachImage: PrismaImageRow | null;
+    coachImageId: string | null;
+    seo: unknown;
+    order: number;
+    createdAt: Date;
+    updatedAt: Date;
+}): Discipline {
+    return {
+        id: d.id,
+        title: d.title,
+        coach: d.coach,
+        coachImage: d.coachImage ? mapToImage(d.coachImage) : null,
+        coachImageId: d.coachImageId,
+        category: d.category,
+        description: d.description,
+        tags: d.tags,
+        active: d.active,
+        images: d.images.map(mapToImage),
+        imageOrder: d.imageOrder,
+        seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+        citation: d.citation,
+        order: d.order,
+        createdAt: d.createdAt,
+        updatedAt: d.updatedAt,
+    };
+}
 
 export class DisciplinePostgresDataSource {
 
-
     async upsertDiscipline(discipline: Discipline): Promise<void> {
+        const imageIds = discipline.imageOrder ?? discipline.images.map((i) => i.id);
+
         await prisma.discipline.upsert({
             where: { id: discipline.id || '' },
             update: {
                 title: discipline.title,
                 coach: discipline.coach,
-                photo_coach: discipline.photo_coach ?? null,
+                coachImage: discipline.coachImageId
+                    ? { connect: { id: discipline.coachImageId } }
+                    : { disconnect: true },
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
-                photo: discipline.photo,
-                seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
+                images: { set: [], connect: imageIds.map((id) => ({ id })) },
+                imageOrder: imageIds,
+                seo: discipline.seo ? discipline.seo : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
                 citation: discipline.citation ?? '',
                 updatedAt: new Date(),
@@ -23,12 +109,15 @@ export class DisciplinePostgresDataSource {
             create: {
                 title: discipline.title,
                 coach: discipline.coach,
-                photo_coach: discipline.photo_coach ?? null,
+                ...(discipline.coachImageId
+                    ? { coachImage: { connect: { id: discipline.coachImageId } } }
+                    : {}),
                 category: discipline.category,
                 description: discipline.description,
                 tags: discipline.tags,
-                photo: discipline.photo,
-                seo: discipline.seo ? (discipline.seo) : { metaTitle: '', metaDescription: '' },
+                images: { connect: imageIds.map((id) => ({ id })) },
+                imageOrder: imageIds,
+                seo: discipline.seo ? discipline.seo : { metaTitle: '', metaDescription: '' },
                 active: discipline.active ?? true,
                 citation: discipline.citation ?? '',
             },
@@ -38,63 +127,37 @@ export class DisciplinePostgresDataSource {
     async getDisciplines(): Promise<Discipline[]> {
         const disciplines = await prisma.discipline.findMany({
             orderBy: { order: 'asc' },
+            include: disciplineInclude,
         });
-
-        return disciplines.map((d) => ({
-            id: d.id,
-            title: d.title,
-            coach: d.coach,
-            photo_coach: d.photo_coach ?? undefined,
-            category: d.category,
-            description: d.description,
-            tags: d.tags,
-            photo: d.photo,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            active: d.active,
-            citation: d.citation ?? '',
-            order: d.order,
-            createdAt: d.createdAt,
-            updatedAt: d.updatedAt,
-        }));
+        return disciplines.map(mapToDiscipline);
     }
 
     async getDisciplineById(id: string): Promise<Discipline | null> {
         const d = await prisma.discipline.findUnique({
-            where: { id }
+            where: { id },
+            include: disciplineInclude,
         });
-
         if (!d) return null;
+        return mapToDiscipline(d);
+    }
 
-        // C'est ICI qu'était ton erreur. On map proprement les données.
-        return {
-            ...d,
-            photo_coach: d.photo_coach ?? undefined,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            citation: d.citation ?? ''
-        };
+    async reorderDisciplines(items: { id: string; order: number }[]): Promise<void> {
+        await prisma.$transaction(
+            items.map((item) =>
+                prisma.discipline.update({
+                    where: { id: item.id },
+                    data: { order: item.order },
+                }),
+            ),
+        );
     }
 
     async getActiveDisciplines(): Promise<Discipline[]> {
         const disciplines = await prisma.discipline.findMany({
-            where: { active: true }, // Sécurité : on ne montre pas les brouillons
+            where: { active: true },
             orderBy: { order: 'asc' },
+            include: disciplineInclude,
         });
-
-        return disciplines.map((d) => ({
-            id: d.id,
-            title: d.title,
-            coach: d.coach,
-            photo_coach: d.photo_coach ?? undefined,
-            category: d.category,
-            description: d.description,
-            tags: d.tags,
-            photo: d.photo,
-            seo: (d.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
-            active: d.active,
-            citation:  d.citation ?? "",
-            order: d.order,
-            createdAt: d.createdAt,
-            updatedAt: d.updatedAt,
-        }));
+        return disciplines.map(mapToDiscipline);
     }
 }

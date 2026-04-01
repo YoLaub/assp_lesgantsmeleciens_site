@@ -1,13 +1,14 @@
 'use client';
 
-import Image from 'next/image';
-import { Pencil, Trash2, GripVertical } from 'lucide-react';
+import { Pencil, Trash2, MoveVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
+import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 
 interface GalleryListRowProps {
-    image: GalleryImage;
+    image: Image;
     index: number;
     isSelected: boolean;
     onToggleSelect: () => void;
@@ -44,7 +45,7 @@ export function GalleryListRow({
                     onClick={(e) => e.stopPropagation()}
                     aria-label="Réorganiser"
                 >
-                    <GripVertical className="w-4 h-4" />
+                    <MoveVertical className="w-4 h-4" />
                 </button>
             </div>
 
@@ -62,12 +63,14 @@ export function GalleryListRow({
             {/* Thumbnail */}
             <div className="py-2">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                    <Image
-                        src={image.src}
+                    <CloudImage
+                        asset={toCloudinaryAsset(image)}
                         alt={image.alt || image.title}
                         fill
                         sizes="48px"
                         className="object-cover"
+                        placeholder="empty"
+                        blurDataUrl={image.blurDataUrl}
                     />
                 </div>
             </div>
@@ -86,7 +89,7 @@ export function GalleryListRow({
             <div className="px-3 py-3">
                 {image.category && (
                     <span className="inline-block px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                        {getCategoryLabel(image.category)}
+                        {getCategoryLabel(image.category.slug)}
                     </span>
                 )}
             </div>

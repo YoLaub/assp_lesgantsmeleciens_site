@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useTransition } from 'react';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
+import { Image } from '@/features/gallery/domain/models/image.model';
 import { useImageCollection } from '../hooks/useImageCollection';
 import { useLightbox } from '../hooks/useLightbox';
 import { useKeyboardNavigation } from '../hooks/useKeyboardNavigation';
@@ -22,10 +22,10 @@ import {
 } from '@/app/admin/content/actions/gallery.actions';
 
 interface GalleryManagerProps {
-    initialImages: GalleryImage[];
+    initialImages: Image[];
 }
 
-function sortImages(images: GalleryImage[], field: SortField, direction: SortDirection): GalleryImage[] {
+function sortImages(images: Image[], field: SortField, direction: SortDirection): Image[] {
     const sorted = [...images].sort((a, b) => {
         switch (field) {
             case 'date': {
@@ -36,7 +36,7 @@ function sortImages(images: GalleryImage[], field: SortField, direction: SortDir
             case 'title':
                 return a.title.localeCompare(b.title, 'fr');
             case 'category':
-                return a.category.localeCompare(b.category, 'fr');
+                return a.category.slug.localeCompare(b.category.slug, 'fr');
         }
     });
     return direction === 'desc' ? sorted.reverse() : sorted;
@@ -47,7 +47,7 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         useImageCollection(initialImages);
     const lightbox = useLightbox(images.length);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
-    const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
+    const [editingImage, setEditingImage] = useState<Image | null>(null);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -62,14 +62,14 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
     const filteredAndSortedImages = useMemo(() => {
         let result = images;
         if (activeCategory) {
-            result = result.filter((img) => img.category === activeCategory);
+            result = result.filter((img) => img.category.slug === activeCategory);
         }
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             result = result.filter(
                 (img) =>
                     img.title.toLowerCase().includes(q) ||
-                    img.category.toLowerCase().includes(q),
+                    img.category.slug.toLowerCase().includes(q),
             );
         }
         return sortImages(result, sortField, sortDirection);
@@ -111,7 +111,7 @@ export function GalleryManager({ initialImages }: GalleryManagerProps) {
         lastSelectedRef.current = id;
     }
 
-    function handleEdit(image: GalleryImage) {
+    function handleEdit(image: Image) {
         lightbox.close();
         setEditingImage(image);
     }

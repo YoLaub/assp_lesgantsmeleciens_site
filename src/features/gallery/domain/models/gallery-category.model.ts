@@ -1,15 +1,15 @@
-export const GALLERY_CATEGORIES = [
-    { value: 'entrainements', label: 'Entraînements' },
-    { value: 'competitions', label: 'Compétitions' },
-    { value: 'evenements', label: 'Événements' },
-    { value: 'portraits', label: 'Portraits' },
-    { value: 'installations', label: 'Installations' },
-    { value: 'autre', label: 'Autre' },
-    { value: 'carousel', label: 'Carousel' },
-] as const;
+export const IMAGE_CATEGORIES = [
+  { slug: 'discipline', name: 'Discipline' },
+  { slug: 'actualite', name: 'Actualité' },
+  { slug: 'carousel', name: 'Carousel' },
+] as const
 
-export type GalleryCategory = (typeof GALLERY_CATEGORIES)[number]['value'];
+export type ImageCategorySlug = (typeof IMAGE_CATEGORIES)[number]['slug']
 
-export function getCategoryLabel(value: string): string {
-    return GALLERY_CATEGORIES.find((c) => c.value === value)?.label ?? value;
+export function getCategoryLabel(slug: string): string {
+  return IMAGE_CATEGORIES.find((c) => c.slug === slug)?.name ?? slug
 }
+
+// Category scoping for admin forms
+export const ACTUALITE_IMAGE_CATEGORIES: ImageCategorySlug[] = ['actualite']
+export const DISCIPLINE_IMAGE_CATEGORIES: ImageCategorySlug[] = ['discipline']

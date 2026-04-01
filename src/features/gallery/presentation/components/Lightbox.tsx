@@ -1,18 +1,18 @@
 'use client';
 
-import Image from 'next/image';
-import { GalleryImage } from '@/features/gallery/domain/models/gallery-image.model';
-import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
+import { type Image } from '@/features/gallery/domain/models/image.model';
+import { CloudImage } from '@/shared/components/CloudImage';
+import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 import { ChevronLeft, ChevronRight, X, Pencil } from 'lucide-react';
 
 interface LightboxProps {
-    images: GalleryImage[];
+    images: Image[];
     currentIndex: number;
     isOpen: boolean;
     onClose: () => void;
     onNext: () => void;
     onPrev: () => void;
-    onEdit?: (image: GalleryImage) => void;
+    onEdit?: (image: Image) => void;
 }
 
 export function Lightbox({
@@ -56,19 +56,21 @@ export function Lightbox({
 
             {/* Image */}
             <div className="max-w-[90vw] max-h-[85vh] flex flex-col items-center gap-4">
-                <Image
-                    src={image.src}
+                <CloudImage
+                    asset={toCloudinaryAsset(image)}
                     alt={image.alt || image.title}
                     width={image.width || 1200}
                     height={image.height || 800}
                     sizes="90vw"
                     className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg"
+                    placeholder="empty"
+                    blurDataUrl={image.blurDataUrl}
                 />
                 <div className="text-center">
                     <p className="text-white text-lg font-semibold">{image.title}</p>
                     {image.category && (
                         <span className="inline-block mt-1 px-3 py-1 bg-white/10 rounded-lg text-white/70 text-xs font-semibold uppercase tracking-wide">
-                            {getCategoryLabel(image.category)}
+                            {image.category.name}
                         </span>
                     )}
                     <div className="flex items-center justify-center gap-3 mt-2">
