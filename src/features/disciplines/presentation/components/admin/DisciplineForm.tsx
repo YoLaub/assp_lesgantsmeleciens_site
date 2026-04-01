@@ -9,7 +9,7 @@ import { saveDisciplineAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Discipline } from '../../../domain/models/discipline.model';
 import { DISCIPLINE_IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
-import { ImagePicker } from '@/shared/components/ImagePicker';
+import { ImageSlotPicker } from '@/shared/components/ImageSlotPicker';
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
@@ -176,11 +176,11 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                             />
                         </div>
                         <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-                            <ImagePicker
+                            <ImageSlotPicker
+                                maxSlots={1}
                                 categorySlugs={['portraits']}
-                                selected={coachImageIds}
-                                onSelect={setCoachImageIds}
-                                multiple={false}
+                                selectedIds={coachImageIds}
+                                onChange={setCoachImageIds}
                                 label="Photo du Coach"
                             />
                         </div>
@@ -244,11 +244,11 @@ export const DisciplineForm = ({ id, initialData }: DisciplineFormProps) => {
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <ImageIcon className="w-4 h-4 text-red-600" /> Galerie Photos
                         </h3>
-                        <ImagePicker
+                        <ImageSlotPicker
+                            maxSlots={4}
                             categorySlugs={DISCIPLINE_IMAGE_CATEGORIES}
-                            selected={imageOrder}
-                            onSelect={setImageOrder}
-                            multiple
+                            selectedIds={imageOrder}
+                            onChange={setImageOrder}
                             label="Sélectionner des images"
                         />
                     </div>

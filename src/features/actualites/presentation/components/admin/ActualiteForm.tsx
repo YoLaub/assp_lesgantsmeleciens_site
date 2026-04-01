@@ -9,7 +9,7 @@ import { saveActualiteAction } from '@/app/admin/content/actions/actions';
 import { useRouter } from 'next/navigation';
 import { Actualite } from '../../../domain/models/actualite.model';
 import { ACTUALITE_IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
-import { ImagePicker } from '@/shared/components/ImagePicker';
+import { ImageSlotPicker } from '@/shared/components/ImageSlotPicker';
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
     if (!editor) return null;
@@ -230,11 +230,11 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
                         <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <ImageIcon className="w-4 h-4 text-red-600" /> Photos
                         </h3>
-                        <ImagePicker
+                        <ImageSlotPicker
+                            maxSlots={5}
                             categorySlugs={ACTUALITE_IMAGE_CATEGORIES}
-                            selected={imageOrder}
-                            onSelect={setImageOrder}
-                            multiple
+                            selectedIds={imageOrder}
+                            onChange={setImageOrder}
                             label="Sélectionner des images"
                         />
                     </div>
