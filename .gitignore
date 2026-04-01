@@ -51,3 +51,4 @@ public/uploads/**
 .playwright-mcp/
 # clerk configuration (can include secrets)
 /.clerk/
+.claude/settings.local.json
