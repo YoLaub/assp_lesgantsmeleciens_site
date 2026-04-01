@@ -14,6 +14,7 @@ type PrismaImageWithCategory = {
     width: number;
     height: number;
     bytes: number;
+    blurDataUrl: string;
     order: number;
     categoryId: string;
     category: { id: string; name: string; slug: string };
@@ -32,6 +33,7 @@ function mapToImage(img: PrismaImageWithCategory): Image {
         width: img.width,
         height: img.height,
         bytes: img.bytes,
+        blurDataUrl: img.blurDataUrl,
         order: img.order,
         category: img.category,
         categoryId: img.categoryId,
@@ -100,6 +102,7 @@ export class ImagePostgresDataSource {
                     width: image.width,
                     height: image.height,
                     bytes: image.bytes,
+                    blurDataUrl: image.blurDataUrl,
                     order: image.order,
                     updatedAt: new Date(),
                 },
@@ -113,6 +116,7 @@ export class ImagePostgresDataSource {
                     width: image.width,
                     height: image.height,
                     bytes: image.bytes,
+                    blurDataUrl: image.blurDataUrl,
                     order: image.order,
                 },
             }),
@@ -134,6 +138,7 @@ export class ImagePostgresDataSource {
                     width: img.width,
                     height: img.height,
                     bytes: img.bytes,
+                    blurDataUrl: img.blurDataUrl,
                     order: img.order,
                 })),
             }),

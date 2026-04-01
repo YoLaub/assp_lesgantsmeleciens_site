@@ -2,6 +2,7 @@ import DisciplineCarousel from "@/features/disciplines/presentation/components/f
 import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
+import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 interface DisciplineSectionProps {
     discipline: Discipline;
@@ -24,7 +25,7 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
 
                         <div
                             className="prose prose-lg text-gray-700 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: discipline.description }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichText(discipline.description) }}
                         >
                         </div>
                     </div>
@@ -49,6 +50,7 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
                                             gravity="face"
                                             sizes="150px"
                                             className="rounded-lg object-cover w-full h-full grayscale"
+                                            blurDataUrl={discipline.coachImage.blurDataUrl}
                                         />
                                     ) : (
                                         <div className="w-full aspect-square bg-slate-200 rounded-lg flex items-center justify-center">

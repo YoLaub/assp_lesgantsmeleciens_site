@@ -18,6 +18,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
     const [step, setStep] = useState<'upload' | 'metadata'>('upload');
     const [uploadedAsset, setUploadedAsset] = useState<CloudinaryAsset | null>(null);
     const [uploadedCategoryId, setUploadedCategoryId] = useState<string>('');
+    const [uploadedBlurDataUrl, setUploadedBlurDataUrl] = useState<string>('');
     const [title, setTitle] = useState('');
     const [alt, setAlt] = useState('');
     const [categorySlug, setCategorySlug] = useState<ImageCategorySlug | ''>('');
@@ -33,6 +34,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
         setStep('upload');
         setUploadedAsset(null);
         setUploadedCategoryId('');
+        setUploadedBlurDataUrl('');
         setTitle('');
         setAlt('');
         setCategorySlug('');
@@ -60,6 +62,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
         if (result.success) {
             setUploadedAsset(result.asset);
             setUploadedCategoryId(result.categoryId);
+            setUploadedBlurDataUrl(result.blurDataUrl);
             setTitle(file.name.replace(/\.[^/.]+$/, ''));
             setStep('metadata');
         } else {
@@ -101,6 +104,7 @@ export function AddImageDialog({ isOpen, onClose, onImageAdded }: AddImageDialog
             width: uploadedAsset!.width,
             height: uploadedAsset!.height,
             bytes: uploadedAsset!.bytes,
+            blurDataUrl: uploadedBlurDataUrl,
             order: 0,
             categoryId: uploadedCategoryId,
             category: {

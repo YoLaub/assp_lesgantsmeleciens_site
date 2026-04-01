@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { type Image } from '@/features/gallery/domain/models/image.model';
 import { useLightbox } from '@/features/gallery/presentation/hooks/useLightbox';
-import { Lightbox } from '@/features/gallery/presentation/components/Lightbox';
 import { CloudImage } from '@/shared/components/CloudImage';
+
+const Lightbox = dynamic(
+  () => import('@/features/gallery/presentation/components/Lightbox').then(m => m.Lightbox),
+  { ssr: false }
+);
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
 import styles from './CardStackCarousel.module.css';
 
@@ -156,6 +161,7 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
         <div className={styles.cardsContainer}>
           {images.map((image, index) => {
             const offset = getOffset(index);
+            if (Math.abs(offset) > 2) return null;
             const positionClass = getPositionClass(offset);
 
             return (
@@ -175,6 +181,7 @@ export function CardStackCarousel({ images }: CardStackCarouselProps) {
                   sizes="400px"
                   className={styles.cardImage}
                   draggable={false}
+                  blurDataUrl={image.blurDataUrl}
                 />
               </div>
             );

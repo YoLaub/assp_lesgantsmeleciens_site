@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, Trash2, GripVertical } from 'lucide-react';
+import { Pencil, Trash2, MoveVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { Image } from '@/features/gallery/domain/models/image.model';
 import { getCategoryLabel } from '@/features/gallery/domain/models/gallery-category.model';
@@ -45,7 +45,7 @@ export function GalleryListRow({
                     onClick={(e) => e.stopPropagation()}
                     aria-label="Réorganiser"
                 >
-                    <GripVertical className="w-4 h-4" />
+                    <MoveVertical className="w-4 h-4" />
                 </button>
             </div>
 
@@ -70,6 +70,7 @@ export function GalleryListRow({
                         sizes="48px"
                         className="object-cover"
                         placeholder="empty"
+                        blurDataUrl={image.blurDataUrl}
                     />
                 </div>
             </div>

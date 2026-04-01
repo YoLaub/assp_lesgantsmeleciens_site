@@ -25,6 +25,7 @@ export function ActualiteCard({ actualite }: ActualiteCardProps) {
                         fill
                         sizes="(max-width: 768px) 100vw, 300px"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        blurDataUrl={coverImage.blurDataUrl}
                     />
                 ) : (
                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">

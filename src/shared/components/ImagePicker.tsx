@@ -86,6 +86,7 @@ export function ImagePicker({
             width: uploadResult.asset.width,
             height: uploadResult.asset.height,
             bytes: uploadResult.asset.bytes,
+            blurDataUrl: uploadResult.blurDataUrl,
             order: 0,
             categoryId: uploadResult.categoryId,
             category: {
@@ -183,6 +184,7 @@ export function ImagePicker({
                                     crop="fill"
                                     className="object-cover"
                                     placeholder="empty"
+                                    blurDataUrl={img.blurDataUrl}
                                 />
                                 {isSelected && (
                                     <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">

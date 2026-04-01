@@ -7,6 +7,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+
 export interface SeedImageData {
   publicId: string;
   version: number;
@@ -14,6 +16,7 @@ export interface SeedImageData {
   width: number;
   height: number;
   bytes: number;
+  blurDataUrl: string;
 }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -30,6 +33,19 @@ async function fetchAndUploadImage(
     resource_type: "image",
   });
 
+  const blurUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/w_30,e_blur:1000,q_1,f_auto/v${result.version}/${result.public_id}.${result.format}`;
+  let blurDataUrl = '';
+  try {
+    const res = await fetch(blurUrl);
+    if (res.ok) {
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const contentType = res.headers.get('content-type') || 'image/webp';
+      blurDataUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
+    }
+  } catch {
+    // non-critical — fallback to URL blur at runtime
+  }
+
   return {
     publicId: result.public_id,
     version: result.version,
@@ -37,6 +53,7 @@ async function fetchAndUploadImage(
     width: result.width,
     height: result.height,
     bytes: result.bytes,
+    blurDataUrl,
   };
 }
 

@@ -7,9 +7,10 @@ import InscriptionForm from "./InscriptionForm";
 
 type InscriptionSectionProps = {
     image?: CloudinaryAsset;
+    blurDataUrl?: string;
 };
 
-export default function InscriptionSection({ image }: InscriptionSectionProps) {
+export default function InscriptionSection({ image, blurDataUrl }: InscriptionSectionProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -36,6 +37,7 @@ export default function InscriptionSection({ image }: InscriptionSectionProps) {
                                     sizes="(max-width: 1024px) 100vw, 50vw"
                                     crop="fill"
                                     className="object-cover"
+                                    blurDataUrl={blurDataUrl}
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gray-200" />

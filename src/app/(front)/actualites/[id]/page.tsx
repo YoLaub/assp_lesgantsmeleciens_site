@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
+import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -57,6 +58,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                         sizes="(max-width: 900px) 100vw, 900px"
                         className="object-cover"
                         priority
+                        blurDataUrl={coverImage.blurDataUrl}
                     />
                 </div>
             )}
@@ -78,7 +80,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
 
                 <div
                     className="prose prose-lg max-w-none text-gray-700"
-                    dangerouslySetInnerHTML={{ __html: actualite.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichText(actualite.description) }}
                 />
 
                 {sortedImages.length > 1 && (
@@ -91,6 +93,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
                                     fill
                                     sizes="(max-width: 768px) 50vw, 400px"
                                     className="object-cover"
+                                    blurDataUrl={image.blurDataUrl}
                                 />
                             </div>
                         ))}

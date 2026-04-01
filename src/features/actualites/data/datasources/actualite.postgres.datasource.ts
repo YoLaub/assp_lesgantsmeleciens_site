@@ -16,6 +16,7 @@ function mapToImage(img: {
     width: number;
     height: number;
     bytes: number;
+    blurDataUrl: string;
     order: number;
     categoryId: string;
     category: { id: string; name: string; slug: string };
@@ -32,6 +33,7 @@ function mapToImage(img: {
         width: img.width,
         height: img.height,
         bytes: img.bytes,
+        blurDataUrl: img.blurDataUrl,
         order: img.order,
         category: img.category,
         categoryId: img.categoryId,
@@ -50,6 +52,7 @@ function mapToActualite(a: {
     images: Parameters<typeof mapToImage>[0][];
     imageOrder: string[];
     seo: unknown;
+    order: number;
     publishedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
@@ -64,6 +67,7 @@ function mapToActualite(a: {
         images: a.images.map(mapToImage),
         imageOrder: a.imageOrder,
         seo: (a.seo as { metaTitle: string; metaDescription: string }) || { metaTitle: '', metaDescription: '' },
+        order: a.order,
         publishedAt: a.publishedAt,
         createdAt: a.createdAt,
         updatedAt: a.updatedAt,
@@ -87,6 +91,7 @@ export class ActualitePostgresDataSource {
                 seo: seoPayload,
                 active: actualite.active ?? true,
                 featured: actualite.featured ?? false,
+                order: actualite.order ?? 0,
                 publishedAt: actualite.publishedAt ?? null,
                 updatedAt: new Date(),
             },
@@ -99,6 +104,7 @@ export class ActualitePostgresDataSource {
                 seo: seoPayload,
                 active: actualite.active ?? true,
                 featured: actualite.featured ?? false,
+                order: actualite.order ?? 0,
                 publishedAt: actualite.publishedAt ?? null,
             },
         });
@@ -106,7 +112,7 @@ export class ActualitePostgresDataSource {
 
     async getActualites(): Promise<Actualite[]> {
         const rows = await prisma.actualite.findMany({
-            orderBy: { createdAt: 'desc' },
+            orderBy: { order: 'asc' },
             include: imageInclude,
         });
         return rows.map(mapToActualite);
@@ -124,7 +130,7 @@ export class ActualitePostgresDataSource {
     async getActiveActualites(): Promise<Actualite[]> {
         const rows = await prisma.actualite.findMany({
             where: { active: true },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { order: 'asc' },
             include: imageInclude,
         });
         return rows.map(mapToActualite);
@@ -138,6 +144,17 @@ export class ActualitePostgresDataSource {
         });
         if (!a) return null;
         return mapToActualite(a);
+    }
+
+    async reorderActualites(items: { id: string; order: number }[]): Promise<void> {
+        await prisma.$transaction(
+            items.map((item) =>
+                prisma.actualite.update({
+                    where: { id: item.id },
+                    data: { order: item.order },
+                }),
+            ),
+        );
     }
 
     async deleteActualite(id: string): Promise<void> {

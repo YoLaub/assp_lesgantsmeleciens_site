@@ -62,6 +62,7 @@ export function GalleryCard({
                     height={hasRealDimensions ? undefined : (image.height || 600)}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     className={hasRealDimensions ? 'object-cover' : 'block w-full h-auto pointer-events-none'}
+                    blurDataUrl={image.blurDataUrl}
                 />
             </div>
 

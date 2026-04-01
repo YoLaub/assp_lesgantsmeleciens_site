@@ -95,6 +95,7 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
                             sizes="400px"
                             className="max-h-48 w-auto h-auto object-contain"
                             placeholder="empty"
+                            blurDataUrl={image.blurDataUrl}
                         />
                     </div>
 

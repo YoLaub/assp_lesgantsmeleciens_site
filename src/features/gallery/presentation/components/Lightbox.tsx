@@ -64,6 +64,7 @@ export function Lightbox({
                     sizes="90vw"
                     className="max-w-full max-h-[75vh] w-auto h-auto object-contain rounded-lg"
                     placeholder="empty"
+                    blurDataUrl={image.blurDataUrl}
                 />
                 <div className="text-center">
                     <p className="text-white text-lg font-semibold">{image.title}</p>

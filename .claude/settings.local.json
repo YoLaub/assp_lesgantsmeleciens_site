@@ -21,7 +21,9 @@
       "Bash(xargs grep -l \"GalleryImage\\\\|Actualite\\\\|Discipline\")",
       "Bash(xargs grep -l \"photo\\\\|image\")",
       "Bash(xargs grep -l \"carousel\\\\|Carousel\")",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_wait_for"
     ]
   }
 }

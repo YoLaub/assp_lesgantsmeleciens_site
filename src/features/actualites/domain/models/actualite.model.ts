@@ -13,6 +13,7 @@ export type Actualite = {
     metaTitle: string
     metaDescription: string
   }
+  order: number
   publishedAt: Date | null
   createdAt: Date
   updatedAt: Date

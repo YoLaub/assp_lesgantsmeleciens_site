@@ -10,6 +10,7 @@ export type Image = {
   width: number
   height: number
   bytes: number
+  blurDataUrl: string
   order: number
   category: ImageCategory
   categoryId: string

@@ -39,6 +39,7 @@ export function Header() {
                     alt="Logo association Les Gants Méléciens"
                     width={432}
                     height={280}
+                    sizes="(max-width: 768px) 280px, (max-width: 1536px) 432px, 360px"
                     priority
                     placeholder="blur"
                     className="h-70 w-108

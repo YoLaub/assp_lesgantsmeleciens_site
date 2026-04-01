@@ -22,6 +22,7 @@ interface PendingImage {
     status: UploadStatus;
     uploadedAsset: CloudinaryAsset | null;
     uploadedCategoryId: string | null;
+    uploadedBlurDataUrl: string;
     error: string;
 }
 
@@ -64,6 +65,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 status: 'pending' as const,
                 uploadedAsset: null,
                 uploadedCategoryId: null,
+                uploadedBlurDataUrl: '',
                 error: '',
             }));
 
@@ -143,6 +145,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                         status: 'success',
                         uploadedAsset: uploadResult.asset,
                         uploadedCategoryId: uploadResult.categoryId,
+                        uploadedBlurDataUrl: uploadResult.blurDataUrl,
                     };
                 } else {
                     results[index] = { ...results[index], status: 'error', error: uploadResult.error || 'Erreur' };
@@ -175,6 +178,7 @@ export function AddImagesDialog({ isOpen, onClose, onImagesAdded }: AddImagesDia
                 width: img.uploadedAsset!.width,
                 height: img.uploadedAsset!.height,
                 bytes: img.uploadedAsset!.bytes,
+                blurDataUrl: img.uploadedBlurDataUrl,
                 order: 0,
                 categoryId: img.uploadedCategoryId || '',
                 category: {

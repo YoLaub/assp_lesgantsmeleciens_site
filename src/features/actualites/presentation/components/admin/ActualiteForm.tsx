@@ -101,6 +101,7 @@ export const ActualiteForm = ({ id, initialData }: ActualiteFormProps) => {
             },
             active: activeState,
             featured: featuredState,
+            order: initialData?.order ?? 0,
             publishedAt: initialData?.publishedAt ?? null,
             createdAt: initialData?.createdAt ?? new Date(),
             updatedAt: new Date(),

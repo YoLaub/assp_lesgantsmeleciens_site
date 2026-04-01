@@ -54,6 +54,7 @@ export default function DisciplineCarousel({ images, imageOrder, disciplineName 
                         fill
                         sizes="(max-width: 768px) 100vw, 800px"
                         className="object-cover"
+                        blurDataUrl={currentImage.blurDataUrl}
                     />
                 </div>
 

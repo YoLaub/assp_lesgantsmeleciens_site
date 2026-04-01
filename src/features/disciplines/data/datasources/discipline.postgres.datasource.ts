@@ -17,6 +17,7 @@ type PrismaImageRow = {
     width: number;
     height: number;
     bytes: number;
+    blurDataUrl: string;
     order: number;
     categoryId: string;
     category: { id: string; name: string; slug: string };
@@ -35,6 +36,7 @@ function mapToImage(img: PrismaImageRow): Image {
         width: img.width,
         height: img.height,
         bytes: img.bytes,
+        blurDataUrl: img.blurDataUrl,
         order: img.order,
         category: img.category,
         categoryId: img.categoryId,
@@ -133,6 +135,17 @@ export class DisciplinePostgresDataSource {
         });
         if (!d) return null;
         return mapToDiscipline(d);
+    }
+
+    async reorderDisciplines(items: { id: string; order: number }[]): Promise<void> {
+        await prisma.$transaction(
+            items.map((item) =>
+                prisma.discipline.update({
+                    where: { id: item.id },
+                    data: { order: item.order },
+                }),
+            ),
+        );
     }
 
     async getActiveDisciplines(): Promise<Discipline[]> {

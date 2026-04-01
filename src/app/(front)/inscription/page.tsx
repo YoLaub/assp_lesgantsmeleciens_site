@@ -7,6 +7,7 @@ export default async function InscriptionPage() {
     const result = await getActiveDisciplinesAction();
     const firstImage = result.success && result.data?.[0]?.images?.[0];
     const image = firstImage ? toCloudinaryAsset(firstImage) : undefined;
+    const blurDataUrl = firstImage ? firstImage.blurDataUrl : undefined;
     return (
         <main className="container mx-auto py-20 px-5">
             {/* Ta bannière promotionnelle */}
@@ -18,7 +19,7 @@ export default async function InscriptionPage() {
             </div>
 
             {/* Le Smart Component qui contient l'image, les tarifs et le formulaire dépliable */}
-            <InscriptionSection image={image} />
+            <InscriptionSection image={image} blurDataUrl={blurDataUrl} />
         </main>
     );
 }
