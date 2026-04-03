@@ -36,6 +36,9 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
     const numeroAdherent = await genererNumeroEssayantUnique();
 
     try {
+        const accesToken = crypto.randomUUID();
+        const accesTokenExpireLe = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+
         const essayant = await prisma.essayant.create({
             data: {
                 numeroAdherent,
@@ -44,10 +47,12 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
                 email: data.email,
                 telephone: data.telephone,
                 dateDeNaissance: new Date(data.dateDeNaissance),
+                accesToken,
+                accesTokenExpireLe,
             },
         });
 
-        sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent }).catch(console.error);
+        sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent, accesToken }).catch(console.error);
         sendNotificationNouvelEssayant({ nom: essayant.nom, prenom: essayant.prenom, numeroAdherent, email: essayant.email, telephone: essayant.telephone }).catch(console.error);
 
         return { success: true, numeroAdherent };

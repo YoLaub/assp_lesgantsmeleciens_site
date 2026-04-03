@@ -144,6 +144,7 @@ export async function sendBienvenueEssayant(params: {
     email: string;
     prenom: string;
     numeroAdherent: string;
+    accesToken: string;
 }) {
     await sendEmail(
         { email: params.email, name: params.prenom },
@@ -151,11 +152,11 @@ export async function sendBienvenueEssayant(params: {
         `<html><body>
             <h2>Bonjour ${params.prenom},</h2>
             <p>Votre numéro : <strong>${params.numeroAdherent}</strong> — conservez-le précieusement.</p>
-            <p>Suivez vos cours d'essai ici :<br>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL}/mon-essai">
-                ${process.env.NEXT_PUBLIC_APP_URL}/mon-essai
-            </a><br>
-            (saisir votre email + numéro)</p>
+            <p>Suivez vos cours d'essai et votre progression ici :<br>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/mon-essai?token=${params.accesToken}">
+                Accéder à mon suivi d'essai
+            </a></p>
+            <p style="font-size:12px;color:#999">Ce lien est valable 7 jours. Passé ce délai, vous pourrez en demander un nouveau sur la même page.</p>
         </body></html>`,
     );
 }
