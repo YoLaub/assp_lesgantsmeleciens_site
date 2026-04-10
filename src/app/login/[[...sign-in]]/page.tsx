@@ -63,7 +63,7 @@ export default function LoginPage() {
 
       {/* Right Sign-In Panel */}
       <div className="flex-1 bg-slate-100 flex items-center justify-center p-8 lg:p-12">
-        <SignIn.Root fallbackRedirectUrl="/admin/dashboard">
+        <SignIn.Root>
           <SignIn.Step
             name="start"
             className="w-full max-w-[360px] text-center"
