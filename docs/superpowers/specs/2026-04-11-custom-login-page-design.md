@@ -22,11 +22,11 @@ Full-viewport-height split layout, two panels side by side.
 
 ### Left Panel (45% width)
 
-- **Background image:** Cloudinary-hosted training photo via `CldImage` (from `next-cloudinary`) — full cover (`object-cover`), positioned center. Asset publicId will be hardcoded/configured later.
+- **Background image:** Static import from `public/accueil_valeur.png` via `next/image` — full cover (`object-cover`), positioned center. Consistent with how the front-end handles static assets (Header.tsx, Footer.tsx).
 - **Dark overlay:** `bg-slate-900/70` on top of the image for text readability
 - **Brand-red accent bar:** 4px strip along the top edge, `#DF0606`
 - **Centered content (vertically and horizontally):**
-  - Club logo via `CldImage` — Cloudinary-hosted white logo, in a frosted glass container (`bg-white/10 backdrop-blur border border-white/10 rounded-xl`), ~72px. Asset publicId will be hardcoded/configured later.
+  - Club logo — static import from `public/logoBlanc.webp` via `next/image`, same pattern as Header.tsx. Displayed in a frosted glass container (`bg-white/10 backdrop-blur border border-white/10 rounded-xl`), ~72px.
   - "Administration" label — uppercase, tracking-widest, brand-red `#DF0606`
   - "Les Gants Meleciens" — large white heading
   - Thin separator line
@@ -87,7 +87,7 @@ With a new implementation using:
 - `Clerk.Connection name="google"` for the Google OAuth button
 - `Clerk.GlobalError` for error display
 - `Clerk.Loading` for loading states
-- `CldImage` from `next-cloudinary` for the background image and logo (Cloudinary assets assumed to be already uploaded — publicIds hardcoded/configured later)
+- `next/image` with static imports for the background image (`accueil_valeur.png`) and logo (`logoBlanc.webp`) — same pattern as the front-end Header/Footer
 
 ### Files NOT changed
 
@@ -133,8 +133,8 @@ Since this is Google OAuth only (no email/password), there are no verification s
 | Heading | `slate-900` | "Connexion" title |
 | Subtitle | `slate-400` | Descriptive text |
 | Logo container | `white/10` + `backdrop-blur` | Frosted glass effect |
-| Background image | Cloudinary asset (CldImage) | Left panel cover image — publicId TBD |
-| Logo | Cloudinary asset (CldImage) | White club logo — publicId TBD |
+| Background image | `public/accueil_valeur.png` | Left panel cover image (static import, `next/image`) |
+| Logo | `public/logoBlanc.webp` | White club logo (static import, `next/image`) |
 
 ## Scope
 
