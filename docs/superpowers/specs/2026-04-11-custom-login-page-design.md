@@ -22,11 +22,11 @@ Full-viewport-height split layout, two panels side by side.
 
 ### Left Panel (45% width)
 
-- **Background image:** `accueil_valeur.png` — full cover (`object-cover`), positioned center
+- **Background image:** Cloudinary-hosted training photo via `CldImage` (from `next-cloudinary`) — full cover (`object-cover`), positioned center. Asset publicId will be hardcoded/configured later.
 - **Dark overlay:** `bg-slate-900/70` on top of the image for text readability
 - **Brand-red accent bar:** 4px strip along the top edge, `#DF0606`
 - **Centered content (vertically and horizontally):**
-  - Club logo (`logoBlanc.webp`) in a frosted glass container (`bg-white/10 backdrop-blur border border-white/10 rounded-xl`), ~72px
+  - Club logo via `CldImage` — Cloudinary-hosted white logo, in a frosted glass container (`bg-white/10 backdrop-blur border border-white/10 rounded-xl`), ~72px. Asset publicId will be hardcoded/configured later.
   - "Administration" label — uppercase, tracking-widest, brand-red `#DF0606`
   - "Les Gants Meleciens" — large white heading
   - Thin separator line
@@ -87,7 +87,7 @@ With a new implementation using:
 - `Clerk.Connection name="google"` for the Google OAuth button
 - `Clerk.GlobalError` for error display
 - `Clerk.Loading` for loading states
-- `next/image` for the background image and logo
+- `CldImage` from `next-cloudinary` for the background image and logo (Cloudinary assets assumed to be already uploaded — publicIds hardcoded/configured later)
 
 ### Files NOT changed
 
@@ -133,8 +133,8 @@ Since this is Google OAuth only (no email/password), there are no verification s
 | Heading | `slate-900` | "Connexion" title |
 | Subtitle | `slate-400` | Descriptive text |
 | Logo container | `white/10` + `backdrop-blur` | Frosted glass effect |
-| Background image | `accueil_valeur.png` | Left panel cover image |
-| Logo | `logoBlanc.webp` | White club logo |
+| Background image | Cloudinary asset (CldImage) | Left panel cover image — publicId TBD |
+| Logo | Cloudinary asset (CldImage) | White club logo — publicId TBD |
 
 ## Scope
 
