@@ -33,20 +33,28 @@ export async function POST(req: NextRequest) {
 
             const config = await prisma.configTarifs.findFirst({ orderBy: { id: 'desc' } });
 
-            sendConfirmationPaiement({
-                email: adherent.email,
-                prenom: adherent.prenom,
-                numeroAdherent: adherent.numeroAdherent,
-                montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
-                saison: config?.saison ?? 'en cours',
-            }).catch(console.error);
+            try {
+                await sendConfirmationPaiement({
+                    email: adherent.email,
+                    prenom: adherent.prenom,
+                    numeroAdherent: adherent.numeroAdherent,
+                    montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
+                    saison: config?.saison ?? 'en cours',
+                });
+            } catch (e) {
+                console.error('[stripe webhook] sendConfirmationPaiement', e);
+            }
 
-            sendNotificationPaiementRecu({
-                nom: adherent.nom,
-                prenom: adherent.prenom,
-                numeroAdherent: adherent.numeroAdherent,
-                montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
-            }).catch(console.error);
+            try {
+                await sendNotificationPaiementRecu({
+                    nom: adherent.nom,
+                    prenom: adherent.prenom,
+                    numeroAdherent: adherent.numeroAdherent,
+                    montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
+                });
+            } catch (e) {
+                console.error('[stripe webhook] sendNotificationPaiementRecu', e);
+            }
         }
     }
 

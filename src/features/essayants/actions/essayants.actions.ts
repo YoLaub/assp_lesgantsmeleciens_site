@@ -52,8 +52,16 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
             },
         });
 
-        sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent, accesToken }).catch(console.error);
-        sendNotificationNouvelEssayant({ nom: essayant.nom, prenom: essayant.prenom, numeroAdherent, email: essayant.email, telephone: essayant.telephone }).catch(console.error);
+        try {
+            await sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent, accesToken });
+        } catch (e) {
+            console.error('[createEssayantAction] sendBienvenueEssayant', e);
+        }
+        try {
+            await sendNotificationNouvelEssayant({ nom: essayant.nom, prenom: essayant.prenom, numeroAdherent, email: essayant.email, telephone: essayant.telephone });
+        } catch (e) {
+            console.error('[createEssayantAction] sendNotificationNouvelEssayant', e);
+        }
 
         return { success: true, numeroAdherent };
     } catch (error: unknown) {
@@ -89,7 +97,11 @@ export async function requestAccesEssaiAction(input: {
             data: { accesToken: token, accesTokenExpireLe: expireLe },
         });
 
-        sendLienAccesEssai({ email: essayant.email, prenom: essayant.prenom, token }).catch(console.error);
+        try {
+            await sendLienAccesEssai({ email: essayant.email, prenom: essayant.prenom, token });
+        } catch (e) {
+            console.error('[requestAccesEssaiAction] sendLienAccesEssai', e);
+        }
     }
 
     return { success: true };
@@ -156,29 +168,41 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
 
     // Emails
     if (nouvPresences === 1 || nouvPresences === 2) {
-        sendRelanceEssayant({
-            email: essayant.email,
-            prenom: essayant.prenom,
-            numeroAdherent: essayant.numeroAdherent,
-            nombrePresences: nouvPresences,
-        }).catch(console.error);
+        try {
+            await sendRelanceEssayant({
+                email: essayant.email,
+                prenom: essayant.prenom,
+                numeroAdherent: essayant.numeroAdherent,
+                nombrePresences: nouvPresences,
+            });
+        } catch (e) {
+            console.error('[pointerPresenceAction] sendRelanceEssayant', e);
+        }
     }
 
     if (nouvPresences === 3) {
         const updated = await prisma.essayant.findUnique({ where: { id: essayantId } });
         if (updated?.accesToken) {
-            sendConversionEssayant({
-                email: essayant.email,
+            try {
+                await sendConversionEssayant({
+                    email: essayant.email,
+                    prenom: essayant.prenom,
+                    numeroAdherent: essayant.numeroAdherent,
+                    accesToken: updated.accesToken,
+                });
+            } catch (e) {
+                console.error('[pointerPresenceAction] sendConversionEssayant', e);
+            }
+        }
+        try {
+            await sendNotificationConversionAdmin({
+                nom: essayant.nom,
                 prenom: essayant.prenom,
                 numeroAdherent: essayant.numeroAdherent,
-                accesToken: updated.accesToken,
-            }).catch(console.error);
+            });
+        } catch (e) {
+            console.error('[pointerPresenceAction] sendNotificationConversionAdmin', e);
         }
-        sendNotificationConversionAdmin({
-            nom: essayant.nom,
-            prenom: essayant.prenom,
-            numeroAdherent: essayant.numeroAdherent,
-        }).catch(console.error);
     }
 
     return { success: true, nombrePresences: nouvPresences };

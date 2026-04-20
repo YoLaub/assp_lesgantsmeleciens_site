@@ -39,11 +39,15 @@ export async function requestAccesDossierAction(input: {
             data: { accesToken: token, accesTokenExpireLe: expireLe },
         });
 
-        sendLienAccesDossier({
-            email: adherent.email,
-            prenom: adherent.prenom,
-            token,
-        }).catch(console.error);
+        try {
+            await sendLienAccesDossier({
+                email: adherent.email,
+                prenom: adherent.prenom,
+                token,
+            });
+        } catch (e) {
+            console.error('[requestAccesDossierAction] sendLienAccesDossier', e);
+        }
     }
 
     return { success: true };
