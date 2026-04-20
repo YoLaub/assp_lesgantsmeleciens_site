@@ -91,24 +91,32 @@ export async function createAdherentAction(input: CreateAdherentInput) {
             return a;
         });
 
-        // 7. Envoyer emails (hors transaction)
-        sendConfirmationInscription({
-            email: adherent.email,
-            prenom: adherent.prenom,
-            numeroAdherent: adherent.numeroAdherent,
-            certificatRequis: false, // déterminé plus tard via questionnaire dans mon-dossier
-        }).catch(console.error);
+        // 7. Envoyer emails (hors transaction) — await pour garantir l'exécution sur Vercel serverless
+        try {
+            await sendConfirmationInscription({
+                email: adherent.email,
+                prenom: adherent.prenom,
+                numeroAdherent: adherent.numeroAdherent,
+                certificatRequis: false,
+            });
+        } catch (e) {
+            console.error('[createAdherentAction] sendConfirmationInscription', e);
+        }
 
-        sendNotificationNouveauDossier({
-            nom: adherent.nom,
-            prenom: adherent.prenom,
-            numeroAdherent: adherent.numeroAdherent,
-            categorie: String(categorie),
-            montant,
-            typePaiement: null,
-            certificatRequis: false,
-            adherentId: adherent.id,
-        }).catch(console.error);
+        try {
+            await sendNotificationNouveauDossier({
+                nom: adherent.nom,
+                prenom: adherent.prenom,
+                numeroAdherent: adherent.numeroAdherent,
+                categorie: String(categorie),
+                montant,
+                typePaiement: null,
+                certificatRequis: false,
+                adherentId: adherent.id,
+            });
+        } catch (e) {
+            console.error('[createAdherentAction] sendNotificationNouveauDossier', e);
+        }
 
         return {
             success: true,

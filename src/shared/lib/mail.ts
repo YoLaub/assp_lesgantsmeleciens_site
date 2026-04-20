@@ -8,11 +8,19 @@ async function sendEmail(to: { email: string; name: string }, subject: string, h
         return;
     }
 
-    await fetch(BREVO_URL, {
+    const res = await fetch(BREVO_URL, {
         method: 'POST',
         headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({ sender: SENDER, to: [to], subject, htmlContent }),
     });
+
+    if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        console.error(`[mail] Brevo ${res.status} → ${to.email} (${subject}) :`, body);
+        return;
+    }
+
+    console.log(`[mail] envoyé → ${to.email} (${subject})`);
 }
 
 // ─── Emails adhérents ───────────────────────────────────────────────────────
