@@ -3,15 +3,27 @@
 import { useState } from "react";
 import { CloudImage } from '@/shared/components/CloudImage';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
-import InscriptionForm from "./InscriptionForm";
+import AdherentForm from "@/features/adherents/presentation/components/front/AdherentForm";
 
-type InscriptionSectionProps = {
+interface PrefillData {
+    nom?: string;
+    prenom?: string;
+    email?: string;
+    telephone1?: string;
+    dateDeNaissance?: string;
+    numeroAdherentExistant?: string;
+    essayantId?: number;
+}
+
+interface InscriptionSectionProps {
+    prefill?: PrefillData;
     image?: CloudinaryAsset;
     blurDataUrl?: string;
-};
+}
 
-export default function InscriptionSection({ image, blurDataUrl }: InscriptionSectionProps) {
-    const [isOpen, setIsOpen] = useState(false);
+
+export default function InscriptionSection({ prefill,  image, blurDataUrl }: InscriptionSectionProps) {
+    const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     return (
         <section className="py-16 bg-white w-full">
@@ -43,7 +55,7 @@ export default function InscriptionSection({ image, blurDataUrl }: InscriptionSe
                                 <div className="w-full h-full bg-gray-200" />
                             )}
                         </div>
-                        <div className="w-3/4 h-[2px] bg-[#E33535] mt-8"></div> {/* Ligne rouge bas */}
+                        <div className="w-3/4 h-0.5 bg-[#E33535] mt-8"></div>
                     </div>
 
                     {/* Colonne Droite : Tarifs et Modalités */}
@@ -65,9 +77,9 @@ export default function InscriptionSection({ image, blurDataUrl }: InscriptionSe
                                 MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
                             <p className="text-[11px] leading-relaxed text-gray-600 mb-6 max-w-sm text-justify">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
-                            <button className="border border-[#E33535] text-gray-700 text-xs px-6 py-2 rounded-sm hover:bg-red-50 transition-colors duration-300">
+                            <button type="button" className="border border-[#E33535] text-gray-700 text-xs px-6 py-2 rounded-sm hover:bg-red-50 transition-colors duration-300">
                                 Voir plus
                             </button>
                         </div>
@@ -77,6 +89,7 @@ export default function InscriptionSection({ image, blurDataUrl }: InscriptionSe
                 {/* Bouton d'action (Toggle Formulaire) */}
                 <div className="flex justify-center relative z-10">
                     <button
+                        type="button"
                         onClick={() => setIsOpen(!isOpen)}
                         className="bg-[#FF8A00] hover:bg-[#e67a00] text-white font-bold py-3 px-10 rounded-full transition-all duration-300 uppercase tracking-widest shadow-lg transform hover:scale-105 active:scale-95"
                     >
@@ -84,9 +97,7 @@ export default function InscriptionSection({ image, blurDataUrl }: InscriptionSe
                     </button>
                 </div>
 
-                {/* Le Formulaire avec Animation de Déploiement
-          L'astuce magique de Tailwind : grid-rows-[0fr] vers grid-rows-[1fr]
-        */}
+                {/* Le Formulaire avec Animation de Déploiement */}
                 <div
                     className={`grid transition-all duration-700 ease-in-out origin-top ${
                         isOpen ? "grid-rows-[1fr] opacity-100 mt-8" : "grid-rows-[0fr] opacity-0 mt-0"
@@ -94,12 +105,12 @@ export default function InscriptionSection({ image, blurDataUrl }: InscriptionSe
                 >
                     <div className="overflow-hidden">
                         <div className="pt-8 border-t border-gray-200">
-
-                            {/* C'est ici que tu appelleras ton Dumb Component InscriptionForm */}
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500 shadow-inner">
-                                <InscriptionForm/>
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 shadow-inner">
+                                <AdherentForm
+                                    prefill={prefill}
+                                    readonlyFields={prefill ? ["nom", "prenom", "email", "telephone1", "dateDeNaissance"] : []}
+                                />
                             </div>
-
                         </div>
                     </div>
                 </div>
