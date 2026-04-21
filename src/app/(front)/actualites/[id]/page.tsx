@@ -8,7 +8,6 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
-import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -80,7 +79,7 @@ export default async function ActualiteDetailPage({ params }: PageProps) {
 
                 <div
                     className="prose prose-lg max-w-none text-gray-700"
-                    dangerouslySetInnerHTML={{ __html: sanitizeRichText(actualite.description) }}
+                    dangerouslySetInnerHTML={{ __html: actualite.description }}
                 />
 
                 {sortedImages.length > 1 && (

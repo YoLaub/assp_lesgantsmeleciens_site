@@ -2,7 +2,6 @@ import DisciplineCarousel from "@/features/disciplines/presentation/components/f
 import { Discipline } from "@/features/disciplines/domain/models/discipline.model";
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
-import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 interface DisciplineSectionProps {
     discipline: Discipline;
@@ -25,7 +24,7 @@ export default function DisciplineSection({ discipline }: DisciplineSectionProps
 
                         <div
                             className="prose prose-lg text-gray-700 leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: sanitizeRichText(discipline.description) }}
+                            dangerouslySetInnerHTML={{ __html: discipline.description }}
                         >
                         </div>
                     </div>

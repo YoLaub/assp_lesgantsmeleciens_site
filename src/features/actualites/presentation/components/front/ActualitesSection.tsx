@@ -3,7 +3,6 @@ import { getActiveActualitesAction, getFeaturedActualiteAction } from '@/app/(fr
 import { ActualitesCarousel } from './ActualitesCarousel';
 import { CloudImage } from '@/shared/components/CloudImage';
 import { toCloudinaryAsset } from '@/shared/lib/cloudinary';
-import { sanitizeRichText } from '@/shared/lib/sanitize';
 
 export async function ActualitesSection() {
     const [featuredResult, allResult] = await Promise.all([
@@ -59,7 +58,7 @@ export async function ActualitesSection() {
                         </h3>
                         <div
                             className="prose prose-sm text-gray-600 line-clamp-3 text-center max-w-2xl"
-                            dangerouslySetInnerHTML={{ __html: sanitizeRichText(featured.description) }}
+                            dangerouslySetInnerHTML={{ __html: featured.description }}
                         />
                     </Link>
                 </div>
