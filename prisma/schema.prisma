@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -19,44 +13,31 @@ model Discipline {
   coach       String
   photo_coach String?
   category    String
-  citation    String?  @db.Text
-  description String   @db.Text
-  tags        String[] // Tableau natif PostgreSQL
+  citation    String?
+  description String
+  tags        String[]
   active      Boolean  @default(true)
   photo       String[]
-
-  seo Json
-
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum DocumentType {
-  MEDICAL_CERTIFICATE
-  ID_PHOTO
-  ADDRESS_PROOF
-  CAF_VOUCHER
-  OTHER
+  seo         Json
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Document {
-  id   String       @id @default(uuid())
-  type DocumentType
-  name String?
-  url  String
-  // isVerified Boolean @default(false)
-
-  adherent   Adherent @relation(fields: [adherentId], references: [id], onDelete: Cascade)
+  id         String       @id @default(uuid())
+  type       DocumentType
+  name       String?
+  url        String
+  createdAt  DateTime     @default(now())
   adherentId Int
-
-  createdAt DateTime @default(now())
+  adherent   Adherent     @relation(fields: [adherentId], references: [id], onDelete: Cascade)
 }
 
 model Actualite {
   id          String    @id @default(uuid())
   title       String
-  description String    @db.Text
+  description String
   tags        String[]
   active      Boolean   @default(true)
   featured    Boolean   @default(false)
@@ -80,7 +61,111 @@ model GalleryImage {
   updatedAt DateTime @updatedAt
 }
 
-// ─── Nouveaux modèles : adhésion, essayants, tarifs ──────────────────────────
+model ConfigTarifs {
+  id                   Int      @id @default(autoincrement())
+  saison               String   @db.VarChar(9)
+  tarifEnfant          Decimal  @db.Decimal(8, 2)
+  tarifAdos            Decimal  @db.Decimal(8, 2)
+  tarifAdulte          Decimal  @db.Decimal(8, 2)
+  supplementOxygene    Decimal  @default(45.00) @db.Decimal(8, 2)
+  deductionCouponSport Decimal  @default(50.00) @db.Decimal(8, 2)
+  modifieLe            DateTime @default(now())
+  modifiePar           String?
+}
+
+model Adherent {
+  id                    Int                         @id @default(autoincrement())
+  numeroAdherent        String                      @unique @db.VarChar(10)
+  nom                   String                      @db.VarChar(100)
+  prenom                String                      @db.VarChar(100)
+  dateDeNaissance       DateTime                    @db.Date
+  sexe                  String                      @db.VarChar(10)
+  categorie             Categorie
+  photo                 String?                     @db.VarChar(255)
+  email                 String                      @unique @db.VarChar(150)
+  telephone1            String                      @db.VarChar(20)
+  telephone2            String?                     @db.VarChar(20)
+  adresse               String?
+  codePostal            String?                     @db.VarChar(5)
+  ville                 String?                     @db.VarChar(100)
+  oxygene               Boolean                     @default(false)
+  renouvellement        Boolean                     @default(false)
+  fnsmr                 Boolean                     @default(false)
+  reglementSigne        StatutDocument              @default(non_fourni)
+  certificatMedical     StatutDocument              @default(non_fourni)
+  certificatMedicalReq  Boolean                     @default(false)
+  autorisationParentale StatutDocument              @default(non_fourni)
+  couponSport           StatutDocument              @default(non_fourni)
+  bonCaf                StatutDocument              @default(non_fourni)
+  montantSnapshot       Decimal?                    @db.Decimal(8, 2)
+  typePaiement          TypePaiement?
+  stripeSessionId       String?                     @db.VarChar(255)
+  inscriptionValide     Boolean                     @default(false)
+  dateInscription       DateTime                    @default(now())
+  accesToken            String?                     @db.VarChar(255)
+  accesTokenExpireLe    DateTime?
+  essayantId            Int?                        @unique
+  essayant              Essayant?                   @relation(fields: [essayantId], references: [id])
+  documents             Document[]
+  questionnaire         QuestionnaireSanteReponses?
+}
+
+model QuestionnaireSanteReponses {
+  id         Int      @id @default(autoincrement())
+  adherentId Int      @unique
+  q1         Boolean
+  q2         Boolean
+  q3         Boolean
+  q4         Boolean
+  q5         Boolean
+  q6         Boolean
+  q7         Boolean
+  q8         Boolean
+  q9         Boolean
+  rempliLe   DateTime @default(now())
+  adherent   Adherent @relation(fields: [adherentId], references: [id], onDelete: Cascade)
+}
+
+model Essayant {
+  id                 Int             @id @default(autoincrement())
+  numeroAdherent     String          @unique @db.VarChar(10)
+  nom                String          @db.VarChar(100)
+  prenom             String          @db.VarChar(100)
+  email              String          @unique @db.VarChar(150)
+  telephone          String          @db.VarChar(20)
+  dateDeNaissance    DateTime        @db.Date
+  nombrePresences    Int             @default(0)
+  accesBloque        Boolean         @default(false)
+  dateCreation       DateTime        @default(now())
+  accesToken         String?         @db.VarChar(255)
+  accesTokenExpireLe DateTime?
+  adherent           Adherent?
+  presences          PresenceEssai[]
+}
+
+model PresenceEssai {
+  id         Int      @id @default(autoincrement())
+  essayantId Int
+  pointeLe   DateTime @default(now())
+  pointePar  String   @db.VarChar(100)
+  essayant   Essayant @relation(fields: [essayantId], references: [id], onDelete: Cascade)
+}
+
+model CoachToken {
+  id       Int      @id @default(autoincrement())
+  token    String   @unique @db.VarChar(255)
+  expireLe DateTime
+  creeLe   DateTime @default(now())
+  creePar  String?
+}
+
+enum DocumentType {
+  MEDICAL_CERTIFICATE
+  ID_PHOTO
+  ADDRESS_PROOF
+  CAF_VOUCHER
+  OTHER
+}
 
 enum StatutDocument {
   non_fourni
@@ -97,102 +182,4 @@ enum Categorie {
   enfant
   ados
   adulte
-}
-
-model ConfigTarifs {
-  id                   Int      @id @default(autoincrement())
-  saison               String   @db.VarChar(9)
-  tarifEnfant          Decimal  @db.Decimal(8, 2)
-  tarifAdos            Decimal  @db.Decimal(8, 2)
-  tarifAdulte          Decimal  @db.Decimal(8, 2)
-  supplementOxygene    Decimal  @db.Decimal(8, 2) @default(45.00)
-  deductionCouponSport Decimal  @db.Decimal(8, 2) @default(50.00)
-  modifieLe            DateTime @default(now())
-  modifiePar           String?  // ID Clerk de l'admin
-}
-
-model Adherent {
-  id                    Int              @id @default(autoincrement())
-  numeroAdherent        String           @unique @db.VarChar(10)
-  nom                   String           @db.VarChar(100)
-  prenom                String           @db.VarChar(100)
-  dateDeNaissance       DateTime         @db.Date
-  sexe                  String           @db.VarChar(10)
-  categorie             Categorie
-  photo                 String?          @db.VarChar(255)
-  email                 String           @unique @db.VarChar(150)
-  telephone1            String           @db.VarChar(20)
-  telephone2            String?          @db.VarChar(20)
-  adresse               String?          @db.Text
-  codePostal            String?          @db.VarChar(5)
-  ville                 String?          @db.VarChar(100)
-  oxygene               Boolean          @default(false)
-  renouvellement        Boolean          @default(false)
-  fnsmr                 Boolean          @default(false)
-  reglementSigne        StatutDocument   @default(non_fourni)
-  certificatMedical     StatutDocument   @default(non_fourni)
-  certificatMedicalReq  Boolean          @default(false)
-  autorisationParentale StatutDocument   @default(non_fourni)
-  couponSport           StatutDocument   @default(non_fourni)
-  bonCaf                StatutDocument   @default(non_fourni)
-  montantSnapshot       Decimal?         @db.Decimal(8, 2)
-  typePaiement          TypePaiement?
-  stripeSessionId       String?          @db.VarChar(255)
-  inscriptionValide     Boolean          @default(false)
-  dateInscription       DateTime         @default(now())
-  accesToken            String?          @db.VarChar(255)
-  accesTokenExpireLe    DateTime?
-  essayantId            Int?             @unique
-  essayant              Essayant?        @relation(fields: [essayantId], references: [id])
-  questionnaire         QuestionnaireSanteReponses?
-  documents             Document[]
-}
-
-model QuestionnaireSanteReponses {
-  id         Int      @id @default(autoincrement())
-  adherentId Int      @unique
-  adherent   Adherent @relation(fields: [adherentId], references: [id], onDelete: Cascade)
-  q1         Boolean
-  q2         Boolean
-  q3         Boolean
-  q4         Boolean
-  q5         Boolean
-  q6         Boolean
-  q7         Boolean
-  q8         Boolean
-  q9         Boolean
-  rempliLe   DateTime @default(now())
-}
-
-model Essayant {
-  id                 Int             @id @default(autoincrement())
-  numeroAdherent     String          @unique @db.VarChar(10)
-  nom                String          @db.VarChar(100)
-  prenom             String          @db.VarChar(100)
-  email              String          @unique @db.VarChar(150)
-  telephone          String          @db.VarChar(20)
-  dateDeNaissance    DateTime        @db.Date
-  nombrePresences    Int             @default(0)
-  accesBloque        Boolean         @default(false)
-  dateCreation       DateTime        @default(now())
-  accesToken         String?         @db.VarChar(255)
-  accesTokenExpireLe DateTime?
-  presences          PresenceEssai[]
-  adherent           Adherent?
-}
-
-model PresenceEssai {
-  id         Int      @id @default(autoincrement())
-  essayantId Int
-  essayant   Essayant @relation(fields: [essayantId], references: [id], onDelete: Cascade)
-  pointeLe   DateTime @default(now())
-  pointePar  String   @db.VarChar(100)
-}
-
-model CoachToken {
-  id       Int      @id @default(autoincrement())
-  token    String   @unique @db.VarChar(255)
-  expireLe DateTime
-  creeLe   DateTime @default(now())
-  creePar  String?  // ID Clerk de l'admin
 }
