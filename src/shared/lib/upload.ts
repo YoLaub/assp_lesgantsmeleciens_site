@@ -8,6 +8,19 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export async function uploadDocumentFile(file: File, subFolder: string): Promise<{ url: string }> {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64Data = buffer.toString('base64');
+    const fileUri = `data:${file.type};base64,${base64Data}`;
+
+    const response = await cloudinary.uploader.upload(fileUri, {
+        folder: `gants-meleciens/${subFolder}`,
+        resource_type: 'auto',
+    });
+
+    return { url: response.secure_url };
+}
+
 export async function uploadPublicImage(file: File, subFolder: string): Promise<CloudinaryAsset & { blurDataUrl: string }> {
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64Data = buffer.toString('base64');

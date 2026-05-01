@@ -18,10 +18,10 @@ const FormSchema = z.object({
     }),
     sexe: z.enum(["M", "F"], { error: "Champ requis" }),
     email: z.string().email({ message: "Email invalide" }),
-    telephone1: z.string().min(6, "Champ requis"),
     oxygene: z.boolean().optional(),
     couponSport: z.boolean().optional(),
     bonCaf: z.boolean().optional(),
+    codePassSport: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -46,7 +46,6 @@ interface AdherentFormProps {
         nom?: string;
         prenom?: string;
         email?: string;
-        telephone1?: string;
         dateDeNaissance?: string;
         numeroAdherentExistant?: string;
         essayantId?: number;
@@ -92,11 +91,11 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
             nom: prefill?.nom ?? "",
             prenom: prefill?.prenom ?? "",
             email: prefill?.email ?? "",
-            telephone1: prefill?.telephone1 ?? "",
             dateDeNaissance: prefill?.dateDeNaissance ?? "",
             oxygene: false,
             couponSport: false,
             bonCaf: false,
+            codePassSport: "",
         },
     });
 
@@ -129,10 +128,10 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
             dateDeNaissance: data.dateDeNaissance,
             sexe: data.sexe,
             email: data.email,
-            telephone1: data.telephone1,
             oxygene: data.oxygene ?? false,
             couponSport: data.couponSport ?? false,
             bonCaf: data.bonCaf ?? false,
+            codePassSport: data.codePassSport || undefined,
             hcaptchaToken,
             essayantId: prefill?.essayantId,
             numeroAdherentExistant: prefill?.numeroAdherentExistant,
@@ -236,31 +235,18 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
 
             {/* ── Contact ───────────────────────────────────────────────────── */}
             <div className="space-y-4 pt-6 border-t border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="email"
-                            {...register("email")}
-                            readOnly={isReadonly("email")}
-                            className={`${inputCls} ${isReadonly("email") ? "bg-gray-100" : ""}`}
-                        />
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Téléphone (WhatsApp) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="tel"
-                            {...register("telephone1")}
-                            readOnly={isReadonly("telephone1")}
-                            className={`${inputCls} ${isReadonly("telephone1") ? "bg-gray-100" : ""}`}
-                        />
-                        {errors.telephone1 && <p className="text-red-500 text-xs mt-1">{errors.telephone1.message}</p>}
-                    </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                        Email <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="email"
+                        {...register("email")}
+                        readOnly={isReadonly("email")}
+                        className={`${inputCls} ${isReadonly("email") ? "bg-gray-100" : ""}`}
+                    />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                    <p className="text-xs text-gray-500 mt-1">Le numéro de téléphone sera à renseigner dans votre dossier adhérent.</p>
                 </div>
             </div>
 
@@ -283,6 +269,17 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                         {config && <span className="text-gray-500"> (−{config.deductionCouponSport.toFixed(2)} €)</span>}
                     </span>
                 </label>
+                {watchedValues.couponSport && (
+                    <div className="pl-7">
+                        <label className="block text-sm font-medium text-gray-700">Code Pass Sport</label>
+                        <input
+                            type="text"
+                            {...register("codePassSport")}
+                            placeholder="Ex. : PS2025-XXXXXXXX"
+                            className={inputCls}
+                        />
+                    </div>
+                )}
 
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" {...register("bonCaf")} className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]" />

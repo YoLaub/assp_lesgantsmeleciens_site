@@ -3,7 +3,8 @@
 import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
 import { sendLienAccesDossier } from '@/shared/lib/mail';
-import { TypePaiement } from '@/generated/prisma/enums';
+import { DocumentType, TypePaiement } from '@/generated/prisma/enums';
+import { uploadDocumentFile } from '@/shared/lib/upload';
 import Stripe from 'stripe';
 import { z } from 'zod';
 
@@ -58,7 +59,7 @@ export async function getMonDossierAction(token: string) {
 
     const adherent = await prisma.adherent.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { questionnaire: true },
+        include: { questionnaire: true, documents: true },
     });
 
     if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
@@ -73,12 +74,18 @@ export async function getMonDossierAction(token: string) {
             email: adherent.email,
             categorie: adherent.categorie,
             dateDeNaissance: adherent.dateDeNaissance,
+            telephone1: adherent.telephone1,
+            telephone2: adherent.telephone2,
+            oxygene: adherent.oxygene,
             reglementSigne: adherent.reglementSigne,
             certificatMedical: adherent.certificatMedical,
             certificatMedicalReq: adherent.certificatMedicalReq,
             autorisationParentale: adherent.autorisationParentale,
             couponSport: adherent.couponSport,
             bonCaf: adherent.bonCaf,
+            droitImage: adherent.droitImage,
+            engagementPrisConnaissance: adherent.engagementPrisConnaissance,
+            documents: adherent.documents.map((d) => ({ id: d.id, type: d.type, url: d.url, name: d.name })),
             montantSnapshot: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : null,
             typePaiement: adherent.typePaiement,
             inscriptionValide: adherent.inscriptionValide,
@@ -196,6 +203,101 @@ export async function declarerCertificatAction(token: string) {
     });
 
     return { success: true };
+}
+
+// ─── Coordonnées (B2) ────────────────────────────────────────────────────────
+
+const UpdateTelephoneSchema = z.object({
+    telephone1: z.string().min(6),
+    telephone2: z.string().optional(),
+});
+
+export async function updateTelephoneAction(token: string, data: z.infer<typeof UpdateTelephoneSchema>) {
+    if (!token) return { success: false, error: 'Token manquant' };
+
+    const parsed = UpdateTelephoneSchema.safeParse(data);
+    if (!parsed.success) return { success: false, error: 'Numéro invalide' };
+
+    const adherent = await findAdherentByToken(token);
+    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+
+    await prisma.adherent.update({
+        where: { id: adherent.id },
+        data: {
+            telephone1: parsed.data.telephone1,
+            telephone2: parsed.data.telephone2 ?? null,
+        },
+    });
+
+    return { success: true };
+}
+
+// ─── Droit à l'image (B4) ────────────────────────────────────────────────────
+
+export async function updateDroitImageAction(token: string, droitImage: boolean) {
+    if (!token) return { success: false, error: 'Token manquant' };
+
+    const adherent = await findAdherentByToken(token);
+    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+
+    await prisma.adherent.update({
+        where: { id: adherent.id },
+        data: { droitImage },
+    });
+
+    return { success: true };
+}
+
+// ─── Engagement pris connaissance (B6) ───────────────────────────────────────
+
+export async function validerEngagementAction(token: string) {
+    if (!token) return { success: false, error: 'Token manquant' };
+
+    const adherent = await findAdherentByToken(token);
+    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+
+    await prisma.adherent.update({
+        where: { id: adherent.id },
+        data: { engagementPrisConnaissance: true },
+    });
+
+    return { success: true };
+}
+
+// ─── Upload document (B3) ────────────────────────────────────────────────────
+
+const TYPES_AUTORISES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+const TAILLE_MAX = 5 * 1024 * 1024; // 5 Mo
+
+export async function uploadDocumentAdherentAction(
+    token: string,
+    formData: FormData,
+    type: 'MEDICAL_CERTIFICATE' | 'ID_PHOTO'
+) {
+    if (!token) return { success: false, error: 'Token manquant' };
+
+    const file = formData.get('file') as File | null;
+    if (!file) return { success: false, error: 'Aucun fichier fourni' };
+    if (!TYPES_AUTORISES.includes(file.type)) return { success: false, error: 'Format non accepté (JPEG, PNG, WebP, PDF uniquement)' };
+    if (file.size > TAILLE_MAX) return { success: false, error: 'Fichier trop volumineux (5 Mo max)' };
+
+    const adherent = await findAdherentByToken(token);
+    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+
+    const { url } = await uploadDocumentFile(file, 'documents');
+
+    await prisma.$transaction(async (tx) => {
+        // Remplacer un document du même type s'il existe déjà
+        await tx.document.deleteMany({ where: { adherentId: adherent.id, type: DocumentType[type] } });
+        await tx.document.create({
+            data: { adherentId: adherent.id, type: DocumentType[type], url, name: file.name },
+        });
+        if (type === 'MEDICAL_CERTIFICATE') {
+            await tx.adherent.update({ where: { id: adherent.id }, data: { certificatMedical: 'declare' } });
+        }
+    });
+
+    return { success: true, url };
 }
 
 // ─── Checkout Stripe ──────────────────────────────────────────────────────────

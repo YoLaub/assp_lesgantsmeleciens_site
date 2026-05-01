@@ -45,7 +45,7 @@ export async function getAdherentByIdAction(id: number) {
     await requireAdmin();
     return prisma.adherent.findUnique({
         where: { id },
-        include: { questionnaire: true },
+        include: { questionnaire: true, documents: true },
     });
 }
 

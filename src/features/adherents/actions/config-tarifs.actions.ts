@@ -11,7 +11,7 @@ export async function getConfigTarifsAction() {
 }
 
 const UpdateConfigTarifsSchema = z.object({
-    saison: z.string().regex(/^\d{4}-\d{4}$/),
+    saison: z.string().min(1),
     tarifEnfant: z.number().positive(),
     tarifAdos: z.number().positive(),
     tarifAdulte: z.number().positive(),

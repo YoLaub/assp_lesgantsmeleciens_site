@@ -21,7 +21,7 @@ interface AdherentDetailData {
     sexe: string;
     categorie: string;
     email: string;
-    telephone1: string;
+    telephone1: string | null;
     telephone2: string | null;
     adresse: string | null;
     codePostal: string | null;
@@ -29,6 +29,7 @@ interface AdherentDetailData {
     oxygene: boolean;
     renouvellement: boolean;
     fnsmr: boolean;
+    droitImage: boolean;
     reglementSigne: StatutDocument;
     certificatMedical: StatutDocument;
     certificatMedicalReq: boolean;
@@ -40,6 +41,7 @@ interface AdherentDetailData {
     inscriptionValide: boolean;
     dateInscription: Date;
     questionnaire: Questionnaire | null;
+    documents: { id: string; type: string; url: string; name: string | null }[];
 }
 
 
@@ -58,12 +60,14 @@ function DocumentRow({
     note,
     adherentId,
     field,
+    documentUrl,
 }: {
     label: string;
     statut: StatutDocument;
     note?: string;
     adherentId: number;
     field: string;
+    documentUrl?: string;
 }) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -90,6 +94,16 @@ function DocumentRow({
             </div>
             <div className="flex items-center gap-3">
                 <StatutBadge statut={statut} />
+                {documentUrl && (
+                    <a
+                        href={documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-blue-600 hover:text-blue-800"
+                    >
+                        Voir
+                    </a>
+                )}
                 {statut === "declare" && (
                     <button
                         type="button"
@@ -167,7 +181,11 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         </div>
                         <div className="flex items-center gap-3 text-slate-700">
                             <Phone className="w-4 h-4 text-slate-400" />
-                            <span>{adherent.telephone1}{adherent.telephone2 && ` / ${adherent.telephone2}`}</span>
+                            <span>
+                                {adherent.telephone1
+                                    ? `${adherent.telephone1}${adherent.telephone2 ? ` / ${adherent.telephone2}` : ""}`
+                                    : <span className="text-slate-400 italic">Non renseigné</span>}
+                            </span>
                         </div>
                         <div className="flex items-center gap-3 text-slate-700">
                             <Calendar className="w-4 h-4 text-slate-400" />
@@ -182,6 +200,10 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         <div className="flex items-center gap-2 text-slate-600 pt-2 border-t border-slate-100">
                             <span className="font-medium">Option Oxygène :</span>
                             {adherent.oxygene ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-slate-300" />}
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-600">
+                            <span className="font-medium">Droit à l'image :</span>
+                            {adherent.droitImage ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-slate-300" />}
                         </div>
                     </div>
                 </div>
@@ -216,6 +238,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                                 note="Requis suite au questionnaire"
                                 field="certificatMedical"
                                 adherentId={adherent.id}
+                                documentUrl={adherent.documents.find((d) => d.type === "MEDICAL_CERTIFICATE")?.url}
                             />
                         )}
                         {isMineur && (
@@ -226,6 +249,19 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         )}
                         {adherent.bonCaf !== "non_fourni" && (
                             <DocumentRow label="Bon CAF" statut={adherent.bonCaf} note="Information uniquement — aucun impact montant" field="bonCaf" adherentId={adherent.id} />
+                        )}
+                        {adherent.documents.some((d) => d.type === "ID_PHOTO") && (
+                            <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                                <p className="text-sm font-medium text-slate-800">Photo d'identité</p>
+                                <a
+                                    href={adherent.documents.find((d) => d.type === "ID_PHOTO")!.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-bold text-blue-600 hover:text-blue-800"
+                                >
+                                    Voir
+                                </a>
+                            </div>
                         )}
                     </div>
                 </div>

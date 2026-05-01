@@ -9,6 +9,10 @@ import {
     signerReglementAction,
     setTypePaiementAction,
     declarerCertificatAction,
+    updateTelephoneAction,
+    updateDroitImageAction,
+    validerEngagementAction,
+    uploadDocumentAdherentAction,
 } from "@/features/adherents/actions/mon-dossier.actions";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
@@ -21,6 +25,13 @@ interface Questionnaire {
     q6: boolean; q7: boolean; q8: boolean; q9: boolean;
 }
 
+interface DocumentData {
+    id: string;
+    type: string;
+    url: string;
+    name: string | null;
+}
+
 interface DossierData {
     id: number;
     numeroAdherent: string;
@@ -29,12 +40,18 @@ interface DossierData {
     email: string;
     categorie: string;
     dateDeNaissance: Date;
+    telephone1: string | null;
+    telephone2: string | null;
+    oxygene: boolean;
+    documents: DocumentData[];
     reglementSigne: StatutDocument;
     certificatMedical: StatutDocument;
     certificatMedicalReq: boolean;
     autorisationParentale: StatutDocument;
     couponSport: StatutDocument;
     bonCaf: StatutDocument;
+    droitImage: boolean;
+    engagementPrisConnaissance: boolean;
     montantSnapshot: number | null;
     typePaiement: string | null;
     inscriptionValide: boolean;
@@ -345,9 +362,327 @@ function TypePaiementSection({ token, onDone }: { token: string; onDone: (type: 
     );
 }
 
-// ─── Section Certificat médical ───────────────────────────────────────────────
+// ─── Section Certificat médical (B3) ─────────────────────────────────────────
 
 function CertificatSection({ token, onDone }: { token: string; onDone: () => void }) {
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [declaring, setDeclaring] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!file) return;
+        setUploading(true);
+        setError(null);
+
+        const fd = new FormData();
+        fd.append('file', file);
+        const result = await uploadDocumentAdherentAction(token, fd, 'MEDICAL_CERTIFICATE');
+        setUploading(false);
+
+        if (result.success) {
+            onDone();
+        } else {
+            setError(result.error ?? "Erreur lors de l'upload");
+        }
+    };
+
+    const handleDeclare = async () => {
+        setDeclaring(true);
+        setError(null);
+        const result = await declarerCertificatAction(token);
+        setDeclaring(false);
+        if (result.success) {
+            onDone();
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-5 space-y-4">
+            <div>
+                <h3 className="font-semibold text-orange-900">⚠️ Certificat médical obligatoire</h3>
+                <p className="text-sm text-orange-800 mt-1">
+                    Votre questionnaire de santé nécessite un certificat médical.
+                </p>
+                <p className="text-sm text-orange-800 font-medium mt-2">
+                    Vous ne pourrez pas accéder aux cours sans certificat médical à jour.
+                </p>
+            </div>
+
+            {/* Option 1 : upload */}
+            <form onSubmit={handleUpload} className="space-y-3">
+                <p className="text-sm font-medium text-orange-900">Déposer mon certificat en ligne</p>
+                <label htmlFor="certificat-upload" className="block text-sm text-orange-800">
+                    Fichier (JPEG, PNG, WebP ou PDF — 5 Mo max)
+                </label>
+                <input
+                    id="certificat-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                    className="block w-full text-sm text-orange-800 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-orange-100 file:text-orange-800 hover:file:bg-orange-200"
+                />
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={!file || uploading}
+                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {uploading ? "Envoi en cours..." : "Envoyer le certificat"}
+                </button>
+            </form>
+
+            {/* Option 2 : déclaration */}
+            <div className="border-t border-orange-200 pt-3">
+                <p className="text-sm text-orange-700 mb-2">Vous n'avez pas encore le certificat ?</p>
+                <button
+                    type="button"
+                    onClick={handleDeclare}
+                    disabled={declaring}
+                    className="w-full bg-white border border-orange-400 text-orange-700 hover:bg-orange-50 disabled:opacity-50 font-medium py-2 rounded-lg transition-colors text-sm"
+                >
+                    {declaring ? "Enregistrement..." : "Je l'apporterai au club"}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ─── Section Photo d'identité (B3) ───────────────────────────────────────────
+
+function PhotoIdSection({
+    token,
+    oxygene,
+    documentExistant,
+    onDone,
+}: {
+    token: string;
+    oxygene: boolean;
+    documentExistant: boolean;
+    onDone: (url: string) => void;
+}) {
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!file) return;
+        setUploading(true);
+        setError(null);
+
+        const fd = new FormData();
+        fd.append('file', file);
+        const result = await uploadDocumentAdherentAction(token, fd, 'ID_PHOTO');
+        setUploading(false);
+
+        if (result.success && result.url) {
+            onDone(result.url);
+        } else {
+            setError(result.error ?? "Erreur lors de l'upload");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+            <div>
+                <h3 className="font-semibold text-gray-900">
+                    Photo d'identité{oxygene ? <span className="text-red-500 ml-1">*</span> : ""}
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                    {oxygene
+                        ? "Obligatoire pour l'option Oxygène."
+                        : "Un selfie récent peut suffire si vous ne disposez pas d'une photo d'identité formelle."}
+                </p>
+            </div>
+            {documentExistant ? (
+                <p className="text-sm text-green-700 font-medium">Photo enregistrée ✓</p>
+            ) : (
+                <form onSubmit={handleUpload} className="space-y-3">
+                    <label htmlFor="photo-id-upload" className="block text-sm text-gray-700">
+                        Fichier (JPEG, PNG ou WebP — 5 Mo max)
+                    </label>
+                    <input
+                        id="photo-id-upload"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                        className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+                    />
+                    {error && <p className="text-red-600 text-sm">{error}</p>}
+                    <button
+                        type="submit"
+                        disabled={!file || uploading}
+                        className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                    >
+                        {uploading ? "Envoi en cours..." : "Envoyer la photo"}
+                    </button>
+                </form>
+            )}
+        </div>
+    );
+}
+
+// ─── Section Coordonnées (B2) ─────────────────────────────────────────────────
+
+function CoordonneesSection({
+    token,
+    mineur,
+    telephone1,
+    telephone2,
+    onDone,
+}: {
+    token: string;
+    mineur: boolean;
+    telephone1: string | null;
+    telephone2: string | null;
+    onDone: (t1: string, t2: string | null) => void;
+}) {
+    const [tel1, setTel1] = useState(telephone1 ?? "");
+    const [tel2, setTel2] = useState(telephone2 ?? "");
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!tel1) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await updateTelephoneAction(token, { telephone1: tel1, telephone2: tel2 || undefined });
+        setSubmitting(false);
+
+        if (result.success) {
+            setSaved(true);
+            onDone(tel1, tel2 || null);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    const inputCls = "mt-1 w-full rounded-md border border-gray-300 p-2 focus:border-[#FF8A00] focus:outline-none focus:ring-1 focus:ring-[#FF8A00]";
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div>
+                <h3 className="font-semibold text-gray-900">Coordonnées téléphoniques</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                    {mineur
+                        ? "Renseignez le numéro du représentant légal 1 (obligatoire) et du représentant légal 2 (facultatif). Le contact se fait par WhatsApp."
+                        : "Renseignez votre numéro de téléphone (WhatsApp)."}
+                </p>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <div>
+                    <label htmlFor="tel1-dossier" className="block text-sm font-medium text-gray-700">
+                        {mineur ? "Représentant légal 1 (WhatsApp)" : "Téléphone (WhatsApp)"} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                        id="tel1-dossier"
+                        type="tel"
+                        required
+                        value={tel1}
+                        onChange={(e) => setTel1(e.target.value)}
+                        placeholder="06 12 34 56 78"
+                        className={inputCls}
+                    />
+                </div>
+                <div>
+                    <label htmlFor="tel2-dossier" className="block text-sm font-medium text-gray-700">
+                        {mineur ? "Représentant légal 2 (WhatsApp)" : "Téléphone secondaire"}{" "}
+                        <span className="text-gray-400 text-xs">(facultatif)</span>
+                    </label>
+                    <input
+                        id="tel2-dossier"
+                        type="tel"
+                        value={tel2}
+                        onChange={(e) => setTel2(e.target.value)}
+                        placeholder="06 12 34 56 78"
+                        className={inputCls}
+                    />
+                </div>
+                {saved && <p className="text-green-600 text-sm">Coordonnées enregistrées.</p>}
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={!tel1 || submitting}
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Enregistrer"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Section Droit à l'image (B4) ────────────────────────────────────────────
+
+function DroitImageSection({
+    token,
+    droitImage,
+    onDone,
+}: {
+    token: string;
+    droitImage: boolean;
+    onDone: (val: boolean) => void;
+}) {
+    const [checked, setChecked] = useState(droitImage);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setError(null);
+
+        const result = await updateDroitImageAction(token, checked);
+        setSubmitting(false);
+
+        if (result.success) {
+            setSaved(true);
+            onDone(checked);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <h3 className="font-semibold text-gray-900">Droit à l'image</h3>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => setChecked(e.target.checked)}
+                        className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
+                    />
+                    <span className="text-sm text-gray-700">
+                        J'autorise le club à utiliser mon image dans ses communications (photos, vidéos, site web, réseaux sociaux).
+                    </span>
+                </label>
+                {saved && <p className="text-green-600 text-sm">Préférence enregistrée.</p>}
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                >
+                    {submitting ? "Enregistrement..." : "Enregistrer"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+// ─── Section Engagement pris connaissance (B6) ───────────────────────────────
+
+function EngagementSection({ token, onDone }: { token: string; onDone: () => void }) {
     const [checked, setChecked] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -358,7 +693,7 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
         setSubmitting(true);
         setError(null);
 
-        const result = await declarerCertificatAction(token);
+        const result = await validerEngagementAction(token);
         setSubmitting(false);
 
         if (result.success) {
@@ -369,35 +704,28 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
     };
 
     return (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-5 space-y-3">
-            <div>
-                <h3 className="font-semibold text-orange-900">⚠️ Certificat médical obligatoire</h3>
-                <p className="text-sm text-orange-800 mt-1">
-                    Votre questionnaire de santé nécessite un certificat médical. Consultez un médecin et apportez-le au club.
-                </p>
-                <p className="text-sm text-orange-800 font-medium mt-2">
-                    Vous ne pourrez pas accéder aux cours sans certificat médical à jour.
-                </p>
-            </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 space-y-3">
+            <h3 className="font-semibold text-blue-900">Engagement</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input
                         type="checkbox"
                         checked={checked}
                         onChange={(e) => setChecked(e.target.checked)}
-                        className="mt-0.5 text-orange-600"
+                        className="mt-0.5 text-blue-600"
                     />
-                    <span className="text-sm text-orange-800">
-                        Je fournirai un certificat médical au club <span className="text-red-500">*</span>
+                    <span className="text-sm text-blue-800">
+                        Je m'engage à avoir pris connaissance de l'ensemble des informations communiquées par le club.{" "}
+                        <span className="text-red-500">*</span>
                     </span>
                 </label>
                 {error && <p className="text-red-600 text-sm">{error}</p>}
                 <button
                     type="submit"
                     disabled={!checked || submitting}
-                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
                 >
-                    {submitting ? "Enregistrement..." : "Je m'engage à fournir le certificat"}
+                    {submitting ? "Enregistrement..." : "Confirmer"}
                 </button>
             </form>
         </div>
@@ -425,6 +753,8 @@ function DossierVue({
     const questionnaireManquant = dossier.questionnaire === null;
     const reglementManquant = dossier.reglementSigne === "non_fourni";
     const typePaiementManquant = dossier.typePaiement === null;
+    const telephoneManquant = !dossier.telephone1;
+    const engagementManquant = !dossier.engagementPrisConnaissance;
     const certificatADeclarer =
         dossier.certificatMedicalReq && dossier.certificatMedical === "non_fourni";
 
@@ -437,7 +767,7 @@ function DossierVue({
     const tousValides = documentsRequis.every((s) => s === "valide");
     const tousDeciares = documentsRequis.every((s) => s !== "non_fourni");
     const documentsManquants = documentsRequis.some((s) => s === "non_fourni");
-    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant;
+    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant;
 
     let statutLabel = "";
     let statutColor = "";
@@ -537,6 +867,45 @@ function DossierVue({
                 <TypePaiementSection
                     token={token}
                     onDone={(type) => setDossier((d) => ({ ...d, typePaiement: type }))}
+                />
+            )}
+
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && telephoneManquant && (
+                <CoordonneesSection
+                    token={token}
+                    mineur={mineur}
+                    telephone1={dossier.telephone1}
+                    telephone2={dossier.telephone2}
+                    onDone={(t1, t2) => setDossier((d) => ({ ...d, telephone1: t1, telephone2: t2 }))}
+                />
+            )}
+
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && engagementManquant && (
+                <EngagementSection
+                    token={token}
+                    onDone={() => setDossier((d) => ({ ...d, engagementPrisConnaissance: true }))}
+                />
+            )}
+
+            {/* ── Photo d'identité (non bloquant) ───────────────────────────── */}
+            {!dossierIncomplet && (() => {
+                const photoDoc = dossier.documents.find((d) => d.type === "ID_PHOTO");
+                return (
+                    <PhotoIdSection
+                        token={token}
+                        oxygene={dossier.oxygene}
+                        documentExistant={!!photoDoc}
+                        onDone={(url) => setDossier((d) => ({ ...d, documents: [...d.documents.filter((doc) => doc.type !== "ID_PHOTO"), { id: "photo", type: "ID_PHOTO", url, name: null }] }))}
+                    />
+                );
+            })()}
+
+            {/* ── Droit à l'image (non bloquant) ────────────────────────────── */}
+            {!dossierIncomplet && (
+                <DroitImageSection
+                    token={token}
+                    droitImage={dossier.droitImage}
+                    onDone={(val) => setDossier((d) => ({ ...d, droitImage: val }))}
                 />
             )}
 

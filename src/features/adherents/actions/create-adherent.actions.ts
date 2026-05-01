@@ -16,10 +16,11 @@ const CreateAdherentSchema = z.object({
     dateDeNaissance: z.string().refine((d) => !isNaN(Date.parse(d))),
     sexe: z.enum(['M', 'F', 'autre']),
     email: z.string().email(),
-    telephone1: z.string().min(1),
+    telephone1: z.string().optional(),
     oxygene: z.boolean().default(false),
     couponSport: z.boolean().default(false),
     bonCaf: z.boolean().default(false),
+    codePassSport: z.string().optional(),
     hcaptchaToken: z.string().min(1),
     // Lien essayant optionnel
     essayantId: z.number().optional(),
@@ -49,18 +50,24 @@ export async function createAdherentAction(input: CreateAdherentInput) {
     // 4. Calculer montantSnapshot (preview basé sur couponSport/bonCaf/oxygène)
     const tarifBase =
         categorie === 'enfant' ? Number(config.tarifEnfant)
-        : categorie === 'ados' ? Number(config.tarifAdos)
         : Number(config.tarifAdulte);
 
     let montant = tarifBase;
     if (data.oxygene) montant += Number(config.supplementOxygene);
     if (data.couponSport) montant -= Number(config.deductionCouponSport);
 
-    // 5. Générer ou réutiliser le numéro adhérent
+    // 5. Vérifier si renouvellement (même email, inscription validée sur saison précédente)
+    const adherentExistant = await prisma.adherent.findFirst({
+        where: { email: data.email, inscriptionValide: true },
+        select: { id: true },
+    });
+    const renouvellement = adherentExistant !== null;
+
+    // 6. Générer ou réutiliser le numéro adhérent
     const numeroAdherent = data.numeroAdherentExistant ?? await genererNumeroAdherentUnique();
 
     try {
-        // 6. Créer l'adhérent en transaction (sans questionnaire — rempli dans mon-dossier)
+        // 7. Créer l'adhérent en transaction (sans questionnaire — rempli dans mon-dossier)
         const adherent = await prisma.$transaction(async (tx) => {
             const a = await tx.adherent.create({
                 data: {
@@ -70,11 +77,13 @@ export async function createAdherentAction(input: CreateAdherentInput) {
                     dateDeNaissance: dateNaissance,
                     sexe: data.sexe,
                     email: data.email,
-                    telephone1: data.telephone1,
+                    ...(data.telephone1 ? { telephone1: data.telephone1 } : {}),
                     oxygene: data.oxygene,
                     categorie,
+                    renouvellement,
                     couponSport: data.couponSport ? StatutDocument.declare : StatutDocument.non_fourni,
                     bonCaf: data.bonCaf ? StatutDocument.declare : StatutDocument.non_fourni,
+                    ...(data.codePassSport ? { codePassSport: data.codePassSport } : {}),
                     montantSnapshot: montant,
                     essayantId: data.essayantId,
                 },

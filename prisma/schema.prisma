@@ -120,7 +120,7 @@ enum Categorie {
 
 model ConfigTarifs {
   id                   Int      @id @default(autoincrement())
-  saison               String   @db.VarChar(9)
+  saison               String   @db.VarChar(50)
   tarifEnfant          Decimal  @db.Decimal(8, 2)
   tarifAdos            Decimal  @db.Decimal(8, 2)
   tarifAdulte          Decimal  @db.Decimal(8, 2)
@@ -140,7 +140,7 @@ model Adherent {
   categorie             Categorie
   photo                 String?          @db.VarChar(255)
   email                 String           @unique @db.VarChar(150)
-  telephone1            String           @db.VarChar(20)
+  telephone1            String?          @db.VarChar(20)
   telephone2            String?          @db.VarChar(20)
   adresse               String?          @db.Text
   codePostal            String?          @db.VarChar(5)
@@ -154,6 +154,9 @@ model Adherent {
   autorisationParentale StatutDocument   @default(non_fourni)
   couponSport           StatutDocument   @default(non_fourni)
   bonCaf                StatutDocument   @default(non_fourni)
+  droitImage            Boolean          @default(false)
+  codePassSport         String?          @db.VarChar(100)
+  engagementPrisConnaissance Boolean     @default(false)
   montantSnapshot       Decimal?         @db.Decimal(8, 2)
   typePaiement          TypePaiement?
   stripeSessionId       String?          @db.VarChar(255)

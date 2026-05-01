@@ -108,7 +108,7 @@ export default function InscriptionSection({ prefill,  image, blurDataUrl }: Ins
                             <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 shadow-inner">
                                 <AdherentForm
                                     prefill={prefill}
-                                    readonlyFields={prefill ? ["nom", "prenom", "email", "telephone1", "dateDeNaissance"] : []}
+                                    readonlyFields={prefill ? ["nom", "prenom", "email", "dateDeNaissance"] : []}
                                 />
                             </div>
                         </div>
