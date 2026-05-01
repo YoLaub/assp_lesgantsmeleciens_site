@@ -375,6 +375,9 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
                 <p className="text-sm text-orange-800 mt-1">
                     Votre questionnaire de santé nécessite un certificat médical. Consultez un médecin et apportez-le au club.
                 </p>
+                <p className="text-sm text-orange-800 font-medium mt-2">
+                    Vous ne pourrez pas accéder aux cours sans certificat médical à jour.
+                </p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -565,9 +568,14 @@ function DossierVue({
                             </div>
                         )}
                         {dossier.bonCaf !== "non_fourni" && (
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Bon CAF</span>
-                                <StatutBadge statut={dossier.bonCaf} />
+                            <div className="space-y-1">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-700">Bon CAF</span>
+                                    <StatutBadge statut={dossier.bonCaf} />
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Envoyez le document signé à votre CAF, vous serez remboursé(e).
+                                </p>
                             </div>
                         )}
                     </div>

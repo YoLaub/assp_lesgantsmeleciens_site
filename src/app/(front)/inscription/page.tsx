@@ -31,7 +31,9 @@ export default async function InscriptionPage({ searchParams }: InscriptionPageP
 
     return (
         <main className="container mx-auto py-20 px-5">
-            <div className="max-w-6xl mx-auto bg-amber-50 border-l-4 border-amber-500 p-4 mb-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <InscriptionSection prefill={prefill} />
+
+            <div className="max-w-6xl mx-auto bg-amber-50 border-l-4 border-amber-500 p-4 mt-8 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-3 flex-1">
                     <Info className="text-amber-500 shrink-0" />
                     <p className="text-amber-800 font-bold uppercase text-sm tracking-tight">
@@ -47,8 +49,6 @@ export default async function InscriptionPage({ searchParams }: InscriptionPageP
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
             </div>
-
-            <InscriptionSection prefill={prefill} />
         </main>
     );
 }

@@ -23,7 +23,6 @@ export function ConfigTarifsForm({ config }: { config: ConfigData | null }) {
     const [values, setValues] = useState({
         saison: config?.saison ?? "",
         tarifEnfant: config ? Number(config.tarifEnfant) : 0,
-        tarifAdos: config ? Number(config.tarifAdos) : 0,
         tarifAdulte: config ? Number(config.tarifAdulte) : 0,
         supplementOxygene: config ? Number(config.supplementOxygene) : 45,
         deductionCouponSport: config ? Number(config.deductionCouponSport) : 50,
@@ -37,7 +36,7 @@ export function ConfigTarifsForm({ config }: { config: ConfigData | null }) {
         setError(null);
         setSuccess(false);
         startTransition(async () => {
-            const result = await updateConfigTarifsAction(values);
+            const result = await updateConfigTarifsAction({ ...values, tarifAdos: values.tarifAdulte });
             if (result.success) setSuccess(true);
             else setError(result.error ?? "Erreur");
         });
@@ -48,31 +47,27 @@ export function ConfigTarifsForm({ config }: { config: ConfigData | null }) {
     return (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
             <div>
-                <label className="block text-sm font-medium text-slate-700">Saison (ex. 2025-2026)</label>
-                <input value={values.saison} onChange={(e) => set("saison", e.target.value)} pattern="\d{4}-\d{4}" required className={inputCls} />
+                <label htmlFor="saison" className="block text-sm font-medium text-slate-700">Saison (ex. Mi-Saison 2025-2026)</label>
+                <input id="saison" value={values.saison} onChange={(e) => set("saison", e.target.value)} required className={inputCls} />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700">Tarif enfant (€)</label>
-                    <input type="number" step="0.01" min="0" value={values.tarifEnfant} onChange={(e) => set("tarifEnfant", e.target.value)} required className={inputCls} />
+                    <label htmlFor="tarifEnfant" className="block text-sm font-medium text-slate-700">Tarif enfant (€)</label>
+                    <input id="tarifEnfant" type="number" step="0.01" min="0" value={values.tarifEnfant} onChange={(e) => set("tarifEnfant", e.target.value)} required className={inputCls} />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-slate-700">Tarif ados (€)</label>
-                    <input type="number" step="0.01" min="0" value={values.tarifAdos} onChange={(e) => set("tarifAdos", e.target.value)} required className={inputCls} />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-slate-700">Tarif adulte (€)</label>
-                    <input type="number" step="0.01" min="0" value={values.tarifAdulte} onChange={(e) => set("tarifAdulte", e.target.value)} required className={inputCls} />
+                    <label htmlFor="tarifAdulte" className="block text-sm font-medium text-slate-700">Tarif ados/adulte (€)</label>
+                    <input id="tarifAdulte" type="number" step="0.01" min="0" value={values.tarifAdulte} onChange={(e) => set("tarifAdulte", e.target.value)} required className={inputCls} />
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-sm font-medium text-slate-700">Supplément Oxygène (€)</label>
-                    <input type="number" step="0.01" min="0" value={values.supplementOxygene} onChange={(e) => set("supplementOxygene", e.target.value)} required className={inputCls} />
+                    <label htmlFor="supplementOxygene" className="block text-sm font-medium text-slate-700">Supplément Oxygène (€)</label>
+                    <input id="supplementOxygene" type="number" step="0.01" min="0" value={values.supplementOxygene} onChange={(e) => set("supplementOxygene", e.target.value)} required className={inputCls} />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-slate-700">Déduction Pass Sport (€)</label>
-                    <input type="number" step="0.01" min="0" value={values.deductionCouponSport} onChange={(e) => set("deductionCouponSport", e.target.value)} required className={inputCls} />
+                    <label htmlFor="deductionCouponSport" className="block text-sm font-medium text-slate-700">Déduction Pass Sport (€)</label>
+                    <input id="deductionCouponSport" type="number" step="0.01" min="0" value={values.deductionCouponSport} onChange={(e) => set("deductionCouponSport", e.target.value)} required className={inputCls} />
                 </div>
             </div>
 

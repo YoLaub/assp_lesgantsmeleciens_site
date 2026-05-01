@@ -16,7 +16,7 @@ const FormSchema = z.object({
     dateDeNaissance: z.string().refine((d) => !isNaN(Date.parse(d)) && new Date(d) < new Date(), {
         message: "Date invalide ou dans le futur",
     }),
-    sexe: z.enum(["M", "F", "autre"], { error: "Champ requis" }),
+    sexe: z.enum(["M", "F"], { error: "Champ requis" }),
     email: z.string().email({ message: "Email invalide" }),
     telephone1: z.string().min(6, "Champ requis"),
     oxygene: z.boolean().optional(),
@@ -107,8 +107,8 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
     // Calcul du montant estimé
     const montantEstime = (() => {
         if (!config || age === null) return null;
-        const categorie = age < 12 ? "enfant" : age < 18 ? "ados" : "adulte";
-        const base = age < 12 ? config.tarifEnfant : age < 18 ? config.tarifAdos : config.tarifAdulte;
+        const categorie = age < 12 ? "enfant" : "adulte";
+        const base = age < 12 ? config.tarifEnfant : config.tarifAdulte;
         let total = base;
         if (watchedValues.oxygene) total += config.supplementOxygene;
         if (watchedValues.couponSport) total -= config.deductionCouponSport;
@@ -228,7 +228,6 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                             <option value="">-- Choisir --</option>
                             <option value="M">Homme</option>
                             <option value="F">Femme</option>
-                            <option value="autre">Autre</option>
                         </select>
                         {errors.sexe && <p className="text-red-500 text-xs mt-1">{errors.sexe.message}</p>}
                     </div>
@@ -252,7 +251,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Téléphone <span className="text-red-500">*</span>
+                            Téléphone (WhatsApp) <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="tel"
@@ -292,6 +291,9 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                         <span className="text-gray-500">(remboursement direct CAF, aucun impact sur le montant)</span>
                     </span>
                 </label>
+                <p className="text-xs text-gray-500 pl-7 -mt-1">
+                    Envoyez le document signé à votre CAF, vous serez remboursé(e). Ces informations vous seront rappelées par email et dans votre dossier.
+                </p>
 
                 {/* Estimation dynamique */}
                 {montantEstime !== null && (

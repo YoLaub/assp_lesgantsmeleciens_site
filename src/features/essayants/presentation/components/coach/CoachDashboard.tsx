@@ -85,7 +85,7 @@ export default function CoachDashboard({ coachToken }: { coachToken: string }) {
     return (
         <main className="min-h-screen bg-slate-900 text-white p-6 space-y-6">
             <div>
-                <h1 className="text-2xl font-black uppercase tracking-tight">Tableau de bord coach</h1>
+                <h1 className="text-2xl font-black uppercase tracking-tight">Tableau de bord Conseil Administration</h1>
                 <p className="text-slate-400 text-sm">Pointez les présences des essayants.</p>
             </div>
 

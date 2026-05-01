@@ -39,8 +39,8 @@ export default function InscriptionSection({ prefill,  image, blurDataUrl }: Ins
 
                     {/* Colonne Gauche : Image + Lignes rouges */}
                     <div className="flex flex-col items-center w-full">
-                        <div className="w-3/4 h-[2px] bg-[#E33535] mb-8"></div> {/* Ligne rouge haut */}
-                        <div className="relative w-full aspect-[4/3] rounded-sm overflow-hidden bg-gray-100 shadow-md">
+                        <div className="w-3/4 h-0.5 bg-[#E33535] mb-8"></div> {/* Ligne rouge haut */}
+                        <div className="relative w-full aspect-4/3 rounded-sm overflow-hidden bg-gray-100 shadow-md">
                             {image ? (
                                 <CloudImage
                                     asset={image}
@@ -93,7 +93,7 @@ export default function InscriptionSection({ prefill,  image, blurDataUrl }: Ins
                         onClick={() => setIsOpen(!isOpen)}
                         className="bg-[#FF8A00] hover:bg-[#e67a00] text-white font-bold py-3 px-10 rounded-full transition-all duration-300 uppercase tracking-widest shadow-lg transform hover:scale-105 active:scale-95"
                     >
-                        {isOpen ? "Fermer le formulaire" : "Inscription"}
+                        {isOpen ? "Fermer le formulaire" : "Inscription directe"}
                     </button>
                 </div>
 

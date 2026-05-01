@@ -42,17 +42,6 @@ interface AdherentDetailData {
     questionnaire: Questionnaire | null;
 }
 
-const QUESTIONS = [
-    { id: "q1", label: "Décès familial cause cardiaque/inexpliquée" },
-    { id: "q2", label: "Douleur poitrine, palpitations, essoufflement, malaise" },
-    { id: "q3", label: "Respiration sifflante (asthme)" },
-    { id: "q4", label: "Perte de connaissance" },
-    { id: "q5", label: "Reprise sport sans accord médecin après arrêt 30j+" },
-    { id: "q6", label: "Traitement médical longue durée débuté" },
-    { id: "q7", label: "Douleur/raideur musculo-squelettique en cours" },
-    { id: "q8", label: "Pratique sportive interrompue pour raison de santé" },
-    { id: "q9", label: "Besoin ressenti d'un avis médical" },
-] as const;
 
 function StatutBadge({ statut }: { statut: StatutDocument }) {
     const config: Record<StatutDocument, { label: string; cls: string }> = {
@@ -140,7 +129,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
         return age < 18;
     })();
 
-    const handleToggleBoolean = async (field: "renouvellement" | "fnsmr", current: boolean) => {
+    const handleToggleBoolean = async (field: "renouvellement", current: boolean) => {
         setCheckboxPending(field);
         await patchAdherentAction(adherent.id, { [field]: !current });
         setCheckboxPending(null);
@@ -201,20 +190,11 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Questionnaire de santé</h2>
                     {adherent.questionnaire ? (
-                        <div className="space-y-2">
-                            {QUESTIONS.map(({ id, label }) => {
-                                const rep = adherent.questionnaire![id as keyof Questionnaire];
-                                return (
-                                    <div key={id} className={`flex items-start gap-3 p-2 rounded-lg text-sm ${rep ? "bg-orange-50" : ""}`}>
-                                        <span className={`font-bold text-xs shrink-0 mt-0.5 ${rep ? "text-orange-600" : "text-green-600"}`}>
-                                            {rep ? "OUI" : "NON"}
-                                        </span>
-                                        <span className="text-slate-700">{label}</span>
-                                    </div>
-                                );
-                            })}
-                            <p className="pt-2 border-t border-slate-100 text-sm font-medium text-slate-700">
-                                Certificat médical requis : <span className={adherent.certificatMedicalReq ? "text-orange-600 font-bold" : "text-green-600"}>
+                        <div className="space-y-3">
+                            <p className="text-sm text-slate-400 italic">Les réponses sont confidentielles.</p>
+                            <p className="text-sm font-medium text-slate-700">
+                                Certificat médical requis :{" "}
+                                <span className={adherent.certificatMedicalReq ? "text-orange-600 font-bold" : "text-green-600"}>
                                     {adherent.certificatMedicalReq ? "Oui" : "Non"}
                                 </span>
                             </p>
@@ -263,16 +243,6 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                                 className="rounded text-[#FF8A00] focus:ring-[#FF8A00]"
                             />
                             <span className="text-sm text-slate-700">Renouvellement</span>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={adherent.fnsmr}
-                                onChange={() => handleToggleBoolean("fnsmr", adherent.fnsmr)}
-                                disabled={checkboxPending === "fnsmr"}
-                                className="rounded text-[#FF8A00] focus:ring-[#FF8A00]"
-                            />
-                            <span className="text-sm text-slate-700">FNSMR</span>
                         </label>
                     </div>
 
