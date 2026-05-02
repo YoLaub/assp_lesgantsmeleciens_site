@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Phone, Calendar, MapPin, CheckCircle, XCircle } from "lucide-react";
-import { patchAdherentAction } from "@/features/adherents/actions/admin-adherents.actions";
+import { patchAdherentAction, validerDocumentAdminAction } from "@/features/adherents/actions/admin-adherents.actions";
 
 type StatutDocument = "non_fourni" | "declare" | "valide";
 
@@ -54,6 +54,8 @@ function StatutBadge({ statut }: { statut: StatutDocument }) {
     return <span className={`px-2 py-0.5 rounded text-xs font-medium ${config[statut].cls}`}>{config[statut].label}</span>;
 }
 
+type DocumentField = 'certificatMedical' | 'autorisationParentale' | 'reglementSigne' | 'couponSport' | 'bonCaf';
+
 function DocumentRow({
     label,
     statut,
@@ -61,20 +63,29 @@ function DocumentRow({
     adherentId,
     field,
     documentUrl,
+    withEmail,
 }: {
     label: string;
     statut: StatutDocument;
     note?: string;
     adherentId: number;
-    field: string;
+    field: DocumentField | string;
     documentUrl?: string;
+    withEmail?: boolean;
 }) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
+    const isEmailField = (f: string): f is DocumentField =>
+        ['certificatMedical', 'autorisationParentale', 'reglementSigne', 'couponSport', 'bonCaf'].includes(f);
+
     const handleValider = () => {
         startTransition(async () => {
-            await patchAdherentAction(adherentId, { [field]: "valide" } as Parameters<typeof patchAdherentAction>[1]);
+            if (withEmail && isEmailField(field)) {
+                await validerDocumentAdminAction(adherentId, field, 'valide');
+            } else {
+                await patchAdherentAction(adherentId, { [field]: "valide" } as Parameters<typeof patchAdherentAction>[1]);
+            }
             router.refresh();
         });
     };
@@ -82,6 +93,17 @@ function DocumentRow({
     const handleAnnuler = () => {
         startTransition(async () => {
             await patchAdherentAction(adherentId, { [field]: "declare" } as Parameters<typeof patchAdherentAction>[1]);
+            router.refresh();
+        });
+    };
+
+    const handleRejeter = () => {
+        startTransition(async () => {
+            if (isEmailField(field)) {
+                await validerDocumentAdminAction(adherentId, field, 'non_fourni');
+            } else {
+                await patchAdherentAction(adherentId, { [field]: "non_fourni" } as Parameters<typeof patchAdherentAction>[1]);
+            }
             router.refresh();
         });
     };
@@ -105,14 +127,24 @@ function DocumentRow({
                     </a>
                 )}
                 {statut === "declare" && (
-                    <button
-                        type="button"
-                        onClick={handleValider}
-                        disabled={isPending}
-                        className="text-xs font-bold text-green-600 hover:text-green-800 disabled:opacity-50"
-                    >
-                        Valider
-                    </button>
+                    <>
+                        <button
+                            type="button"
+                            onClick={handleValider}
+                            disabled={isPending}
+                            className="text-xs font-bold text-green-600 hover:text-green-800 disabled:opacity-50"
+                        >
+                            Valider
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleRejeter}
+                            disabled={isPending}
+                            className="text-xs font-bold text-red-500 hover:text-red-700 disabled:opacity-50"
+                        >
+                            Rejeter
+                        </button>
+                    </>
                 )}
                 {statut === "valide" && (
                     <button
@@ -230,7 +262,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Documents</h2>
                     <div>
-                        <DocumentRow label="Règlement intérieur" statut={adherent.reglementSigne} field="reglementSigne" adherentId={adherent.id} />
+                        <DocumentRow label="Règlement intérieur" statut={adherent.reglementSigne} field="reglementSigne" adherentId={adherent.id} withEmail />
                         {adherent.certificatMedicalReq && (
                             <DocumentRow
                                 label="Certificat médical"
@@ -239,28 +271,32 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                                 field="certificatMedical"
                                 adherentId={adherent.id}
                                 documentUrl={adherent.documents.find((d) => d.type === "MEDICAL_CERTIFICATE")?.url}
+                                withEmail
                             />
                         )}
                         {isMineur && (
-                            <DocumentRow label="Autorisation parentale" statut={adherent.autorisationParentale} field="autorisationParentale" adherentId={adherent.id} />
+                            <DocumentRow label="Autorisation parentale" statut={adherent.autorisationParentale} field="autorisationParentale" adherentId={adherent.id} withEmail />
                         )}
                         {adherent.couponSport !== "non_fourni" && (
                             <DocumentRow label="Pass Sport" statut={adherent.couponSport} note="Déduction appliquée" field="couponSport" adherentId={adherent.id} />
                         )}
                         {adherent.bonCaf !== "non_fourni" && (
-                            <DocumentRow label="Bon CAF" statut={adherent.bonCaf} note="Information uniquement — aucun impact montant" field="bonCaf" adherentId={adherent.id} />
+                            <DocumentRow label="Bon CAF" statut={adherent.bonCaf} note="Information uniquement — aucun impact montant" field="bonCaf" adherentId={adherent.id} withEmail />
                         )}
                         {adherent.documents.some((d) => d.type === "ID_PHOTO") && (
                             <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                                 <p className="text-sm font-medium text-slate-800">Photo d'identité</p>
-                                <a
-                                    href={adherent.documents.find((d) => d.type === "ID_PHOTO")!.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs font-bold text-blue-600 hover:text-blue-800"
-                                >
-                                    Voir
-                                </a>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">Reçue</span>
+                                    <a
+                                        href={adherent.documents.find((d) => d.type === "ID_PHOTO")!.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-800"
+                                    >
+                                        Voir
+                                    </a>
+                                </div>
                             </div>
                         )}
                     </div>

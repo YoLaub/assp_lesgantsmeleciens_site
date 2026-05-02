@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/dossier-incomplet",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/reinitialisation-saison",
+      "schedule": "0 9 1 7 *"
+    }
+  ]
+}

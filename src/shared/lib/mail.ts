@@ -145,6 +145,101 @@ export async function sendNotificationPaiementRecu(params: {
     );
 }
 
+/** Email 6 — Document validé par l'admin (→ adhérent) */
+export async function sendDocumentValide(params: {
+    email: string;
+    prenom: string;
+    labelDocument: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        `Votre ${params.labelDocument} a été validé`,
+        `<html><body>
+            <h2>Bonjour ${params.prenom},</h2>
+            <p>Votre <strong>${params.labelDocument}</strong> a été vérifié et validé par le club.</p>
+            <p>Accédez à votre dossier pour suivre l'avancement de votre inscription :<br>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/mon-dossier">Mon dossier</a></p>
+        </body></html>`,
+    );
+}
+
+/** Email 7 — Document rejeté par l'admin (→ adhérent) */
+export async function sendDocumentRejete(params: {
+    email: string;
+    prenom: string;
+    labelDocument: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        `Action requise — ${params.labelDocument}`,
+        `<html><body>
+            <h2>Bonjour ${params.prenom},</h2>
+            <p>Votre <strong>${params.labelDocument}</strong> n'a pas pu être validé.</p>
+            <p>Merci de fournir un nouveau document depuis votre dossier :<br>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/mon-dossier">Mon dossier</a></p>
+        </body></html>`,
+    );
+}
+
+/** Email 9 — Rappel dossier incomplet après 1 mois (→ adhérent, cron) */
+export async function sendRappelDossierIncomplet(params: {
+    email: string;
+    prenom: string;
+    numeroAdherent: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        'Votre dossier d\'inscription est toujours en attente',
+        `<html><body>
+            <h2>Bonjour ${params.prenom},</h2>
+            <p>Votre dossier d'inscription aux Gants Méléciens (n° <strong>${params.numeroAdherent}</strong>) est en attente depuis plus d'un mois.</p>
+            <p>Complétez-le dès maintenant pour finaliser votre adhésion :<br>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/mon-dossier">Accéder à mon dossier</a>
+            (identifiez-vous avec votre email et votre numéro d'adhérent)</p>
+            <p>Si vous n'êtes plus intéressé(e), vous pouvez ignorer cet email.</p>
+        </body></html>`,
+    );
+}
+
+/** Email 10 — Ouverture inscriptions nouvelle saison (→ adhérent, cron juillet) */
+export async function sendOuvertureInscriptions(params: {
+    email: string;
+    prenom: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        'Les inscriptions pour la nouvelle saison ouvrent en septembre !',
+        `<html><body>
+            <h2>Bonjour ${params.prenom},</h2>
+            <p>La saison se termine — merci pour votre fidélité aux Gants Méléciens !</p>
+            <p>Les inscriptions pour la prochaine saison ouvriront en <strong>septembre</strong>.</p>
+            <p>Vous recevrez un email dès l'ouverture. À très bientôt !</p>
+        </body></html>`,
+    );
+}
+
+/** Email 8 — Bon CAF validé — instructions remboursement (→ adhérent) */
+export async function sendBonCafValide(params: {
+    email: string;
+    prenom: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        'Votre aide CAF a bien été prise en compte',
+        `<html><body>
+            <h2>Bonjour ${params.prenom},</h2>
+            <p>Votre aide CAF a été enregistrée.</p>
+            <p>Pour obtenir le remboursement :</p>
+            <ol>
+                <li>Téléchargez le bon d'aide de votre espace CAF.</li>
+                <li>Envoyez-le signé directement à votre CAF en demandant le remboursement.</li>
+                <li>La CAF vous remboursera directement — aucune déduction n'est appliquée sur le montant à régler au club.</li>
+            </ol>
+            <p>En cas de question, contactez-nous à <a href="mailto:${process.env.CLUB_EMAIL ?? 'lesgantsmeleciens@gmail.com'}">${process.env.CLUB_EMAIL ?? 'lesgantsmeleciens@gmail.com'}</a>.</p>
+        </body></html>`,
+    );
+}
+
 // ─── Emails essayants ───────────────────────────────────────────────────────
 
 /** Email 1 Essayant — Bienvenue (→ essayant, à la création) */

@@ -4,6 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 
+function getRaisonsIncomplet(adh: AdherentRow): string[] {
+    const raisons: string[] = [];
+    const mineur = calcAge(adh.dateDeNaissance) < 18;
+
+    if (adh.reglementSigne === "non_fourni") raisons.push("Règlement intérieur non signé");
+    if (adh.certificatMedicalReq && adh.certificatMedical === "non_fourni")
+        raisons.push("Certificat médical manquant");
+    if (adh.certificatMedicalReq && adh.certificatMedical === "declare")
+        raisons.push("Certificat médical en attente de validation");
+    if (mineur && adh.autorisationParentale === "non_fourni")
+        raisons.push("Autorisation parentale manquante");
+    if (!adh.typePaiement) raisons.push("Mode de paiement non choisi");
+
+    return raisons;
+}
+
 type StatutDocument = "non_fourni" | "declare" | "valide";
 
 interface AdherentRow {
@@ -88,11 +104,14 @@ export function AdherentsList({ adherents }: { adherents: AdherentRow[] }) {
                                                 <p className="font-bold text-slate-900">{adh.prenom} {adh.nom}</p>
                                                 <p className="text-xs text-slate-400">{adh.numeroAdherent}</p>
                                             </div>
-                                            {adh.certificatMedicalReq && adh.certificatMedical !== "valide" && (
-                                                <span title="Certificat médical en attente">
-                                                    <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const raisons = getRaisonsIncomplet(adh);
+                                                return raisons.length > 0 ? (
+                                                    <span title={raisons.join("\n")}>
+                                                        <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />
+                                                    </span>
+                                                ) : null;
+                                            })()}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600 capitalize">{adh.categorie}</td>
