@@ -1,13 +1,17 @@
 'use server';
 
-import { prisma } from '@/shared/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { AdherentRepositoryImpl } from '../data/repositories/adherent.repository.impl';
+import { GetConfigTarifsUseCase } from '../domain/usecases/get-config-tarifs.usecase';
+import { CreateConfigTarifsUseCase } from '../domain/usecases/create-config-tarifs.usecase';
 
 export async function getConfigTarifsAction() {
-    const config = await prisma.configTarifs.findFirst({ orderBy: { id: 'desc' } });
-    return config;
+    const repo = new AdherentRepositoryImpl();
+    const result = await new GetConfigTarifsUseCase(repo).execute();
+    if (result.isErr()) return null;
+    return result.value;
 }
 
 const UpdateConfigTarifsSchema = z.object({
@@ -26,14 +30,10 @@ export async function updateConfigTarifsAction(data: z.infer<typeof UpdateConfig
     const parsed = UpdateConfigTarifsSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: 'Données invalides' };
 
-    const config = await prisma.configTarifs.create({
-        data: {
-            ...parsed.data,
-            modifieLe: new Date(),
-            modifiePar: userId,
-        },
-    });
+    const repo = new AdherentRepositoryImpl();
+    const result = await new CreateConfigTarifsUseCase(repo).execute(parsed.data, userId);
+    if (result.isErr()) return { success: false, error: result.error };
 
     revalidatePath('/admin/club/config-tarifs');
-    return { success: true, config };
+    return { success: true, config: result.value };
 }

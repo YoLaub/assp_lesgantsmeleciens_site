@@ -1,6 +1,5 @@
 'use server';
 
-import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
 import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { auth } from '@clerk/nextjs/server';
@@ -14,6 +13,15 @@ import {
     sendLienAccesEssai,
 } from '@/shared/lib/mail';
 import { z } from 'zod';
+import { EssayantRepositoryImpl } from '../data/repositories/essayant.repository.impl';
+import { CreateEssayantUseCase } from '../domain/usecases/create-essayant.usecase';
+import { RequestAccesEssaiUseCase } from '../domain/usecases/request-acces-essai.usecase';
+import { GetEssayantByTokenUseCase } from '../domain/usecases/get-essayant-by-token.usecase';
+import { PointerPresenceUseCase } from '../domain/usecases/pointer-presence.usecase';
+import { GetEssayantConversionDataUseCase } from '../domain/usecases/get-essayant-conversion-data.usecase';
+import { GenererCoachTokenUseCase } from '../domain/usecases/generer-coach-token.usecase';
+import { GetCoachTokenActifUseCase } from '../domain/usecases/get-coach-token-actif.usecase';
+import { GetEssayantsForCoachUseCase } from '../domain/usecases/get-essayants-for-coach.usecase';
 
 // ─── Création essayant ───────────────────────────────────────────────────────
 
@@ -39,43 +47,51 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
     const data = parsed.data;
     const numeroAdherent = await genererNumeroEssayantUnique();
 
-    try {
-        const accesToken = crypto.randomUUID();
-        const accesTokenExpireLe = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new CreateEssayantUseCase(repo);
+    const result = await useCase.execute({
+        nom: data.nom,
+        prenom: data.prenom,
+        email: data.email,
+        telephone: data.telephone,
+        dateDeNaissance: new Date(data.dateDeNaissance),
+        numeroAdherent,
+    });
 
-        const essayant = await prisma.essayant.create({
-            data: {
-                numeroAdherent,
-                nom: data.nom,
-                prenom: data.prenom,
-                email: data.email,
-                telephone: data.telephone,
-                dateDeNaissance: new Date(data.dateDeNaissance),
-                accesToken,
-                accesTokenExpireLe,
-            },
-        });
-
-        try {
-            await sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent, accesToken });
-        } catch (e) {
-            console.error('[createEssayantAction] sendBienvenueEssayant', e);
-        }
-        try {
-            await sendNotificationNouvelEssayant({ nom: essayant.nom, prenom: essayant.prenom, numeroAdherent, email: essayant.email, telephone: essayant.telephone });
-        } catch (e) {
-            console.error('[createEssayantAction] sendNotificationNouvelEssayant', e);
-        }
-
-        return { success: true, numeroAdherent };
-    } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : '';
+    if (result.isErr()) {
+        const msg = result.error;
         if (msg.includes('Unique constraint') && msg.includes('email')) {
             return { success: false, error: 'Un profil essayant existe déjà avec cet email.' };
         }
-        console.error('[createEssayantAction]', error);
+        console.error('[createEssayantAction]', msg);
         return { success: false, error: "Erreur lors de l'enregistrement." };
     }
+
+    const essayant = result.value;
+
+    try {
+        await sendBienvenueEssayant({
+            email: essayant.email,
+            prenom: essayant.prenom,
+            numeroAdherent,
+            accesToken: essayant.accesToken!,
+        });
+    } catch (e) {
+        console.error('[createEssayantAction] sendBienvenueEssayant', e);
+    }
+    try {
+        await sendNotificationNouvelEssayant({
+            nom: essayant.nom,
+            prenom: essayant.prenom,
+            numeroAdherent,
+            email: essayant.email,
+            telephone: essayant.telephone,
+        });
+    } catch (e) {
+        console.error('[createEssayantAction] sendNotificationNouvelEssayant', e);
+    }
+
+    return { success: true, numeroAdherent };
 }
 
 // ─── Demande lien accès Mon Essai ────────────────────────────────────────────
@@ -91,19 +107,15 @@ export async function requestAccesEssaiAction(input: {
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { email: input.email, numeroAdherent: input.numeroAdherent },
-    });
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new RequestAccesEssaiUseCase(repo);
+    const result = await useCase.execute(input.email, input.numeroAdherent);
 
-    if (essayant) {
-        const token = crypto.randomUUID();
-        const expireLe = new Date(Date.now() + 60 * 60 * 1000);
+    if (result.isErr()) return { success: true }; // ne pas révéler si l'email existe
 
-        await prisma.essayant.update({
-            where: { id: essayant.id },
-            data: { accesToken: token, accesTokenExpireLe: expireLe },
-        });
+    const { found, essayant, token } = result.value;
 
+    if (found && essayant && token) {
         try {
             await sendLienAccesEssai({ email: essayant.email, prenom: essayant.prenom, token });
         } catch (e) {
@@ -117,15 +129,13 @@ export async function requestAccesEssaiAction(input: {
 // ─── Lecture profil essayant ─────────────────────────────────────────────────
 
 export async function getMonEssaiAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new GetEssayantByTokenUseCase(repo);
+    const result = await useCase.execute(token);
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { presences: { orderBy: { pointeLe: 'asc' } } },
-    });
+    if (result.isErr()) return { success: false, error: result.error };
 
-    if (!essayant) return { success: false, error: 'Lien invalide ou expiré' };
-
+    const essayant = result.value;
     return {
         success: true,
         essayant: {
@@ -143,63 +153,44 @@ export async function getMonEssaiAction(token: string) {
 // ─── Pointage présence (coach) ───────────────────────────────────────────────
 
 export async function pointerPresenceAction(essayantId: number, coachToken: string, nomCoach: string) {
-    // Vérifier le coach token
-    const token = await prisma.coachToken.findFirst({
-        where: { token: coachToken, expireLe: { gt: new Date() } },
-    });
-    if (!token) return { success: false, error: 'Token coach invalide ou expiré' };
+    const repo = new EssayantRepositoryImpl();
 
-    const essayant = await prisma.essayant.findUnique({ where: { id: essayantId } });
-    if (!essayant) return { success: false, error: 'Essayant introuvable' };
-    if (essayant.accesBloque) return { success: false, error: 'Accès bloqué — 3 cours déjà effectués' };
+    // Récupérer l'essayant pour les emails (avant modification)
+    const essayantResult = await repo.findById(essayantId);
+    const essayant = essayantResult.isOk() ? essayantResult.value : null;
 
-    const nouvPresences = essayant.nombrePresences + 1;
+    const useCase = new PointerPresenceUseCase(repo);
+    const result = await useCase.execute(essayantId, coachToken, nomCoach);
 
-    await prisma.$transaction([
-        prisma.presenceEssai.create({
-            data: { essayantId, pointePar: nomCoach },
-        }),
-        prisma.essayant.update({
-            where: { id: essayantId },
-            data: {
-                nombrePresences: nouvPresences,
-                accesBloque: nouvPresences >= 3,
-                // Générer un token d'accès pour le lien de conversion si 3ème présence
-                ...(nouvPresences === 3 ? {
-                    accesToken: crypto.randomUUID(),
-                    accesTokenExpireLe: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
-                } : {}),
-            },
-        }),
-    ]);
+    if (result.isErr()) return { success: false, error: result.error };
 
-    // Emails
-    if (nouvPresences === 1 || nouvPresences === 2) {
+    const { nombrePresences, accesToken } = result.value;
+
+    if (!essayant) return { success: true, nombrePresences };
+
+    if (nombrePresences === 1 || nombrePresences === 2) {
         try {
             await sendRelanceEssayant({
                 email: essayant.email,
                 prenom: essayant.prenom,
                 numeroAdherent: essayant.numeroAdherent,
-                nombrePresences: nouvPresences,
+                nombrePresences,
             });
         } catch (e) {
             console.error('[pointerPresenceAction] sendRelanceEssayant', e);
         }
     }
 
-    if (nouvPresences === 3) {
-        const updated = await prisma.essayant.findUnique({ where: { id: essayantId } });
-        if (updated?.accesToken) {
-            try {
-                await sendConversionEssayant({
-                    email: essayant.email,
-                    prenom: essayant.prenom,
-                    numeroAdherent: essayant.numeroAdherent,
-                    accesToken: updated.accesToken,
-                });
-            } catch (e) {
-                console.error('[pointerPresenceAction] sendConversionEssayant', e);
-            }
+    if (nombrePresences === 3 && accesToken) {
+        try {
+            await sendConversionEssayant({
+                email: essayant.email,
+                prenom: essayant.prenom,
+                numeroAdherent: essayant.numeroAdherent,
+                accesToken,
+            });
+        } catch (e) {
+            console.error('[pointerPresenceAction] sendConversionEssayant', e);
         }
         try {
             await sendNotificationConversionAdmin({
@@ -212,32 +203,19 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
         }
     }
 
-    return { success: true, nombrePresences: nouvPresences };
+    return { success: true, nombrePresences };
 }
 
 // ─── Données de conversion (pré-remplissage formulaire) ──────────────────────
 
 export async function getEssayantConversionDataAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new GetEssayantConversionDataUseCase(repo);
+    const result = await useCase.execute(token);
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-    });
+    if (result.isErr()) return { success: false, error: result.error };
 
-    if (!essayant) return { success: false, error: 'Lien invalide ou expiré' };
-
-    return {
-        success: true,
-        data: {
-            id: essayant.id,
-            nom: essayant.nom,
-            prenom: essayant.prenom,
-            email: essayant.email,
-            telephone: essayant.telephone,
-            dateDeNaissance: essayant.dateDeNaissance.toISOString().split('T')[0],
-            numeroAdherent: essayant.numeroAdherent,
-        },
-    };
+    return { success: true, data: result.value };
 }
 
 // ─── Gestion token coach (admin) ─────────────────────────────────────────────
@@ -246,25 +224,28 @@ export async function genererCoachTokenAction() {
     const { userId } = await auth();
     if (!userId) return { success: false, error: 'Non autorisé' };
 
-    const token = crypto.randomUUID();
-    const expireLe = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new GenererCoachTokenUseCase(repo);
+    const result = await useCase.execute(userId);
 
-    await prisma.coachToken.create({
-        data: { token, expireLe, creePar: userId },
-    });
+    if (result.isErr()) return { success: false, error: result.error };
 
-    const url = `${process.env.NEXT_PUBLIC_APP_URL}/coach?token=${token}`;
-    return { success: true, url, token, expireLe };
+    const coachToken = result.value;
+    const url = `${process.env.NEXT_PUBLIC_APP_URL}/coach?token=${coachToken.token}`;
+    return { success: true, url, token: coachToken.token, expireLe: coachToken.expireLe };
 }
 
 export async function getCoachTokenActifAction() {
     const { userId } = await auth();
     if (!userId) return { success: false, error: 'Non autorisé' };
 
-    const coachToken = await prisma.coachToken.findFirst({
-        orderBy: { creeLe: 'desc' },
-    });
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new GetCoachTokenActifUseCase(repo);
+    const result = await useCase.execute();
 
+    if (result.isErr()) return { success: false, error: result.error };
+
+    const coachToken = result.value;
     if (!coachToken) return { success: true, token: null };
 
     return {
@@ -281,24 +262,11 @@ export async function getCoachTokenActifAction() {
 // ─── Liste essayants (tableau de bord coach) ─────────────────────────────────
 
 export async function getEssayantsForCoachAction(coachToken: string) {
-    const token = await prisma.coachToken.findFirst({
-        where: { token: coachToken, expireLe: { gt: new Date() } },
-    });
-    if (!token) return { success: false, error: 'Token invalide ou expiré' };
+    const repo = new EssayantRepositoryImpl();
+    const useCase = new GetEssayantsForCoachUseCase(repo);
+    const result = await useCase.execute(coachToken);
 
-    const essayants = await prisma.essayant.findMany({
-        where: { adherent: null }, // non convertis uniquement
-        orderBy: { nom: 'asc' },
-        select: {
-            id: true,
-            numeroAdherent: true,
-            nom: true,
-            prenom: true,
-            nombrePresences: true,
-            accesBloque: true,
-            presences: { orderBy: { pointeLe: 'desc' }, take: 1 },
-        },
-    });
+    if (result.isErr()) return { success: false, error: result.error };
 
-    return { success: true, essayants };
+    return { success: true, essayants: result.value };
 }

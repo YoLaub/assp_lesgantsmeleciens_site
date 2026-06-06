@@ -1,21 +1,14 @@
 'use server';
 
-import { prisma } from '@/shared/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { sendDocumentValide, sendDocumentRejete, sendBonCafValide } from '@/shared/lib/mail';
-
-const CHAMPS_ADMIN_AUTORISES = [
-    'renouvellement',
-    'fnsmr',
-    'reglementSigne',
-    'certificatMedical',
-    'autorisationParentale',
-    'couponSport',
-    'bonCaf',
-    'inscriptionValide',
-] as const;
+import { AdherentRepositoryImpl } from '../data/repositories/adherent.repository.impl';
+import { GetAdherentsUseCase } from '../domain/usecases/get-adherents.usecase';
+import { GetAdherentByIdUseCase } from '../domain/usecases/get-adherent-by-id.usecase';
+import { PatchAdherentUseCase } from '../domain/usecases/patch-adherent.usecase';
+import { ValiderDocumentAdminUseCase } from '../domain/usecases/valider-document-admin.usecase';
 
 const PatchAdherentSchema = z.object({
     renouvellement: z.boolean().optional(),
@@ -36,18 +29,18 @@ async function requireAdmin() {
 
 export async function getAdherentsAction() {
     await requireAdmin();
-    return prisma.adherent.findMany({
-        include: { questionnaire: true },
-        orderBy: { dateInscription: 'desc' },
-    });
+    const repo = new AdherentRepositoryImpl();
+    const result = await new GetAdherentsUseCase(repo).execute();
+    if (result.isErr()) throw new Error(result.error);
+    return result.value;
 }
 
 export async function getAdherentByIdAction(id: number) {
     await requireAdmin();
-    return prisma.adherent.findUnique({
-        where: { id },
-        include: { questionnaire: true, documents: true },
-    });
+    const repo = new AdherentRepositoryImpl();
+    const result = await new GetAdherentByIdUseCase(repo).execute(id);
+    if (result.isErr()) return null;
+    return result.value;
 }
 
 export async function patchAdherentAction(id: number, data: z.infer<typeof PatchAdherentSchema>) {
@@ -56,17 +49,12 @@ export async function patchAdherentAction(id: number, data: z.infer<typeof Patch
     const parsed = PatchAdherentSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: 'Données invalides' };
 
-    // Sécurité : seuls les champs autorisés peuvent être modifiés
-    const safeData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([key]) =>
-            (CHAMPS_ADMIN_AUTORISES as readonly string[]).includes(key)
-        )
-    );
+    const repo = new AdherentRepositoryImpl();
+    const result = await new PatchAdherentUseCase(repo).execute(id, parsed.data);
+    if (result.isErr()) return { success: false, error: result.error };
 
-    await prisma.adherent.update({ where: { id }, data: safeData });
     revalidatePath('/admin/club/adherents');
     revalidatePath(`/admin/club/adherents/${id}`);
-
     return { success: true };
 }
 
@@ -85,24 +73,25 @@ export async function validerDocumentAdminAction(
 ) {
     await requireAdmin();
 
-    const adherent = await prisma.adherent.findUnique({ where: { id }, select: { email: true, prenom: true, bonCaf: true } });
-    if (!adherent) return { success: false, error: 'Adhérent introuvable' };
+    const repo = new AdherentRepositoryImpl();
+    const result = await new ValiderDocumentAdminUseCase(repo).execute(id, field, statut);
+    if (result.isErr()) return { success: false, error: result.error };
 
-    await prisma.adherent.update({ where: { id }, data: { [field]: statut } });
     revalidatePath('/admin/club/adherents');
     revalidatePath(`/admin/club/adherents/${id}`);
 
+    const { email, prenom } = result.value;
     const label = LABELS_DOCUMENTS[field] ?? field;
 
     try {
         if (statut === 'valide') {
             if (field === 'bonCaf') {
-                await sendBonCafValide({ email: adherent.email, prenom: adherent.prenom });
+                await sendBonCafValide({ email, prenom });
             } else {
-                await sendDocumentValide({ email: adherent.email, prenom: adherent.prenom, labelDocument: label });
+                await sendDocumentValide({ email, prenom, labelDocument: label });
             }
         } else {
-            await sendDocumentRejete({ email: adherent.email, prenom: adherent.prenom, labelDocument: label });
+            await sendDocumentRejete({ email, prenom, labelDocument: label });
         }
     } catch (e) {
         console.error('[validerDocumentAdminAction] email:', e);

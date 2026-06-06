@@ -1,21 +1,23 @@
 'use server';
 
-import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
 import { sendLienAccesDossier } from '@/shared/lib/mail';
-import { DocumentType, TypePaiement } from '@/generated/prisma/enums';
 import { uploadDocumentFile } from '@/shared/lib/upload';
 import Stripe from 'stripe';
 import { z } from 'zod';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function findAdherentByToken(token: string) {
-    return prisma.adherent.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { questionnaire: true },
-    });
-}
+import { AdherentRepositoryImpl } from '../data/repositories/adherent.repository.impl';
+import { RequestAccesDossierUseCase } from '../domain/usecases/request-acces-dossier.usecase';
+import { GetAdherentByTokenUseCase } from '../domain/usecases/get-adherent-by-token.usecase';
+import { SoumettreQuestionnaireUseCase } from '../domain/usecases/soumettre-questionnaire.usecase';
+import { SignerReglementUseCase } from '../domain/usecases/signer-reglement.usecase';
+import { SetTypePaiementUseCase } from '../domain/usecases/set-type-paiement.usecase';
+import { DeclarerCertificatUseCase } from '../domain/usecases/declarer-certificat.usecase';
+import { UpdateTelephoneUseCase } from '../domain/usecases/update-telephone.usecase';
+import { UpdateDroitImageUseCase } from '../domain/usecases/update-droit-image.usecase';
+import { ValiderEngagementUseCase } from '../domain/usecases/valider-engagement.usecase';
+import { SaveDocumentAdherentUseCase } from '../domain/usecases/save-document-adherent.usecase';
+import { ValidateCheckoutAdherentUseCase } from '../domain/usecases/validate-checkout-adherent.usecase';
+import { GetConfigTarifsUseCase } from '../domain/usecases/get-config-tarifs.usecase';
 
 // ─── Accès dossier ────────────────────────────────────────────────────────────
 
@@ -27,25 +29,17 @@ export async function requestAccesDossierAction(input: {
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
-    const adherent = await prisma.adherent.findFirst({
-        where: { email: input.email, numeroAdherent: input.numeroAdherent },
-    });
+    const repo = new AdherentRepositoryImpl();
+    const useCase = new RequestAccesDossierUseCase(repo);
+    const result = await useCase.execute(input.email, input.numeroAdherent);
 
-    if (adherent) {
-        const token = crypto.randomUUID();
-        const expireLe = new Date(Date.now() + 60 * 60 * 1000); // +1h
+    if (result.isErr()) return { success: true }; // ne pas révéler si l'email existe
 
-        await prisma.adherent.update({
-            where: { id: adherent.id },
-            data: { accesToken: token, accesTokenExpireLe: expireLe },
-        });
+    const { found, adherent, token } = result.value;
 
+    if (found && adherent && token) {
         try {
-            await sendLienAccesDossier({
-                email: adherent.email,
-                prenom: adherent.prenom,
-                token,
-            });
+            await sendLienAccesDossier({ email: adherent.email, prenom: adherent.prenom, token });
         } catch (e) {
             console.error('[requestAccesDossierAction] sendLienAccesDossier', e);
         }
@@ -55,15 +49,13 @@ export async function requestAccesDossierAction(input: {
 }
 
 export async function getMonDossierAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const useCase = new GetAdherentByTokenUseCase(repo);
+    const result = await useCase.execute(token);
 
-    const adherent = await prisma.adherent.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { questionnaire: true, documents: true },
-    });
+    if (result.isErr()) return { success: false, error: result.error };
 
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
+    const adherent = result.value;
     return {
         success: true,
         adherent: {
@@ -86,7 +78,7 @@ export async function getMonDossierAction(token: string) {
             droitImage: adherent.droitImage,
             engagementPrisConnaissance: adherent.engagementPrisConnaissance,
             documents: adherent.documents.map((d) => ({ id: d.id, type: d.type, url: d.url, name: d.name })),
-            montantSnapshot: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : null,
+            montantSnapshot: adherent.montantSnapshot,
             typePaiement: adherent.typePaiement,
             inscriptionValide: adherent.inscriptionValide,
             stripeSessionId: adherent.stripeSessionId,
@@ -110,98 +102,60 @@ export async function getMonDossierAction(token: string) {
 // ─── Complétion du dossier ────────────────────────────────────────────────────
 
 const QuestionnaireSchema = z.object({
-    q1: z.boolean(),
-    q2: z.boolean(),
-    q3: z.boolean(),
-    q4: z.boolean(),
-    q5: z.boolean(),
-    q6: z.boolean(),
-    q7: z.boolean(),
-    q8: z.boolean(),
-    q9: z.boolean(),
+    q1: z.boolean(), q2: z.boolean(), q3: z.boolean(), q4: z.boolean(), q5: z.boolean(),
+    q6: z.boolean(), q7: z.boolean(), q8: z.boolean(), q9: z.boolean(),
 });
 
 export async function soumettreQuestionnaireAction(
     token: string,
     reponses: z.infer<typeof QuestionnaireSchema>
 ) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
+    const adherent = adherentResult.value;
     const parsed = QuestionnaireSchema.safeParse(reponses);
     if (!parsed.success) return { success: false, error: 'Données invalides' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const result = await new SoumettreQuestionnaireUseCase(repo).execute(
+        adherent.id,
+        parsed.data,
+        adherent.certificatMedical,
+    );
 
-    const { q1, q2, q3, q4, q5, q6, q7, q8, q9 } = parsed.data;
-    const certificatMedicalReq = [q1, q2, q3, q4, q5, q6, q7, q8, q9].some(Boolean);
-
-    await prisma.$transaction(async (tx) => {
-        if (adherent.questionnaire) {
-            await tx.questionnaireSanteReponses.update({
-                where: { adherentId: adherent.id },
-                data: { q1, q2, q3, q4, q5, q6, q7, q8, q9 },
-            });
-        } else {
-            await tx.questionnaireSanteReponses.create({
-                data: { adherentId: adherent.id, q1, q2, q3, q4, q5, q6, q7, q8, q9 },
-            });
-        }
-        await tx.adherent.update({
-            where: { id: adherent.id },
-            data: {
-                certificatMedicalReq,
-                // Si certificat requis et non encore déclaré → reste non_fourni (l'adhérent devra le déclarer)
-                // Si certificat plus requis → repasse à non_fourni
-                certificatMedical: certificatMedicalReq ? adherent.certificatMedical : 'non_fourni',
-            },
-        });
-    });
-
-    return { success: true, certificatMedicalReq };
+    if (result.isErr()) return { success: false, error: result.error };
+    return { success: true, certificatMedicalReq: result.value.certificatMedicalReq };
 }
 
 export async function signerReglementAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { reglementSigne: 'declare' },
-    });
-
+    const result = await new SignerReglementUseCase(repo).execute(adherentResult.value.id);
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
 export async function setTypePaiementAction(token: string, typePaiement: 'sur_place' | 'en_ligne') {
-    if (!token) return { success: false, error: 'Token manquant' };
-    if (!['sur_place', 'en_ligne'].includes(typePaiement)) return { success: false, error: 'Valeur invalide' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { typePaiement: typePaiement as TypePaiement },
-    });
-
+    const result = await new SetTypePaiementUseCase(repo).execute(adherentResult.value.id, typePaiement);
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
 export async function declarerCertificatAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-    if (!adherent.certificatMedicalReq) return { success: false, error: 'Certificat non requis' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { certificatMedical: 'declare' },
-    });
-
+    const adherent = adherentResult.value;
+    const result = await new DeclarerCertificatUseCase(repo).execute(adherent.id, adherent.certificatMedicalReq);
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
@@ -213,128 +167,101 @@ const UpdateTelephoneSchema = z.object({
 });
 
 export async function updateTelephoneAction(token: string, data: z.infer<typeof UpdateTelephoneSchema>) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
     const parsed = UpdateTelephoneSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: 'Numéro invalide' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: {
-            telephone1: parsed.data.telephone1,
-            telephone2: parsed.data.telephone2 ?? null,
-        },
-    });
-
+    const result = await new UpdateTelephoneUseCase(repo).execute(
+        adherentResult.value.id,
+        parsed.data.telephone1,
+        parsed.data.telephone2,
+    );
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
 // ─── Droit à l'image (B4) ────────────────────────────────────────────────────
 
 export async function updateDroitImageAction(token: string, droitImage: boolean) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { droitImage },
-    });
-
+    const result = await new UpdateDroitImageUseCase(repo).execute(adherentResult.value.id, droitImage);
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
 // ─── Engagement pris connaissance (B6) ───────────────────────────────────────
 
 export async function validerEngagementAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { engagementPrisConnaissance: true },
-    });
-
+    const result = await new ValiderEngagementUseCase(repo).execute(adherentResult.value.id);
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true };
 }
 
 // ─── Upload document (B3) ────────────────────────────────────────────────────
 
 const TYPES_AUTORISES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-const TAILLE_MAX = 5 * 1024 * 1024; // 5 Mo
+const TAILLE_MAX = 5 * 1024 * 1024;
 
 export async function uploadDocumentAdherentAction(
     token: string,
     formData: FormData,
     type: 'MEDICAL_CERTIFICATE' | 'ID_PHOTO'
 ) {
-    if (!token) return { success: false, error: 'Token manquant' };
-
     const file = formData.get('file') as File | null;
     if (!file) return { success: false, error: 'Aucun fichier fourni' };
     if (!TYPES_AUTORISES.includes(file.type)) return { success: false, error: 'Format non accepté (JPEG, PNG, WebP, PDF uniquement)' };
     if (file.size > TAILLE_MAX) return { success: false, error: 'Fichier trop volumineux (5 Mo max)' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
     const { url } = await uploadDocumentFile(file, 'documents');
 
-    await prisma.$transaction(async (tx) => {
-        // Remplacer un document du même type s'il existe déjà
-        await tx.document.deleteMany({ where: { adherentId: adherent.id, type: DocumentType[type] } });
-        await tx.document.create({
-            data: { adherentId: adherent.id, type: DocumentType[type], url, name: file.name },
-        });
-        if (type === 'MEDICAL_CERTIFICATE') {
-            await tx.adherent.update({ where: { id: adherent.id }, data: { certificatMedical: 'declare' } });
-        }
-    });
-
+    const result = await new SaveDocumentAdherentUseCase(repo).execute(
+        adherentResult.value.id,
+        type,
+        url,
+        file.name,
+    );
+    if (result.isErr()) return { success: false, error: result.error };
     return { success: true, url };
 }
 
 // ─── Checkout Stripe ──────────────────────────────────────────────────────────
 
 export async function createCheckoutAction(token: string) {
-    if (!token) return { success: false, error: 'Token manquant' };
+    const repo = new AdherentRepositoryImpl();
+    const adherentResult = await new GetAdherentByTokenUseCase(repo).execute(token);
+    if (adherentResult.isErr()) return { success: false, error: adherentResult.error };
 
-    const adherent = await prisma.adherent.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-    });
+    const adherent = adherentResult.value;
+    const validationResult = await new ValidateCheckoutAdherentUseCase(repo).execute(adherent);
+    if (validationResult.isErr()) return { success: false, error: validationResult.error };
 
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-    if (adherent.typePaiement !== 'en_ligne') return { success: false, error: 'Mode de paiement non applicable' };
-    if (adherent.inscriptionValide) return { success: false, error: 'Inscription déjà validée' };
+    const { montantSnapshot } = validationResult.value;
 
-    // Vérifier que tous les documents requis sont validés
-    const documentsRequis = [
-        adherent.reglementSigne,
-        ...(adherent.certificatMedicalReq ? [adherent.certificatMedical] : []),
-        ...(isMineur(adherent.dateDeNaissance) ? [adherent.autorisationParentale] : []),
-    ];
-    const tousValides = documentsRequis.every((s) => s === 'valide');
-    if (!tousValides) return { success: false, error: 'Documents en attente de validation' };
-
-    if (!adherent.montantSnapshot) return { success: false, error: 'Montant introuvable' };
+    const configResult = await new GetConfigTarifsUseCase(repo).execute();
+    const saison = configResult.isOk() && configResult.value ? configResult.value.saison : 'en cours';
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    const config = await prisma.configTarifs.findFirst({ orderBy: { id: 'desc' } });
-    const saison = config?.saison ?? 'en cours';
-
     const session = await stripe.checkout.sessions.create({
         mode: 'payment',
         line_items: [
             {
                 price_data: {
                     currency: 'eur',
-                    unit_amount: Math.round(Number(adherent.montantSnapshot) * 100),
+                    unit_amount: Math.round(montantSnapshot * 100),
                     product_data: { name: `Inscription ${saison} — Les Gants Méléciens` },
                 },
                 quantity: 1,
@@ -344,18 +271,7 @@ export async function createCheckoutAction(token: string) {
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/mon-dossier?token=${token}&paiement=annule`,
     });
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
-        data: { stripeSessionId: session.id },
-    });
+    await repo.patchAdherent(adherent.id, { stripeSessionId: session.id });
 
     return { success: true, url: session.url };
-}
-
-function isMineur(dateDeNaissance: Date): boolean {
-    const today = new Date();
-    let age = today.getFullYear() - dateDeNaissance.getFullYear();
-    const moisDiff = today.getMonth() - dateDeNaissance.getMonth();
-    if (moisDiff < 0 || (moisDiff === 0 && today.getDate() < dateDeNaissance.getDate())) age--;
-    return age < 18;
 }
