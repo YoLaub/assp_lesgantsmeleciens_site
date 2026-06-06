@@ -2,6 +2,7 @@
 
 import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
+import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { auth } from '@clerk/nextjs/server';
 import { genererNumeroMembreUnique } from '@/shared/lib/adherent-utils';
 import {
@@ -26,6 +27,9 @@ const CreateEssayantSchema = z.object({
 });
 
 export async function createEssayantAction(input: z.infer<typeof CreateEssayantSchema>) {
+    const allowed = await checkRateLimit('essai');
+    if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
@@ -82,6 +86,9 @@ export async function requestAccesEssaiAction(input: {
     numeroAdherent: string;
     hcaptchaToken: string;
 }) {
+    const allowed = await checkRateLimit('acces-essai');
+    if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
