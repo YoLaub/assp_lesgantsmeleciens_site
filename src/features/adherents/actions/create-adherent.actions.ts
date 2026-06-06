@@ -2,6 +2,7 @@
 
 import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
+import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { genererNumeroAdherentUnique, calculerCategorie } from '@/shared/lib/adherent-utils';
 import {
     sendConfirmationInscription,
@@ -30,6 +31,10 @@ const CreateAdherentSchema = z.object({
 export type CreateAdherentInput = z.infer<typeof CreateAdherentSchema>;
 
 export async function createAdherentAction(input: CreateAdherentInput) {
+    // 0. Rate-limiting par IP
+    const allowed = await checkRateLimit('adhesion');
+    if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
     // 1. Vérifier hCaptcha
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
