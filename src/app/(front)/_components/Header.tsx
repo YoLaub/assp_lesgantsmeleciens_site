@@ -85,12 +85,12 @@ export function Header() {
 
             {/* Section vidéo */}
             {videoOpen && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 py-16 gap-6">
-                    {/* Bouton fermer */}
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 py-8 sm:py-16 gap-4 sm:gap-6">
+                    {/* Bouton fermer — décalé vers le bas sur mobile pour ne pas chevaucher la navbar */}
                     <button
                         type="button"
                         onClick={() => setVideoOpen(false)}
-                        className="absolute top-6 right-6 flex items-center justify-center w-10 h-10 rounded-full
+                        className="absolute top-20 right-4 sm:top-6 sm:right-6 flex items-center justify-center w-10 h-10 rounded-full
                                    bg-white/15 backdrop-blur-md border border-white/30
                                    text-white hover:bg-white/25 transition-colors"
                         aria-label="Fermer la vidéo"
@@ -104,7 +104,7 @@ export function Header() {
                             src={VIDEO_URL}
                             controls
                             autoPlay
-                            className="w-full rounded-2xl shadow-2xl max-h-[calc(100vh-10rem)]"
+                            className="w-full rounded-xl sm:rounded-2xl shadow-2xl max-h-[calc(100vh-12rem)] sm:max-h-[calc(100vh-10rem)]"
                         />
                     </div>
                 </div>
