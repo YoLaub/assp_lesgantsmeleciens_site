@@ -64,6 +64,7 @@ function DocumentRow({
     field,
     documentUrl,
     withEmail,
+    readOnly,
 }: {
     label: string;
     statut: StatutDocument;
@@ -72,6 +73,7 @@ function DocumentRow({
     field: DocumentField | string;
     documentUrl?: string;
     withEmail?: boolean;
+    readOnly?: boolean;
 }) {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -126,7 +128,7 @@ function DocumentRow({
                         Voir
                     </a>
                 )}
-                {statut === "declare" && (
+                {!readOnly && statut === "declare" && (
                     <>
                         <button
                             type="button"
@@ -146,7 +148,7 @@ function DocumentRow({
                         </button>
                     </>
                 )}
-                {statut === "valide" && (
+                {!readOnly && statut === "valide" && (
                     <button
                         type="button"
                         onClick={handleAnnuler}
@@ -262,7 +264,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Documents</h2>
                     <div>
-                        <DocumentRow label="Règlement intérieur" statut={adherent.reglementSigne} field="reglementSigne" adherentId={adherent.id} withEmail />
+                        <DocumentRow label="Règlement intérieur" statut={adherent.reglementSigne} field="reglementSigne" adherentId={adherent.id} readOnly />
                         {adherent.certificatMedicalReq && (
                             <DocumentRow
                                 label="Certificat médical"

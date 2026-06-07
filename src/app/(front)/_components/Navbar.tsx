@@ -39,16 +39,6 @@ export function StickyNavbar() {
                             </ul>
                         </nav>
 
-                        {/* Contact Button - Desktop */}
-                        <div className="hidden md:flex items-center mix-blend-difference">
-                            <Link
-                                href="/inscription"
-                                className="rounded-sm border-2 border-white px-4 py-2 text-lg font-medium text-white transition-transform hover:scale-105"
-                            >
-                                Contact
-                            </Link>
-                        </div>
-
                         {/* Mobile Menu Button */}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -80,16 +70,7 @@ export function StickyNavbar() {
                                         </Link>
                                     </li>
                                 ))}
-                                <li className="pt-2 border-t border-white/20">
-                                    <Link
-                                        href="/inscription"
-                                        className="block text-center rounded-sm border-2 border-white px-4 py-2 text-lg font-medium text-white transition-transform hover:scale-105"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        Contact
-                                    </Link>
-                                </li>
-                            </ul>
+                                </ul>
                         </nav>
                     </div>
                 )}

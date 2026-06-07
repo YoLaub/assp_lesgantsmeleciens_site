@@ -219,3 +219,10 @@ model CoachToken {
   creePar  String?  // ID Clerk de l'admin
 }
 
+model ReglementInterieur {
+  id         Int      @id @default(autoincrement())
+  contenu    String   @db.Text
+  modifieLe  DateTime @default(now()) @updatedAt
+  modifiePar String?  // ID Clerk de l'admin
+}
+

@@ -284,7 +284,7 @@ export async function uploadDocumentAdherentAction(
     const adherent = await findAdherentByToken(token);
     if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
 
-    const { url } = await uploadDocumentFile(file, 'documents');
+    const { url } = await uploadDocumentFile(file, 'documents', type);
 
     await prisma.$transaction(async (tx) => {
         // Remplacer un document du même type s'il existe déjà

@@ -163,15 +163,8 @@ export default function MonEssaiView({ token }: { token?: string }) {
                     <p className="text-sm text-gray-500">{essayant.numeroAdherent}</p>
                 </div>
 
-                <PresenceCounter nombrePresences={essayant.nombrePresences} />
-
-                {essayant.accesBloque && (
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800">
-                        Vos cours d'essai sont terminés. Complétez votre inscription pour continuer à pratiquer.
-                    </div>
-                )}
-
-                {essayant.nombrePresences >= 1 && accesToken && (
+                {/* Lien inscription — toujours visible dès l'accès au suivi */}
+                {accesToken && (
                     <Link
                         href={`/inscription?conversion=${essayant.numeroAdherent}&token=${accesToken}`}
                         className={`block w-full text-center font-bold py-3 rounded-lg transition-colors ${
@@ -180,8 +173,16 @@ export default function MonEssaiView({ token }: { token?: string }) {
                                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                         }`}
                     >
-                        Commencer mon inscription
+                        Créer mon dossier d'inscription
                     </Link>
+                )}
+
+                <PresenceCounter nombrePresences={essayant.nombrePresences} />
+
+                {essayant.accesBloque && (
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-800">
+                        Vos cours d'essai sont terminés. Complétez votre inscription pour continuer à pratiquer.
+                    </div>
                 )}
             </div>
         </main>

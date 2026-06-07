@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {Users, Dumbbell, Images, Newspaper, House, Settings, Link2, Swords} from 'lucide-react';
+import {Users, Dumbbell, Images, Newspaper, House, Settings, Link2, Swords, ScrollText} from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import Link from "next/link";
 
@@ -56,6 +56,12 @@ export const AdminSidebar = () => (
             <Link href="/admin/club/essayants">
                 <button type="button" className="p-3 text-slate-500 bg-slate-800 hover:text-white transition-colors rounded-xl shadow-inner" title="Essayants">
                     <Swords className="w-6 h-6" />
+                </button>
+            </Link>
+
+            <Link href="/admin/settings/reglement">
+                <button type="button" className="p-3 text-slate-500 bg-slate-800 hover:text-white transition-colors rounded-xl shadow-inner" title="Règlement intérieur">
+                    <ScrollText className="w-6 h-6" />
                 </button>
             </Link>
 

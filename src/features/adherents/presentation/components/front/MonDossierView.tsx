@@ -14,6 +14,7 @@ import {
     validerEngagementAction,
     uploadDocumentAdherentAction,
 } from "@/features/adherents/actions/mon-dossier.actions";
+import { getReglementAction } from "@/features/adherents/actions/reglement.actions";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -261,6 +262,11 @@ function ReglementSection({ token, onDone }: { token: string; onDone: () => void
     const [checked, setChecked] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [contenu, setContenu] = useState<string | null>(null);
+
+    useEffect(() => {
+        getReglementAction().then((r) => setContenu(r.contenu));
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -281,6 +287,16 @@ function ReglementSection({ token, onDone }: { token: string; onDone: () => void
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
             <h3 className="font-semibold text-gray-900">Règlement intérieur</h3>
+
+            {contenu ? (
+                <div
+                    className="prose prose-sm max-w-none max-h-72 overflow-y-auto border border-gray-100 rounded-lg p-4 bg-gray-50 text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: contenu }}
+                />
+            ) : (
+                <p className="text-sm text-gray-400 italic">Chargement du règlement…</p>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input
@@ -290,7 +306,7 @@ function ReglementSection({ token, onDone }: { token: string; onDone: () => void
                         className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
                     />
                     <span className="text-sm text-gray-700">
-                        J'ai pris connaissance du règlement intérieur du club et je m'engage à le respecter.{" "}
+                        J'ai lu et j'accepte le règlement intérieur du club.{" "}
                         <span className="text-red-500">*</span>
                     </span>
                 </label>
@@ -455,12 +471,10 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
 
 function PhotoIdSection({
     token,
-    oxygene,
     documentExistant,
     onDone,
 }: {
     token: string;
-    oxygene: boolean;
     documentExistant: boolean;
     onDone: (url: string) => void;
 }) {
@@ -490,12 +504,10 @@ function PhotoIdSection({
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
             <div>
                 <h3 className="font-semibold text-gray-900">
-                    Photo d'identité{oxygene ? <span className="text-red-500 ml-1">*</span> : ""}
+                    Photo d'identité <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                    {oxygene
-                        ? "Obligatoire pour l'option Oxygène."
-                        : "Un selfie récent peut suffire si vous ne disposez pas d'une photo d'identité formelle."}
+                    Un selfie récent peut suffire si vous ne disposez pas d'une photo d'identité formelle.
                 </p>
             </div>
             {documentExistant ? (
@@ -605,15 +617,18 @@ function CoordonneesSection({
                         className={inputCls}
                     />
                 </div>
-                {saved && <p className="text-green-600 text-sm">Coordonnées enregistrées.</p>}
                 {error && <p className="text-red-600 text-sm">{error}</p>}
-                <button
-                    type="submit"
-                    disabled={!tel1 || submitting}
-                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
-                >
-                    {submitting ? "Enregistrement..." : "Enregistrer"}
-                </button>
+                {saved ? (
+                    <p className="text-green-600 text-sm font-medium">Coordonnées enregistrées ✓</p>
+                ) : (
+                    <button
+                        type="submit"
+                        disabled={!tel1 || submitting}
+                        className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                    >
+                        {submitting ? "Enregistrement..." : "Enregistrer"}
+                    </button>
+                )}
             </form>
         </div>
     );
@@ -666,15 +681,18 @@ function DroitImageSection({
                         J'autorise le club à utiliser mon image dans ses communications (photos, vidéos, site web, réseaux sociaux).
                     </span>
                 </label>
-                {saved && <p className="text-green-600 text-sm">Préférence enregistrée.</p>}
                 {error && <p className="text-red-600 text-sm">{error}</p>}
-                <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
-                >
-                    {submitting ? "Enregistrement..." : "Enregistrer"}
-                </button>
+                {saved ? (
+                    <p className="text-green-600 text-sm font-medium">Préférence enregistrée ✓</p>
+                ) : (
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                    >
+                        {submitting ? "Enregistrement..." : "Enregistrer"}
+                    </button>
+                )}
             </form>
         </div>
     );
@@ -755,6 +773,7 @@ function DossierVue({
     const typePaiementManquant = dossier.typePaiement === null;
     const telephoneManquant = !dossier.telephone1;
     const engagementManquant = !dossier.engagementPrisConnaissance;
+    const photoManquante = !dossier.documents.find((d) => d.type === "ID_PHOTO");
     const certificatADeclarer =
         dossier.certificatMedicalReq && dossier.certificatMedical === "non_fourni";
 
@@ -767,7 +786,7 @@ function DossierVue({
     const tousValides = documentsRequis.every((s) => s === "valide");
     const tousDeciares = documentsRequis.every((s) => s !== "non_fourni");
     const documentsManquants = documentsRequis.some((s) => s === "non_fourni");
-    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant;
+    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant || photoManquante;
 
     let statutLabel = "";
     let statutColor = "";
@@ -887,18 +906,14 @@ function DossierVue({
                 />
             )}
 
-            {/* ── Photo d'identité (non bloquant) ───────────────────────────── */}
-            {!dossierIncomplet && (() => {
-                const photoDoc = dossier.documents.find((d) => d.type === "ID_PHOTO");
-                return (
-                    <PhotoIdSection
-                        token={token}
-                        oxygene={dossier.oxygene}
-                        documentExistant={!!photoDoc}
-                        onDone={(url) => setDossier((d) => ({ ...d, documents: [...d.documents.filter((doc) => doc.type !== "ID_PHOTO"), { id: "photo", type: "ID_PHOTO", url, name: null }] }))}
-                    />
-                );
-            })()}
+            {/* ── Photo d'identité (obligatoire — bloquant) ─────────────────── */}
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && !engagementManquant && photoManquante && (
+                <PhotoIdSection
+                    token={token}
+                    documentExistant={false}
+                    onDone={(url) => setDossier((d) => ({ ...d, documents: [...d.documents, { id: "photo", type: "ID_PHOTO", url, name: null }] }))}
+                />
+            )}
 
             {/* ── Droit à l'image (non bloquant) ────────────────────────────── */}
             {!dossierIncomplet && (
