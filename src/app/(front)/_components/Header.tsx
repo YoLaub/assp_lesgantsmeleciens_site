@@ -31,21 +31,19 @@ export function Header() {
                     placeholder="blur"
                     className="object-cover object-center transform -scale-x-100"
                 />
-                {/* Overlay sombre quand la vidéo est ouverte */}
                 {videoOpen && (
                     <div className="absolute inset-0 bg-black/60 transition-opacity duration-500" />
                 )}
             </div>
 
-            {/* Logo */}
+            {/* Logo — centré mobile, ancré à gauche desktop, avec espace généreux */}
             <Link
                 href="/"
                 className={`relative z-10 flex justify-center mx-auto items-center transition-all duration-500
-                           top-20
-                           sm:relative sm:flex sm:justify-center sm:items-center sm:mx-auto sm:top-20
-                           md:absolute md:top-24 md:left-14
-                           lg:top-25 lg:left-20
-                           xl:top-12 xl:left-30
+                           top-24
+                           md:absolute md:top-1/2 md:-translate-y-1/2 md:left-16
+                           lg:left-24
+                           xl:left-32
                            hover:scale-105
                            ${videoOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
                 aria-label="Retour à l'accueil"
@@ -55,25 +53,33 @@ export function Header() {
                     alt="Logo association Les Gants Méléciens"
                     width={432}
                     height={280}
-                    sizes="(max-width: 768px) 280px, (max-width: 1536px) 432px, 360px"
+                    sizes="(max-width: 768px) 260px, (max-width: 1536px) 380px, 380px"
                     priority
                     placeholder="blur"
-                    className="h-70 w-108 md:h-70 md:w-108 2xl:h-90 2xl:w-90 object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] filter brightness-110"
+                    className="h-56 w-auto
+                               md:h-64 md:w-auto
+                               lg:h-72 lg:w-auto
+                               2xl:h-80 2xl:w-auto
+                               object-contain
+                               drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)]
+                               filter brightness-110"
                 />
             </Link>
 
-            {/* Bouton Voir la vidéo — glassmorphism */}
-            {!videoOpen && VIDEO_URL && (
+            {/* Bouton Voir la vidéo — glassmorphism, toujours affiché */}
+            {!videoOpen && (
                 <button
                     type="button"
-                    onClick={() => setVideoOpen(true)}
+                    onClick={() => VIDEO_URL ? setVideoOpen(true) : undefined}
+                    disabled={!VIDEO_URL}
                     className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10
                                flex items-center gap-2.5 px-6 py-3 rounded-full
                                bg-white/10 backdrop-blur-md border border-white/30
                                text-white font-semibold text-sm
                                shadow-[0_4px_30px_rgba(0,0,0,0.2)]
                                hover:bg-white/20 hover:border-white/50
-                               transition-all duration-200 hover:scale-105 active:scale-95"
+                               disabled:opacity-40 disabled:cursor-not-allowed
+                               transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100"
                     aria-label="Voir la vidéo de présentation"
                 >
                     <span className="flex items-center justify-center w-7 h-7 rounded-full bg-white/25">
@@ -86,7 +92,6 @@ export function Header() {
             {/* Section vidéo */}
             {videoOpen && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 py-8 sm:py-16 gap-4 sm:gap-6">
-                    {/* Bouton fermer — décalé vers le bas sur mobile pour ne pas chevaucher la navbar */}
                     <button
                         type="button"
                         onClick={() => setVideoOpen(false)}
@@ -98,7 +103,6 @@ export function Header() {
                         <X className="w-5 h-5" />
                     </button>
 
-                    {/* Player vidéo */}
                     <div className="w-full max-w-4xl">
                         <video
                             src={VIDEO_URL}
