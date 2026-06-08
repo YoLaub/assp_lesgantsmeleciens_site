@@ -7,6 +7,7 @@ import {
 import { ModuleCard } from '@/features/dashboard/presentation/components/ModuleCard';
 import { ActivityItem } from '@/features/dashboard/presentation/components/ActivityItem';
 import { getAdherentsAction } from '@/features/adherents/actions/admin-adherents.actions';
+import { prisma } from '@/shared/lib/prisma';
 
 function getTimeAgo(dateInput: Date | string | undefined): string {
     if (!dateInput) return "Récemment";
@@ -24,7 +25,10 @@ function getTimeAgo(dateInput: Date | string | undefined): string {
 }
 
 export async function AdminDashboard() {
-    const adherents = await getAdherentsAction();
+    const [adherents, actusCount] = await Promise.all([
+        getAdherentsAction(),
+        prisma.actualite.count(),
+    ]);
 
     // Dossiers en attente = non validés ET questionnaire rempli
     const pendingCount = adherents.filter((adh) => !adh.inscriptionValide).length;
@@ -52,7 +56,7 @@ export async function AdminDashboard() {
                                 <p className="text-[10px] text-slate-400 uppercase font-black">Membres</p>
                             </div>
                             <div className="bg-slate-50 p-4 rounded-2xl text-center border border-slate-100 min-w-[100px]">
-                                <p className="text-2xl font-bold text-red-600">12</p>
+                                <p className="text-2xl font-bold text-red-600">{actusCount}</p>
                                 <p className="text-[10px] text-slate-400 uppercase font-black">Actus</p>
                             </div>
                         </div>

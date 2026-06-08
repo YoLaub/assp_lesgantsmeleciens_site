@@ -134,11 +134,11 @@ describe('getMonEssaiAction', () => {
         const result = await getMonEssaiAction('valid-token');
 
         expect(result.success).toBe(true);
-        if (result.success) {
-            expect(result.essayant.nombrePresences).toBe(2);
-            expect(result.essayant.id).toBe(1);
-            expect(result.accesToken).toBe('valid-token');
-        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const r = result as any;
+        expect(r.essayant.nombrePresences).toBe(2);
+        expect(r.essayant.id).toBe(1);
+        expect(r.accesToken).toBe('valid-token');
     });
 });
 
