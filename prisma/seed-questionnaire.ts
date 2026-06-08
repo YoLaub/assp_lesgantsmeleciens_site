@@ -32,4 +32,7 @@ async function main() {
 
 main()
     .catch(console.error)
-    .finally(() => pool.end());
+    .finally(async () => {
+        await prisma.$disconnect();
+        await pool.end();
+    });
