@@ -11,29 +11,26 @@ cloudinary.config({
 
 // ─── Cloudflare R2 (certificats médicaux — stockage privé) ───────────────────
 
-function getR2Client() {
+function getR2Client(endpoint: string, accessKeyId: string, secretAccessKey: string) {
     return new S3Client({
         region: 'auto',
-        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        credentials: {
-            accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
-            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
-        },
+        endpoint,
+        credentials: { accessKeyId, secretAccessKey },
     });
 }
 
 async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
-    const accountId = process.env.R2_ACCOUNT_ID;
+    const endpoint = process.env.R2_ENDPOINT;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     const bucket = process.env.R2_BUCKET_NAME;
 
-    if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
-        throw new Error('Variables R2 manquantes (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME)');
+    if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+        throw new Error('Variables R2 manquantes (R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME)');
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const r2 = getR2Client();
+    const r2 = getR2Client(endpoint, accessKeyId, secretAccessKey);
 
     await r2.send(new PutObjectCommand({
         Bucket: bucket,
@@ -42,7 +39,8 @@ async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
         ContentType: file.type,
     }));
 
-    const publicBase = process.env.R2_PUBLIC_URL ?? `https://pub-${accountId}.r2.dev`;
+    const publicBase = process.env.R2_PUBLIC_URL ?? '';
+    if (!publicBase) throw new Error('Variable R2_PUBLIC_URL manquante');
     return { url: `${publicBase}/${key}` };
 }
 
