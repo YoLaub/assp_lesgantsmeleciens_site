@@ -52,3 +52,8 @@ public/uploads/**
 # clerk configuration (can include secrets)
 /.clerk/
 .claude/settings.local.json
+
+.claude
+docs
+
+archi-output
