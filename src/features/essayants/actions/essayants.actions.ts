@@ -170,7 +170,7 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
             await sendRelanceEssayant({
                 email: membre.email,
                 prenom: membre.prenom,
-                numeroAdherent: membre.numeroAdherent!,
+                numeroAdherent: membre.numeroAdherent ?? '',
                 nombrePresences: nouvPresences,
             });
         } catch (e) {
@@ -185,7 +185,7 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
                 await sendConversionEssayant({
                     email: membre.email,
                     prenom: membre.prenom,
-                    numeroAdherent: membre.numeroAdherent!,
+                    numeroAdherent: membre.numeroAdherent ?? '',
                     accesToken: updated.accesToken,
                 });
             } catch (e) {
@@ -196,7 +196,7 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
             await sendNotificationConversionAdmin({
                 nom: membre.nom,
                 prenom: membre.prenom,
-                numeroAdherent: membre.numeroAdherent!,
+                numeroAdherent: membre.numeroAdherent ?? '',
             });
         } catch (e) {
             console.error('[pointerPresenceAction] sendNotificationConversionAdmin', e);

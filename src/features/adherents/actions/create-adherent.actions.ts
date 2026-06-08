@@ -71,7 +71,13 @@ export async function createAdherentAction(input: CreateAdherentInput) {
             if (data.membreId) {
                 return tx.membre.update({
                     where: { id: data.membreId },
-                    data: inscriptionData,
+                    data: {
+                        ...inscriptionData,
+                        nom: data.nom,
+                        prenom: data.prenom,
+                        email: data.email,
+                        dateDeNaissance: dateNaissance,
+                    },
                 });
             } else {
                 const numeroAdherent = await genererNumeroMembreUnique();
@@ -89,11 +95,16 @@ export async function createAdherentAction(input: CreateAdherentInput) {
             }
         });
 
+        if (!membre.numeroAdherent) {
+            console.error('[createAdherentAction] numeroAdherent manquant après transaction');
+            return { success: true, numeroAdherent: null };
+        }
+
         try {
             await sendConfirmationInscription({
                 email: membre.email,
                 prenom: membre.prenom,
-                numeroAdherent: membre.numeroAdherent!,
+                numeroAdherent: membre.numeroAdherent,
                 certificatRequis: false,
             });
         } catch (e) {
@@ -104,7 +115,7 @@ export async function createAdherentAction(input: CreateAdherentInput) {
             await sendNotificationNouveauDossier({
                 nom: membre.nom,
                 prenom: membre.prenom,
-                numeroAdherent: membre.numeroAdherent!,
+                numeroAdherent: membre.numeroAdherent,
                 categorie: String(categorie),
                 montant,
                 typePaiement: null,

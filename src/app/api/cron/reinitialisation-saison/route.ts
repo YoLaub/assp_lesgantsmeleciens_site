@@ -9,12 +9,12 @@ export async function GET(req: NextRequest) {
     }
 
     const adherents = await prisma.membre.findMany({
-        where: { inscriptionValide: true },
+        where: { inscriptionValide: true, statut: { not: 'ESSAYANT' } },
         select: { id: true, email: true, prenom: true },
     });
 
     await prisma.membre.updateMany({
-        where: { inscriptionValide: true },
+        where: { inscriptionValide: true, statut: { not: 'ESSAYANT' } },
         data: { inscriptionValide: false },
     });
 
