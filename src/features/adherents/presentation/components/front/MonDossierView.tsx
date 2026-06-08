@@ -85,18 +85,6 @@ function StatutBadge({ statut }: { statut: StatutDocument }) {
     return <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${styles[statut]}`}>{labels[statut]}</span>;
 }
 
-const QUESTIONS = [
-    { id: "q1" as const, label: "Un membre de votre famille est-il décédé subitement d'une cause cardiaque ou inexpliquée ?" },
-    { id: "q2" as const, label: "Avez-vous ressenti une douleur dans la poitrine, des palpitations, un essoufflement inhabituel ou un malaise ?" },
-    { id: "q3" as const, label: "Avez-vous eu un épisode de respiration sifflante (asthme) ?" },
-    { id: "q4" as const, label: "Avez-vous eu une perte de connaissance ?" },
-    { id: "q5" as const, label: "Si vous avez arrêté le sport pendant 30 jours ou plus pour des raisons de santé, avez-vous repris sans l'accord d'un médecin ?" },
-    { id: "q6" as const, label: "Avez-vous débuté un traitement médical de longue durée (hors contraception et désensibilisation aux allergies) ?" },
-    { id: "q7" as const, label: "Ressentez-vous une douleur, un manque de force ou une raideur suite à un problème osseux, articulaire ou musculaire survenu durant les 12 derniers mois ?" },
-    { id: "q8" as const, label: "Votre pratique sportive est-elle interrompue pour des raisons de santé ?" },
-    { id: "q9" as const, label: "Pensez-vous avoir besoin d'un avis médical pour poursuivre votre pratique sportive ?" },
-] as const;
-
 // ─── Étape 1 — Identification ─────────────────────────────────────────────────
 
 function IdentificationForm() {
@@ -179,13 +167,21 @@ function IdentificationForm() {
 
 // ─── Section Questionnaire santé ──────────────────────────────────────────────
 
-function QuestionnaireSection({ token, onDone }: { token: string; onDone: (certificatReq: boolean) => void }) {
+function QuestionnaireSection({
+    token,
+    onDone,
+    questions,
+}: {
+    token: string;
+    onDone: (certificatReq: boolean) => void;
+    questions: { code: string; label: string }[];
+}) {
     const [reponses, setReponses] = useState<Partial<Record<keyof Questionnaire, boolean>>>({});
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const toutesRepondues = QUESTIONS.every(({ id }) => reponses[id] !== undefined);
-    const certificatRequis = QUESTIONS.some(({ id }) => reponses[id] === true);
+    const toutesRepondues = questions.every(({ code }) => reponses[code as keyof Questionnaire] !== undefined);
+    const certificatRequis = questions.some(({ code }) => reponses[code as keyof Questionnaire] === true);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -213,18 +209,18 @@ function QuestionnaireSection({ token, onDone }: { token: string; onDone: (certi
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                {QUESTIONS.map(({ id, label }) => (
-                    <div key={id} className="space-y-1">
+                {questions.map(({ code, label }) => (
+                    <div key={code} className="space-y-1">
                         <p className="text-sm text-gray-800">{label}</p>
                         <div className="flex gap-6">
                             {(["true", "false"] as const).map((val) => (
                                 <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
                                     <input
                                         type="radio"
-                                        name={id}
+                                        name={code}
                                         value={val}
-                                        checked={reponses[id] === (val === "true")}
-                                        onChange={() => setReponses((r) => ({ ...r, [id]: val === "true" }))}
+                                        checked={reponses[code as keyof Questionnaire] === (val === "true")}
+                                        onChange={() => setReponses((r) => ({ ...r, [code]: val === "true" }))}
                                         className="text-[#FF8A00] focus:ring-[#FF8A00]"
                                     />
                                     {val === "true" ? "OUI" : "NON"}
@@ -756,10 +752,12 @@ function DossierVue({
     dossier: initial,
     paiementStatus,
     token,
+    questions,
 }: {
     dossier: DossierData;
     paiementStatus?: "succes" | "annule";
     token: string;
+    questions: { code: string; label: string }[];
 }) {
     const [dossier, setDossier] = useState(initial);
     const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -858,6 +856,7 @@ function DossierVue({
             {questionnaireManquant && (
                 <QuestionnaireSection
                     token={token}
+                    questions={questions}
                     onDone={(certReq) =>
                         setDossier((d) => ({
                             ...d,
@@ -1009,9 +1008,10 @@ function DossierVue({
 interface MonDossierViewProps {
     token?: string;
     paiementStatus?: "succes" | "annule";
+    questions: { code: string; label: string }[];
 }
 
-export default function MonDossierView({ token, paiementStatus }: MonDossierViewProps) {
+export default function MonDossierView({ token, paiementStatus, questions }: MonDossierViewProps) {
     const [dossier, setDossier] = useState<DossierData | null>(null);
     const [loading, setLoading] = useState(!!token);
     const [tokenError, setTokenError] = useState(false);
@@ -1064,7 +1064,7 @@ export default function MonDossierView({ token, paiementStatus }: MonDossierView
 
     return (
         <main className="min-h-screen bg-gray-50 py-20 px-4">
-            {dossier && <DossierVue dossier={dossier} paiementStatus={paiementStatus} token={token} />}
+            {dossier && <DossierVue dossier={dossier} paiementStatus={paiementStatus} token={token} questions={questions} />}
         </main>
     );
 }

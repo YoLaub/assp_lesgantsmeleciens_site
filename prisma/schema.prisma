@@ -69,16 +69,15 @@ enum DocumentType {
 }
 
 model Document {
-  id   String       @id @default(uuid())
-  type DocumentType
-  name String?
-  url  String
-  // isVerified Boolean @default(false)
+  id         String       @id @default(uuid())
+  type       DocumentType
+  name       String?
+  url        String
 
-  adherent   Adherent @relation(fields: [adherentId], references: [id], onDelete: Cascade)
-  adherentId Int
+  membre     Membre       @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  membreId   Int
 
-  createdAt DateTime @default(now())
+  createdAt  DateTime     @default(now())
 }
 
 model Actualite {
@@ -99,7 +98,7 @@ model Actualite {
   updatedAt   DateTime  @updatedAt
 }
 
-// ─── Nouveaux modèles : adhésion, essayants, tarifs ──────────────────────────
+// ─── Nouveaux modèles : adhésion, membres, tarifs ────────────────────────────
 
 enum StatutDocument {
   non_fourni
@@ -118,6 +117,13 @@ enum Categorie {
   adulte
 }
 
+enum StatutMembre {
+  ESSAYANT
+  ACTIF
+  BLOQUE
+  ARCHIVE
+}
+
 model ConfigTarifs {
   id                   Int      @id @default(autoincrement())
   saison               String   @db.VarChar(50)
@@ -127,88 +133,79 @@ model ConfigTarifs {
   supplementOxygene    Decimal  @db.Decimal(8, 2) @default(45.00)
   deductionCouponSport Decimal  @db.Decimal(8, 2) @default(50.00)
   modifieLe            DateTime @default(now())
-  modifiePar           String?  // ID Clerk de l'admin
+  modifiePar           String?
 }
 
-model Adherent {
-  id                    Int              @id @default(autoincrement())
-  numeroAdherent        String           @unique @db.VarChar(10)
-  nom                   String           @db.VarChar(100)
-  prenom                String           @db.VarChar(100)
-  dateDeNaissance       DateTime         @db.Date
-  sexe                  String           @db.VarChar(10)
-  categorie             Categorie
-  photo                 String?          @db.VarChar(255)
-  email                 String           @unique @db.VarChar(150)
-  telephone1            String?          @db.VarChar(20)
-  telephone2            String?          @db.VarChar(20)
-  adresse               String?          @db.Text
-  codePostal            String?          @db.VarChar(5)
-  ville                 String?          @db.VarChar(100)
-  oxygene               Boolean          @default(false)
-  renouvellement        Boolean          @default(false)
-  fnsmr                 Boolean          @default(false)
-  reglementSigne        StatutDocument   @default(non_fourni)
-  certificatMedical     StatutDocument   @default(non_fourni)
-  certificatMedicalReq  Boolean          @default(false)
-  autorisationParentale StatutDocument   @default(non_fourni)
-  couponSport           StatutDocument   @default(non_fourni)
-  bonCaf                StatutDocument   @default(non_fourni)
-  droitImage            Boolean          @default(false)
-  codePassSport         String?          @db.VarChar(100)
-  engagementPrisConnaissance Boolean     @default(false)
-  montantSnapshot       Decimal?         @db.Decimal(8, 2)
-  typePaiement          TypePaiement?
-  stripeSessionId       String?          @db.VarChar(255)
-  inscriptionValide     Boolean          @default(false)
-  dateInscription       DateTime         @default(now())
-  accesToken            String?          @db.VarChar(255)
-  accesTokenExpireLe    DateTime?
-  essayantId            Int?             @unique
-  essayant              Essayant?        @relation(fields: [essayantId], references: [id])
-  questionnaire         QuestionnaireSanteReponses?
-  documents             Document[]
+model Membre {
+  id                         Int            @id @default(autoincrement())
+  statut                     StatutMembre   @default(ESSAYANT)
+
+  nom                        String         @db.VarChar(100)
+  prenom                     String         @db.VarChar(100)
+  email                      String         @unique @db.VarChar(150)
+  telephone                  String?        @db.VarChar(20)
+  dateDeNaissance            DateTime       @db.Date
+  dateCreation               DateTime       @default(now())
+
+  accesToken                 String?        @db.VarChar(255)
+  accesTokenExpireLe         DateTime?
+
+  nombrePresences            Int            @default(0)
+  accesBloque                Boolean        @default(false)
+
+  numeroAdherent             String?        @unique @db.VarChar(10)
+  sexe                       String?        @db.VarChar(10)
+  categorie                  Categorie?
+  photo                      String?        @db.VarChar(255)
+  telephone2                 String?        @db.VarChar(20)
+  adresse                    String?        @db.Text
+  codePostal                 String?        @db.VarChar(5)
+  ville                      String?        @db.VarChar(100)
+  oxygene                    Boolean        @default(false)
+  renouvellement             Boolean        @default(false)
+  fnsmr                      Boolean        @default(false)
+  reglementSigne             StatutDocument @default(non_fourni)
+  certificatMedical          StatutDocument @default(non_fourni)
+  certificatMedicalReq       Boolean        @default(false)
+  autorisationParentale      StatutDocument @default(non_fourni)
+  couponSport                StatutDocument @default(non_fourni)
+  bonCaf                     StatutDocument @default(non_fourni)
+  droitImage                 Boolean        @default(false)
+  codePassSport              String?        @db.VarChar(100)
+  engagementPrisConnaissance Boolean        @default(false)
+  montantSnapshot            Decimal?       @db.Decimal(8, 2)
+  typePaiement               TypePaiement?
+  stripeSessionId            String?        @db.VarChar(255)
+  inscriptionValide          Boolean        @default(false)
+  dateInscription            DateTime?      // null = essayant non encore inscrit ; non-null = dossier ouvert
+
+  presences     PresenceEssai[]
+  questionnaire QuestionnaireSanteReponses?
+  documents     Document[]
 }
 
 model QuestionnaireSanteReponses {
-  id         Int      @id @default(autoincrement())
-  adherentId Int      @unique
-  adherent   Adherent @relation(fields: [adherentId], references: [id], onDelete: Cascade)
-  q1         Boolean
-  q2         Boolean
-  q3         Boolean
-  q4         Boolean
-  q5         Boolean
-  q6         Boolean
-  q7         Boolean
-  q8         Boolean
-  q9         Boolean
-  rempliLe   DateTime @default(now())
-}
-
-model Essayant {
-  id                 Int             @id @default(autoincrement())
-  numeroAdherent     String          @unique @db.VarChar(10)
-  nom                String          @db.VarChar(100)
-  prenom             String          @db.VarChar(100)
-  email              String          @unique @db.VarChar(150)
-  telephone          String          @db.VarChar(20)
-  dateDeNaissance    DateTime        @db.Date
-  nombrePresences    Int             @default(0)
-  accesBloque        Boolean         @default(false)
-  dateCreation       DateTime        @default(now())
-  accesToken         String?         @db.VarChar(255)
-  accesTokenExpireLe DateTime?
-  presences          PresenceEssai[]
-  adherent           Adherent?
+  id       Int    @id @default(autoincrement())
+  membreId Int    @unique
+  membre   Membre @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  q1       Boolean
+  q2       Boolean
+  q3       Boolean
+  q4       Boolean
+  q5       Boolean
+  q6       Boolean
+  q7       Boolean
+  q8       Boolean
+  q9       Boolean
+  rempliLe DateTime @default(now())
 }
 
 model PresenceEssai {
-  id         Int      @id @default(autoincrement())
-  essayantId Int
-  essayant   Essayant @relation(fields: [essayantId], references: [id], onDelete: Cascade)
-  pointeLe   DateTime @default(now())
-  pointePar  String   @db.VarChar(100)
+  id        Int      @id @default(autoincrement())
+  membreId  Int
+  membre    Membre   @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  pointeLe  DateTime @default(now())
+  pointePar String   @db.VarChar(100)
 }
 
 model CoachToken {
@@ -216,13 +213,19 @@ model CoachToken {
   token    String   @unique @db.VarChar(255)
   expireLe DateTime
   creeLe   DateTime @default(now())
-  creePar  String?  // ID Clerk de l'admin
+  creePar  String?
 }
 
 model ReglementInterieur {
   id         Int      @id @default(autoincrement())
   contenu    String   @db.Text
   modifieLe  DateTime @default(now()) @updatedAt
-  modifiePar String?  // ID Clerk de l'admin
+  modifiePar String?
+}
+
+model QuestionnaireSanteQuestion {
+  code  String @id
+  label String @db.Text
+  ordre Int
 }
 

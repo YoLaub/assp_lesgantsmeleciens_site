@@ -47,8 +47,7 @@ interface AdherentFormProps {
         prenom?: string;
         email?: string;
         dateDeNaissance?: string;
-        numeroAdherentExistant?: string;
-        essayantId?: number;
+        membreId?: number;
     };
     readonlyFields?: (keyof FormValues)[];
 }
@@ -133,8 +132,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
             bonCaf: data.bonCaf ?? false,
             codePassSport: data.codePassSport || undefined,
             hcaptchaToken,
-            essayantId: prefill?.essayantId,
-            numeroAdherentExistant: prefill?.numeroAdherentExistant,
+            membreId: prefill?.membreId,
         });
 
         hcaptchaRef.current?.resetCaptcha();

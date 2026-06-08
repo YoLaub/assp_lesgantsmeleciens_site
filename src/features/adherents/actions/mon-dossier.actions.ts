@@ -10,8 +10,8 @@ import { z } from 'zod';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-async function findAdherentByToken(token: string) {
-    return prisma.adherent.findFirst({
+async function findMembreByToken(token: string) {
+    return prisma.membre.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
         include: { questionnaire: true },
     });
@@ -27,23 +27,23 @@ export async function requestAccesDossierAction(input: {
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
-    const adherent = await prisma.adherent.findFirst({
+    const membre = await prisma.membre.findFirst({
         where: { email: input.email, numeroAdherent: input.numeroAdherent },
     });
 
-    if (adherent) {
+    if (membre) {
         const token = crypto.randomUUID();
         const expireLe = new Date(Date.now() + 60 * 60 * 1000); // +1h
 
-        await prisma.adherent.update({
-            where: { id: adherent.id },
+        await prisma.membre.update({
+            where: { id: membre.id },
             data: { accesToken: token, accesTokenExpireLe: expireLe },
         });
 
         try {
             await sendLienAccesDossier({
-                email: adherent.email,
-                prenom: adherent.prenom,
+                email: membre.email,
+                prenom: membre.prenom,
                 token,
             });
         } catch (e) {
@@ -57,50 +57,50 @@ export async function requestAccesDossierAction(input: {
 export async function getMonDossierAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await prisma.adherent.findFirst({
+    const membre = await prisma.membre.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
         include: { questionnaire: true, documents: true },
     });
 
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
     return {
         success: true,
         adherent: {
-            id: adherent.id,
-            numeroAdherent: adherent.numeroAdherent,
-            nom: adherent.nom,
-            prenom: adherent.prenom,
-            email: adherent.email,
-            categorie: adherent.categorie,
-            dateDeNaissance: adherent.dateDeNaissance,
-            telephone1: adherent.telephone1,
-            telephone2: adherent.telephone2,
-            oxygene: adherent.oxygene,
-            reglementSigne: adherent.reglementSigne,
-            certificatMedical: adherent.certificatMedical,
-            certificatMedicalReq: adherent.certificatMedicalReq,
-            autorisationParentale: adherent.autorisationParentale,
-            couponSport: adherent.couponSport,
-            bonCaf: adherent.bonCaf,
-            droitImage: adherent.droitImage,
-            engagementPrisConnaissance: adherent.engagementPrisConnaissance,
-            documents: adherent.documents.map((d) => ({ id: d.id, type: d.type, url: d.url, name: d.name })),
-            montantSnapshot: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : null,
-            typePaiement: adherent.typePaiement,
-            inscriptionValide: adherent.inscriptionValide,
-            stripeSessionId: adherent.stripeSessionId,
-            questionnaire: adherent.questionnaire
+            id: membre.id,
+            numeroAdherent: membre.numeroAdherent,
+            nom: membre.nom,
+            prenom: membre.prenom,
+            email: membre.email,
+            categorie: membre.categorie,
+            dateDeNaissance: membre.dateDeNaissance,
+            telephone1: membre.telephone,
+            telephone2: membre.telephone2,
+            oxygene: membre.oxygene,
+            reglementSigne: membre.reglementSigne,
+            certificatMedical: membre.certificatMedical,
+            certificatMedicalReq: membre.certificatMedicalReq,
+            autorisationParentale: membre.autorisationParentale,
+            couponSport: membre.couponSport,
+            bonCaf: membre.bonCaf,
+            droitImage: membre.droitImage,
+            engagementPrisConnaissance: membre.engagementPrisConnaissance,
+            documents: membre.documents.map((d) => ({ id: d.id, type: d.type, url: d.url, name: d.name })),
+            montantSnapshot: membre.montantSnapshot ? Number(membre.montantSnapshot) : null,
+            typePaiement: membre.typePaiement,
+            inscriptionValide: membre.inscriptionValide,
+            stripeSessionId: membre.stripeSessionId,
+            questionnaire: membre.questionnaire
                 ? {
-                      q1: adherent.questionnaire.q1,
-                      q2: adherent.questionnaire.q2,
-                      q3: adherent.questionnaire.q3,
-                      q4: adherent.questionnaire.q4,
-                      q5: adherent.questionnaire.q5,
-                      q6: adherent.questionnaire.q6,
-                      q7: adherent.questionnaire.q7,
-                      q8: adherent.questionnaire.q8,
-                      q9: adherent.questionnaire.q9,
+                      q1: membre.questionnaire.q1,
+                      q2: membre.questionnaire.q2,
+                      q3: membre.questionnaire.q3,
+                      q4: membre.questionnaire.q4,
+                      q5: membre.questionnaire.q5,
+                      q6: membre.questionnaire.q6,
+                      q7: membre.questionnaire.q7,
+                      q8: membre.questionnaire.q8,
+                      q9: membre.questionnaire.q9,
                   }
                 : null,
         },
@@ -130,30 +130,30 @@ export async function soumettreQuestionnaireAction(
     const parsed = QuestionnaireSchema.safeParse(reponses);
     if (!parsed.success) return { success: false, error: 'Données invalides' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
     const { q1, q2, q3, q4, q5, q6, q7, q8, q9 } = parsed.data;
     const certificatMedicalReq = [q1, q2, q3, q4, q5, q6, q7, q8, q9].some(Boolean);
 
     await prisma.$transaction(async (tx) => {
-        if (adherent.questionnaire) {
+        if (membre.questionnaire) {
             await tx.questionnaireSanteReponses.update({
-                where: { adherentId: adherent.id },
+                where: { membreId: membre.id },
                 data: { q1, q2, q3, q4, q5, q6, q7, q8, q9 },
             });
         } else {
             await tx.questionnaireSanteReponses.create({
-                data: { adherentId: adherent.id, q1, q2, q3, q4, q5, q6, q7, q8, q9 },
+                data: { membreId: membre.id, q1, q2, q3, q4, q5, q6, q7, q8, q9 },
             });
         }
-        await tx.adherent.update({
-            where: { id: adherent.id },
+        await tx.membre.update({
+            where: { id: membre.id },
             data: {
                 certificatMedicalReq,
                 // Si certificat requis et non encore déclaré → reste non_fourni (l'adhérent devra le déclarer)
                 // Si certificat plus requis → repasse à non_fourni
-                certificatMedical: certificatMedicalReq ? adherent.certificatMedical : 'non_fourni',
+                certificatMedical: certificatMedicalReq ? membre.certificatMedical : 'non_fourni',
             },
         });
     });
@@ -164,11 +164,11 @@ export async function soumettreQuestionnaireAction(
 export async function signerReglementAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { reglementSigne: 'declare' },
     });
 
@@ -179,11 +179,11 @@ export async function setTypePaiementAction(token: string, typePaiement: 'sur_pl
     if (!token) return { success: false, error: 'Token manquant' };
     if (!['sur_place', 'en_ligne'].includes(typePaiement)) return { success: false, error: 'Valeur invalide' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { typePaiement: typePaiement as TypePaiement },
     });
 
@@ -193,12 +193,12 @@ export async function setTypePaiementAction(token: string, typePaiement: 'sur_pl
 export async function declarerCertificatAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-    if (!adherent.certificatMedicalReq) return { success: false, error: 'Certificat non requis' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
+    if (!membre.certificatMedicalReq) return { success: false, error: 'Certificat non requis' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { certificatMedical: 'declare' },
     });
 
@@ -218,13 +218,13 @@ export async function updateTelephoneAction(token: string, data: z.infer<typeof 
     const parsed = UpdateTelephoneSchema.safeParse(data);
     if (!parsed.success) return { success: false, error: 'Numéro invalide' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: {
-            telephone1: parsed.data.telephone1,
+            telephone: parsed.data.telephone1,
             telephone2: parsed.data.telephone2 ?? null,
         },
     });
@@ -237,11 +237,11 @@ export async function updateTelephoneAction(token: string, data: z.infer<typeof 
 export async function updateDroitImageAction(token: string, droitImage: boolean) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { droitImage },
     });
 
@@ -253,11 +253,11 @@ export async function updateDroitImageAction(token: string, droitImage: boolean)
 export async function validerEngagementAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { engagementPrisConnaissance: true },
     });
 
@@ -281,19 +281,19 @@ export async function uploadDocumentAdherentAction(
     if (!TYPES_AUTORISES.includes(file.type)) return { success: false, error: 'Format non accepté (JPEG, PNG, WebP, PDF uniquement)' };
     if (file.size > TAILLE_MAX) return { success: false, error: 'Fichier trop volumineux (5 Mo max)' };
 
-    const adherent = await findAdherentByToken(token);
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
     const { url } = await uploadDocumentFile(file, 'documents', type);
 
     await prisma.$transaction(async (tx) => {
         // Remplacer un document du même type s'il existe déjà
-        await tx.document.deleteMany({ where: { adherentId: adherent.id, type: DocumentType[type] } });
+        await tx.document.deleteMany({ where: { membreId: membre.id, type: DocumentType[type] } });
         await tx.document.create({
-            data: { adherentId: adherent.id, type: DocumentType[type], url, name: file.name },
+            data: { membreId: membre.id, type: DocumentType[type], url, name: file.name },
         });
         if (type === 'MEDICAL_CERTIFICATE') {
-            await tx.adherent.update({ where: { id: adherent.id }, data: { certificatMedical: 'declare' } });
+            await tx.membre.update({ where: { id: membre.id }, data: { certificatMedical: 'declare' } });
         }
     });
 
@@ -305,24 +305,24 @@ export async function uploadDocumentAdherentAction(
 export async function createCheckoutAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const adherent = await prisma.adherent.findFirst({
+    const membre = await prisma.membre.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
     });
 
-    if (!adherent) return { success: false, error: 'Lien invalide ou expiré' };
-    if (adherent.typePaiement !== 'en_ligne') return { success: false, error: 'Mode de paiement non applicable' };
-    if (adherent.inscriptionValide) return { success: false, error: 'Inscription déjà validée' };
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
+    if (membre.typePaiement !== 'en_ligne') return { success: false, error: 'Mode de paiement non applicable' };
+    if (membre.inscriptionValide) return { success: false, error: 'Inscription déjà validée' };
 
     // Vérifier que tous les documents requis sont validés
     const documentsRequis = [
-        adherent.reglementSigne,
-        ...(adherent.certificatMedicalReq ? [adherent.certificatMedical] : []),
-        ...(isMineur(adherent.dateDeNaissance) ? [adherent.autorisationParentale] : []),
+        membre.reglementSigne,
+        ...(membre.certificatMedicalReq ? [membre.certificatMedical] : []),
+        ...(isMineur(membre.dateDeNaissance) ? [membre.autorisationParentale] : []),
     ];
     const tousValides = documentsRequis.every((s) => s === 'valide');
     if (!tousValides) return { success: false, error: 'Documents en attente de validation' };
 
-    if (!adherent.montantSnapshot) return { success: false, error: 'Montant introuvable' };
+    if (!membre.montantSnapshot) return { success: false, error: 'Montant introuvable' };
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     const config = await prisma.configTarifs.findFirst({ orderBy: { id: 'desc' } });
@@ -334,7 +334,7 @@ export async function createCheckoutAction(token: string) {
             {
                 price_data: {
                     currency: 'eur',
-                    unit_amount: Math.round(Number(adherent.montantSnapshot) * 100),
+                    unit_amount: Math.round(Number(membre.montantSnapshot) * 100),
                     product_data: { name: `Inscription ${saison} — Les Gants Méléciens` },
                 },
                 quantity: 1,
@@ -344,8 +344,8 @@ export async function createCheckoutAction(token: string) {
         cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/mon-dossier?token=${token}&paiement=annule`,
     });
 
-    await prisma.adherent.update({
-        where: { id: adherent.id },
+    await prisma.membre.update({
+        where: { id: membre.id },
         data: { stripeSessionId: session.id },
     });
 

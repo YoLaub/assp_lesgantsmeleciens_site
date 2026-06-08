@@ -12,7 +12,7 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed": "npx tsx prisma/seed-gallery.ts && npx tsx prisma/seed-disciplines.ts && npx tsx prisma/seed-actualites.ts"
+    "db:seed": "npx tsx prisma/seed-gallery.ts && npx tsx prisma/seed-disciplines.ts && npx tsx prisma/seed-actualites.ts && npx tsx prisma/seed-questionnaire.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.998.0",

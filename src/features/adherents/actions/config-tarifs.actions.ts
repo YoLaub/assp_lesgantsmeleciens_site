@@ -34,6 +34,6 @@ export async function updateConfigTarifsAction(data: z.infer<typeof UpdateConfig
         },
     });
 
-    revalidatePath('/admin/club/config-tarifs');
+    revalidatePath('/admin/config/tarifs');
     return { success: true, config };
 }

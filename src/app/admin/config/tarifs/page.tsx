@@ -12,7 +12,6 @@ export default async function AdminConfigTarifsPage() {
                 <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">Configuration des tarifs</h1>
                 <p className="text-slate-500 text-sm">Les modifications n'affectent pas les montants déjà enregistrés.</p>
             </div>
-
             <ConfigTarifsForm config={config} />
         </div>
     );

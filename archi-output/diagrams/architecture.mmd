@@ -1,0 +1,49 @@
+```mermaid
+graph TB
+  subgraph Navigateur["Navigateur"]
+    FRONT["Pages Front<br/>/(front)/* · /coach"]
+    ADMIN["Back-office Admin<br/>/admin/*"]
+  end
+
+  subgraph Middleware["Middleware (src/proxy.ts)"]
+    MW["clerkMiddleware<br/>auth.protect() sur /admin/*"]
+  end
+
+  subgraph Server["Next.js 16 — Serveur"]
+    SA["Server Actions<br/>features/**/actions/"]
+    CA["Clean Architecture<br/>gallery · disciplines · actualites<br/>domain → data → datasource"]
+    API["API Routes<br/>/api/cron/* · /api/webhooks/stripe"]
+  end
+
+  subgraph Data["Base de données"]
+    PG[("PostgreSQL<br/>Prisma v7 + adapter pg")]
+  end
+
+  subgraph Storage["Stockage fichiers"]
+    CDY["Cloudinary<br/>Images publiques<br/>disciplines · actualites · gallery"]
+    R2["Cloudflare R2<br/>Photos adhérents<br/>via AWS S3 SDK"]
+  end
+
+  subgraph Ext["Services externes"]
+    CLERK["Clerk<br/>Auth admin uniquement"]
+    STRIPE["Stripe<br/>Paiement inscription"]
+    BREVO["Brevo<br/>16 templates email"]
+    HCAP["hCaptcha<br/>Formulaires publics"]
+  end
+
+  FRONT -->|Server Actions| SA
+  ADMIN -->|Server Actions| SA
+  ADMIN -.->|protégé| MW
+  MW -.->|auth.protect| CLERK
+  SA --> CA
+  SA -->|directs sur Prisma<br/>adherents · essayants| PG
+  CA --> PG
+  SA --> CDY
+  SA --> R2
+  SA --> BREVO
+  SA --> STRIPE
+  SA -.->|verify token| HCAP
+  API --> PG
+  API --> BREVO
+  API -->|webhook paiement| STRIPE
+```

@@ -2,7 +2,7 @@
 
 import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
-import { genererNumeroAdherentUnique, calculerCategorie } from '@/shared/lib/adherent-utils';
+import { genererNumeroMembreUnique, calculerCategorie } from '@/shared/lib/adherent-utils';
 import {
     sendConfirmationInscription,
     sendNotificationNouveauDossier,
@@ -22,15 +22,12 @@ const CreateAdherentSchema = z.object({
     bonCaf: z.boolean().default(false),
     codePassSport: z.string().optional(),
     hcaptchaToken: z.string().min(1),
-    // Lien essayant optionnel
-    essayantId: z.number().optional(),
-    numeroAdherentExistant: z.string().optional(),
+    membreId: z.number().optional(), // si fourni → conversion depuis ESSAYANT
 });
 
 export type CreateAdherentInput = z.infer<typeof CreateAdherentSchema>;
 
 export async function createAdherentAction(input: CreateAdherentInput) {
-    // 1. Vérifier hCaptcha
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
@@ -38,74 +35,76 @@ export async function createAdherentAction(input: CreateAdherentInput) {
     if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
 
     const data = parsed.data;
-
-    // 2. Calculer categorie
     const dateNaissance = new Date(data.dateDeNaissance);
     const categorie = calculerCategorie(dateNaissance);
 
-    // 3. Récupérer config tarifs
     const config = await prisma.configTarifs.findFirst({ orderBy: { id: 'desc' } });
     if (!config) return { success: false, error: 'Configuration des tarifs introuvable' };
 
-    // 4. Calculer montantSnapshot (preview basé sur couponSport/bonCaf/oxygène)
-    const tarifBase =
-        categorie === 'enfant' ? Number(config.tarifEnfant)
-        : Number(config.tarifAdulte);
-
+    const tarifBase = categorie === 'enfant' ? Number(config.tarifEnfant) : Number(config.tarifAdulte);
     let montant = tarifBase;
     if (data.oxygene) montant += Number(config.supplementOxygene);
     if (data.couponSport) montant -= Number(config.deductionCouponSport);
 
-    // 5. Vérifier si renouvellement (même email, inscription validée sur saison précédente)
-    const adherentExistant = await prisma.adherent.findFirst({
+    const adherentExistant = await prisma.membre.findFirst({
         where: { email: data.email, inscriptionValide: true },
         select: { id: true },
     });
     const renouvellement = adherentExistant !== null;
 
-    // 6. Générer ou réutiliser le numéro adhérent
-    const numeroAdherent = data.numeroAdherentExistant ?? await genererNumeroAdherentUnique();
-
     try {
-        // 7. Créer l'adhérent en transaction (sans questionnaire — rempli dans mon-dossier)
-        const adherent = await prisma.$transaction(async (tx) => {
-            const a = await tx.adherent.create({
-                data: {
-                    numeroAdherent,
-                    nom: data.nom,
-                    prenom: data.prenom,
-                    dateDeNaissance: dateNaissance,
-                    sexe: data.sexe,
-                    email: data.email,
-                    ...(data.telephone1 ? { telephone1: data.telephone1 } : {}),
-                    oxygene: data.oxygene,
-                    categorie,
-                    renouvellement,
-                    couponSport: data.couponSport ? StatutDocument.declare : StatutDocument.non_fourni,
-                    bonCaf: data.bonCaf ? StatutDocument.declare : StatutDocument.non_fourni,
-                    ...(data.codePassSport ? { codePassSport: data.codePassSport } : {}),
-                    montantSnapshot: montant,
-                    essayantId: data.essayantId,
-                },
-            });
+        const membre = await prisma.$transaction(async (tx) => {
+            const inscriptionData = {
+                statut: 'ACTIF' as const,
+                sexe: data.sexe,
+                categorie,
+                ...(data.telephone1 ? { telephone: data.telephone1 } : {}),
+                oxygene: data.oxygene,
+                renouvellement,
+                couponSport: data.couponSport ? StatutDocument.declare : StatutDocument.non_fourni,
+                bonCaf: data.bonCaf ? StatutDocument.declare : StatutDocument.non_fourni,
+                ...(data.codePassSport ? { codePassSport: data.codePassSport } : {}),
+                montantSnapshot: montant,
+                dateInscription: new Date(),
+            };
 
-            // Si conversion depuis essayant, mettre à jour le lien
-            if (data.essayantId) {
-                await tx.essayant.update({
-                    where: { id: data.essayantId },
-                    data: { adherent: { connect: { id: a.id } } },
+            if (data.membreId) {
+                return tx.membre.update({
+                    where: { id: data.membreId },
+                    data: {
+                        ...inscriptionData,
+                        nom: data.nom,
+                        prenom: data.prenom,
+                        email: data.email,
+                        dateDeNaissance: dateNaissance,
+                    },
+                });
+            } else {
+                const numeroAdherent = await genererNumeroMembreUnique();
+                return tx.membre.create({
+                    data: {
+                        ...inscriptionData,
+                        nom: data.nom,
+                        prenom: data.prenom,
+                        email: data.email,
+                        telephone: data.telephone1 ?? null,
+                        dateDeNaissance: dateNaissance,
+                        numeroAdherent,
+                    },
                 });
             }
-
-            return a;
         });
 
-        // 7. Envoyer emails (hors transaction) — await pour garantir l'exécution sur Vercel serverless
+        if (!membre.numeroAdherent) {
+            console.error('[createAdherentAction] numeroAdherent manquant après transaction');
+            return { success: true, numeroAdherent: null };
+        }
+
         try {
             await sendConfirmationInscription({
-                email: adherent.email,
-                prenom: adherent.prenom,
-                numeroAdherent: adherent.numeroAdherent,
+                email: membre.email,
+                prenom: membre.prenom,
+                numeroAdherent: membre.numeroAdherent,
                 certificatRequis: false,
             });
         } catch (e) {
@@ -114,29 +113,26 @@ export async function createAdherentAction(input: CreateAdherentInput) {
 
         try {
             await sendNotificationNouveauDossier({
-                nom: adherent.nom,
-                prenom: adherent.prenom,
-                numeroAdherent: adherent.numeroAdherent,
+                nom: membre.nom,
+                prenom: membre.prenom,
+                numeroAdherent: membre.numeroAdherent,
                 categorie: String(categorie),
                 montant,
                 typePaiement: null,
                 certificatRequis: false,
-                adherentId: adherent.id,
+                adherentId: membre.id,
             });
         } catch (e) {
             console.error('[createAdherentAction] sendNotificationNouveauDossier', e);
         }
 
-        return {
-            success: true,
-            numeroAdherent: adherent.numeroAdherent,
-        };
+        return { success: true, numeroAdherent: membre.numeroAdherent };
     } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : 'Erreur inattendue';
         if (msg.includes('Unique constraint') && msg.includes('email')) {
             return { success: false, error: 'Un dossier existe déjà avec cet email.' };
         }
         console.error('[createAdherentAction]', error);
-        return { success: false, error: 'Une erreur est survenue lors de l\'enregistrement.' };
+        return { success: false, error: "Une erreur est survenue lors de l'enregistrement." };
     }
 }

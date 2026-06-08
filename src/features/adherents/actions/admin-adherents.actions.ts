@@ -36,7 +36,8 @@ async function requireAdmin() {
 
 export async function getAdherentsAction() {
     await requireAdmin();
-    return prisma.adherent.findMany({
+    return prisma.membre.findMany({
+        where: { statut: { not: 'ESSAYANT' } },
         include: { questionnaire: true },
         orderBy: { dateInscription: 'desc' },
     });
@@ -44,7 +45,7 @@ export async function getAdherentsAction() {
 
 export async function getAdherentByIdAction(id: number) {
     await requireAdmin();
-    return prisma.adherent.findUnique({
+    return prisma.membre.findUnique({
         where: { id },
         include: { questionnaire: true, documents: true },
     });
@@ -63,7 +64,7 @@ export async function patchAdherentAction(id: number, data: z.infer<typeof Patch
         )
     );
 
-    await prisma.adherent.update({ where: { id }, data: safeData });
+    await prisma.membre.update({ where: { id }, data: safeData });
     revalidatePath('/admin/club/adherents');
     revalidatePath(`/admin/club/adherents/${id}`);
 
@@ -85,10 +86,10 @@ export async function validerDocumentAdminAction(
 ) {
     await requireAdmin();
 
-    const adherent = await prisma.adherent.findUnique({ where: { id }, select: { email: true, prenom: true, bonCaf: true } });
-    if (!adherent) return { success: false, error: 'Adhérent introuvable' };
+    const membre = await prisma.membre.findUnique({ where: { id }, select: { email: true, prenom: true, bonCaf: true } });
+    if (!membre) return { success: false, error: 'Adhérent introuvable' };
 
-    await prisma.adherent.update({ where: { id }, data: { [field]: statut } });
+    await prisma.membre.update({ where: { id }, data: { [field]: statut } });
     revalidatePath('/admin/club/adherents');
     revalidatePath(`/admin/club/adherents/${id}`);
 
@@ -97,12 +98,12 @@ export async function validerDocumentAdminAction(
     try {
         if (statut === 'valide') {
             if (field === 'bonCaf') {
-                await sendBonCafValide({ email: adherent.email, prenom: adherent.prenom });
+                await sendBonCafValide({ email: membre.email, prenom: membre.prenom });
             } else {
-                await sendDocumentValide({ email: adherent.email, prenom: adherent.prenom, labelDocument: label });
+                await sendDocumentValide({ email: membre.email, prenom: membre.prenom, labelDocument: label });
             }
         } else {
-            await sendDocumentRejete({ email: adherent.email, prenom: adherent.prenom, labelDocument: label });
+            await sendDocumentRejete({ email: membre.email, prenom: membre.prenom, labelDocument: label });
         }
     } catch (e) {
         console.error('[validerDocumentAdminAction] email:', e);

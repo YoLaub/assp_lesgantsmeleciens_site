@@ -21,7 +21,7 @@ interface AdherentDetailData {
     sexe: string;
     categorie: string;
     email: string;
-    telephone1: string | null;
+    telephone: string | null;
     telephone2: string | null;
     adresse: string | null;
     codePostal: string | null;
@@ -216,8 +216,8 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         <div className="flex items-center gap-3 text-slate-700">
                             <Phone className="w-4 h-4 text-slate-400" />
                             <span>
-                                {adherent.telephone1
-                                    ? `${adherent.telephone1}${adherent.telephone2 ? ` / ${adherent.telephone2}` : ""}`
+                                {adherent.telephone
+                                    ? `${adherent.telephone}${adherent.telephone2 ? ` / ${adherent.telephone2}` : ""}`
                                     : <span className="text-slate-400 italic">Non renseigné</span>}
                             </span>
                         </div>

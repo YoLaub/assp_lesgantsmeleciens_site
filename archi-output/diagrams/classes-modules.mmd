@@ -1,0 +1,117 @@
+```mermaid
+classDiagram
+  direction TB
+
+  %% ── Pattern Clean Architecture (gallery · actualites · disciplines) ──
+
+  class ImageRepository {
+    <<interface>>
+    +getAll() Image[]
+    +getByCategory(slug) Image[]
+    +save(data) Image
+    +saveMany(data) Image[]
+    +delete(id) void
+    +bulkDelete(ids) void
+    +reorder(items) void
+  }
+
+  class ImageRepositoryImpl {
+    -datasource ImagePostgresDatasource
+    +getAll() Image[]
+    +save(data) Image
+    +bulkDelete(ids) void
+    +reorder(items) void
+  }
+
+  class ImagePostgresDatasource {
+    -prisma PrismaClient
+    +findAll() Image[]
+    +upsert(data) Image
+    +deleteMany(ids) void
+  }
+
+  class ActualiteRepository {
+    <<interface>>
+    +getAll() Actualite[]
+    +getActive() Actualite[]
+    +getFeatured() Actualite
+    +getById(id) Actualite
+    +save(data) Actualite
+    +reorder(ids) void
+  }
+
+  class ActualiteRepositoryImpl {
+    -datasource ActualitePostgresDatasource
+  }
+
+  class DisciplineRepository {
+    <<interface>>
+    +getAll() Discipline[]
+    +getActive() Discipline[]
+    +getById(id) Discipline
+    +save(data) Discipline
+    +reorder(ids) void
+  }
+
+  class DisciplineRepositoryImpl {
+    -datasource DisciplinePostgresDatasource
+  }
+
+  ImageRepositoryImpl ..|> ImageRepository : implements
+  ImageRepositoryImpl --> ImagePostgresDatasource : uses
+  ActualiteRepositoryImpl ..|> ActualiteRepository : implements
+  DisciplineRepositoryImpl ..|> DisciplineRepository : implements
+
+  %% ── Use Cases (exemple gallery) ──
+
+  class SaveGalleryImageUseCase {
+    -repo ImageRepository
+    +execute(data) Image
+  }
+
+  class BulkDeleteGalleryImagesUseCase {
+    -repo ImageRepository
+    +execute(ids) void
+  }
+
+  class ReorderGalleryImagesUseCase {
+    -repo ImageRepository
+    +execute(items) void
+  }
+
+  SaveGalleryImageUseCase --> ImageRepository : uses
+  BulkDeleteGalleryImagesUseCase --> ImageRepository : uses
+  ReorderGalleryImagesUseCase --> ImageRepository : uses
+
+  %% ── Pattern direct SA + Prisma (adherents · essayants) ──
+
+  class AdherentsServerActions {
+    <<Server Actions>>
+    +createAdherentAction(input) void
+    +getMonDossierAction(token) Dossier
+    +uploadDocumentAdherentAction(token, file, type) void
+    +createCheckoutAction(token) Session
+    +validerEngagementAction(token) void
+  }
+
+  class EssayantsServerActions {
+    <<Server Actions>>
+    +createEssayantAction(input) void
+    +pointerPresenceAction(id, coachToken, nom) void
+    +getMonEssaiAction(token) Essai
+    +genererCoachTokenAction() CoachToken
+    +getEssayantsForCoachAction(coachToken) Essayant[]
+  }
+
+  class PrismaClient {
+    +adherent CRUD
+    +essayant CRUD
+    +document CRUD
+    +coachToken CRUD
+    +configTarifs CRUD
+    +reglementInterieur CRUD
+  }
+
+  AdherentsServerActions --> PrismaClient : accès direct
+  EssayantsServerActions --> PrismaClient : accès direct
+```

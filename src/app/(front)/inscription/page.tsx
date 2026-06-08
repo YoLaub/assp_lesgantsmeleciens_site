@@ -21,10 +21,9 @@ export default async function InscriptionPage({ searchParams }: InscriptionPageP
                 nom: result.data.nom,
                 prenom: result.data.prenom,
                 email: result.data.email,
-                telephone1: result.data.telephone,
+                telephone1: result.data.telephone ?? undefined,
                 dateDeNaissance: result.data.dateDeNaissance,
-                numeroAdherentExistant: result.data.numeroAdherent,
-                essayantId: result.data.id,
+                membreId: result.data.id,
             };
         }
     }

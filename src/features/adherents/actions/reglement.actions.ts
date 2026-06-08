@@ -36,6 +36,6 @@ export async function updateReglementAction(data: z.infer<typeof UpdateReglement
         });
     }
 
-    revalidatePath('/admin/settings/reglement');
+    revalidatePath('/admin/config/reglement');
     return { success: true as const };
 }

@@ -1,0 +1,107 @@
+```mermaid
+graph LR
+  subgraph Acteurs
+    V((Visiteur))
+    ADH((Adhérent<br/>token email))
+    ESS((Essayant<br/>token email))
+    COACH((Coach<br/>CoachToken))
+    ADM((Admin<br/>Clerk))
+  end
+
+  subgraph "Site public"
+    UC1[Consulter l'accueil]
+    UC2[Voir les actualités]
+    UC3[Voir les disciplines]
+    UC4[Voir la galerie]
+    UC5[S'inscrire à l'association]
+    UC6[Demander un essai libre]
+    UC7[Consulter les mentions légales]
+    UC8[Demander lien accès dossier]
+    UC9[Demander lien accès essai]
+  end
+
+  subgraph "Espace adhérent"
+    UC10[Consulter son dossier]
+    UC11[Signer le règlement]
+    UC12[Remplir questionnaire santé]
+    UC13[Uploader un document]
+    UC14[Déclarer certificat médical]
+    UC15[Choisir mode de paiement]
+    UC16[Payer en ligne via Stripe]
+    UC17[Valider l'engagement]
+    UC18[Mettre à jour téléphone]
+    UC19[Gérer droit à l'image]
+  end
+
+  subgraph "Espace essayant"
+    UC20[Voir son suivi d'essai]
+    UC21[Consulter ses présences]
+    UC22[Demander conversion en adhérent]
+  end
+
+  subgraph "Portail coach"
+    UC23[Voir les essayants du jour]
+    UC24[Pointer une présence]
+  end
+
+  subgraph "Administration contenu"
+    UC25[Gérer les actualités]
+    UC26[Gérer les disciplines]
+    UC27[Gérer la galerie]
+    UC28[Réordonner les éléments]
+  end
+
+  subgraph "Administration club"
+    UC29[Voir la liste des adhérents]
+    UC30[Consulter un dossier adhérent]
+    UC31[Valider un document]
+    UC32[Uploader photo adhérent]
+    UC33[Voir les essayants]
+    UC34[Gérer les tokens coach]
+    UC35[Configurer les tarifs]
+    UC36[Éditer le règlement intérieur]
+    UC37[Accéder au dashboard]
+  end
+
+  V --> UC1
+  V --> UC2
+  V --> UC3
+  V --> UC4
+  V --> UC5
+  V --> UC6
+  V --> UC7
+  V --> UC8
+  V --> UC9
+
+  ADH --> UC10
+  ADH --> UC11
+  ADH --> UC12
+  ADH --> UC13
+  ADH --> UC14
+  ADH --> UC15
+  ADH --> UC16
+  ADH --> UC17
+  ADH --> UC18
+  ADH --> UC19
+
+  ESS --> UC20
+  ESS --> UC21
+  ESS --> UC22
+
+  COACH --> UC23
+  COACH --> UC24
+
+  ADM --> UC25
+  ADM --> UC26
+  ADM --> UC27
+  ADM --> UC28
+  ADM --> UC29
+  ADM --> UC30
+  ADM --> UC31
+  ADM --> UC32
+  ADM --> UC33
+  ADM --> UC34
+  ADM --> UC35
+  ADM --> UC36
+  ADM --> UC37
+```
