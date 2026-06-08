@@ -99,7 +99,7 @@ export async function AdminDashboard() {
                                         key={adh.id}
                                         type="club"
                                         text={`Nouvelle inscription : ${adh.prenom} ${adh.nom}`}
-                                        time={getTimeAgo(adh.dateInscription)}
+                                        time={getTimeAgo(adh.dateInscription ?? undefined)}
                                         icon={PlusCircle}
                                         dotColor="bg-slate-900"
                                     />

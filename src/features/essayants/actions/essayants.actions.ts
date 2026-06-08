@@ -3,7 +3,7 @@
 import { prisma } from '@/shared/lib/prisma';
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
 import { auth } from '@clerk/nextjs/server';
-import { genererNumeroEssayantUnique } from '@/shared/lib/adherent-utils';
+import { genererNumeroMembreUnique } from '@/shared/lib/adherent-utils';
 import {
     sendBienvenueEssayant,
     sendNotificationNouvelEssayant,
@@ -33,14 +33,15 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
     if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
 
     const data = parsed.data;
-    const numeroAdherent = await genererNumeroEssayantUnique();
+    const numeroAdherent = await genererNumeroMembreUnique();
 
     try {
         const accesToken = crypto.randomUUID();
-        const accesTokenExpireLe = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+        const accesTokenExpireLe = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-        const essayant = await prisma.essayant.create({
+        const membre = await prisma.membre.create({
             data: {
+                statut: 'ESSAYANT',
                 numeroAdherent,
                 nom: data.nom,
                 prenom: data.prenom,
@@ -53,12 +54,12 @@ export async function createEssayantAction(input: z.infer<typeof CreateEssayantS
         });
 
         try {
-            await sendBienvenueEssayant({ email: essayant.email, prenom: essayant.prenom, numeroAdherent, accesToken });
+            await sendBienvenueEssayant({ email: membre.email, prenom: membre.prenom, numeroAdherent, accesToken });
         } catch (e) {
             console.error('[createEssayantAction] sendBienvenueEssayant', e);
         }
         try {
-            await sendNotificationNouvelEssayant({ nom: essayant.nom, prenom: essayant.prenom, numeroAdherent, email: essayant.email, telephone: essayant.telephone });
+            await sendNotificationNouvelEssayant({ nom: membre.nom, prenom: membre.prenom, numeroAdherent, email: membre.email, telephone: membre.telephone ?? '' });
         } catch (e) {
             console.error('[createEssayantAction] sendNotificationNouvelEssayant', e);
         }
@@ -84,21 +85,21 @@ export async function requestAccesEssaiAction(input: {
     const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
     if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { email: input.email, numeroAdherent: input.numeroAdherent },
+    const membre = await prisma.membre.findFirst({
+        where: { email: input.email, numeroAdherent: input.numeroAdherent, statut: 'ESSAYANT' },
     });
 
-    if (essayant) {
+    if (membre) {
         const token = crypto.randomUUID();
         const expireLe = new Date(Date.now() + 60 * 60 * 1000);
 
-        await prisma.essayant.update({
-            where: { id: essayant.id },
+        await prisma.membre.update({
+            where: { id: membre.id },
             data: { accesToken: token, accesTokenExpireLe: expireLe },
         });
 
         try {
-            await sendLienAccesEssai({ email: essayant.email, prenom: essayant.prenom, token });
+            await sendLienAccesEssai({ email: membre.email, prenom: membre.prenom, token });
         } catch (e) {
             console.error('[requestAccesEssaiAction] sendLienAccesEssai', e);
         }
@@ -112,67 +113,64 @@ export async function requestAccesEssaiAction(input: {
 export async function getMonEssaiAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
+    const membre = await prisma.membre.findFirst({
+        where: { statut: 'ESSAYANT', accesToken: token, accesTokenExpireLe: { gt: new Date() } },
         include: { presences: { orderBy: { pointeLe: 'asc' } } },
     });
 
-    if (!essayant) return { success: false, error: 'Lien invalide ou expiré' };
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
     return {
         success: true,
         essayant: {
-            id: essayant.id,
-            numeroAdherent: essayant.numeroAdherent,
-            nom: essayant.nom,
-            prenom: essayant.prenom,
-            nombrePresences: essayant.nombrePresences,
-            accesBloque: essayant.accesBloque,
+            id: membre.id,
+            numeroAdherent: membre.numeroAdherent,
+            nom: membre.nom,
+            prenom: membre.prenom,
+            nombrePresences: membre.nombrePresences,
+            accesBloque: membre.accesBloque,
         },
-        accesToken: essayant.accesToken,
+        accesToken: membre.accesToken,
     };
 }
 
 // ─── Pointage présence (coach) ───────────────────────────────────────────────
 
 export async function pointerPresenceAction(essayantId: number, coachToken: string, nomCoach: string) {
-    // Vérifier le coach token
     const token = await prisma.coachToken.findFirst({
         where: { token: coachToken, expireLe: { gt: new Date() } },
     });
     if (!token) return { success: false, error: 'Token coach invalide ou expiré' };
 
-    const essayant = await prisma.essayant.findUnique({ where: { id: essayantId } });
-    if (!essayant) return { success: false, error: 'Essayant introuvable' };
-    if (essayant.accesBloque) return { success: false, error: 'Accès bloqué — 3 cours déjà effectués' };
+    const membre = await prisma.membre.findUnique({ where: { id: essayantId } });
+    if (!membre || membre.statut !== 'ESSAYANT') return { success: false, error: 'Essayant introuvable' };
+    if (membre.accesBloque) return { success: false, error: 'Accès bloqué — 3 cours déjà effectués' };
 
-    const nouvPresences = essayant.nombrePresences + 1;
+    const nouvPresences = membre.nombrePresences + 1;
 
     await prisma.$transaction([
         prisma.presenceEssai.create({
-            data: { essayantId, pointePar: nomCoach },
+            data: { membreId: essayantId, pointePar: nomCoach },
         }),
-        prisma.essayant.update({
+        prisma.membre.update({
             where: { id: essayantId },
             data: {
                 nombrePresences: nouvPresences,
                 accesBloque: nouvPresences >= 3,
-                // Générer un token d'accès pour le lien de conversion si 3ème présence
                 ...(nouvPresences === 3 ? {
                     accesToken: crypto.randomUUID(),
-                    accesTokenExpireLe: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
+                    accesTokenExpireLe: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
                 } : {}),
             },
         }),
     ]);
 
-    // Emails
     if (nouvPresences === 1 || nouvPresences === 2) {
         try {
             await sendRelanceEssayant({
-                email: essayant.email,
-                prenom: essayant.prenom,
-                numeroAdherent: essayant.numeroAdherent,
+                email: membre.email,
+                prenom: membre.prenom,
+                numeroAdherent: membre.numeroAdherent!,
                 nombrePresences: nouvPresences,
             });
         } catch (e) {
@@ -181,13 +179,13 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
     }
 
     if (nouvPresences === 3) {
-        const updated = await prisma.essayant.findUnique({ where: { id: essayantId } });
+        const updated = await prisma.membre.findUnique({ where: { id: essayantId } });
         if (updated?.accesToken) {
             try {
                 await sendConversionEssayant({
-                    email: essayant.email,
-                    prenom: essayant.prenom,
-                    numeroAdherent: essayant.numeroAdherent,
+                    email: membre.email,
+                    prenom: membre.prenom,
+                    numeroAdherent: membre.numeroAdherent!,
                     accesToken: updated.accesToken,
                 });
             } catch (e) {
@@ -196,9 +194,9 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
         }
         try {
             await sendNotificationConversionAdmin({
-                nom: essayant.nom,
-                prenom: essayant.prenom,
-                numeroAdherent: essayant.numeroAdherent,
+                nom: membre.nom,
+                prenom: membre.prenom,
+                numeroAdherent: membre.numeroAdherent!,
             });
         } catch (e) {
             console.error('[pointerPresenceAction] sendNotificationConversionAdmin', e);
@@ -213,22 +211,22 @@ export async function pointerPresenceAction(essayantId: number, coachToken: stri
 export async function getEssayantConversionDataAction(token: string) {
     if (!token) return { success: false, error: 'Token manquant' };
 
-    const essayant = await prisma.essayant.findFirst({
-        where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
+    const membre = await prisma.membre.findFirst({
+        where: { statut: 'ESSAYANT', accesToken: token, accesTokenExpireLe: { gt: new Date() } },
     });
 
-    if (!essayant) return { success: false, error: 'Lien invalide ou expiré' };
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
     return {
         success: true,
         data: {
-            id: essayant.id,
-            nom: essayant.nom,
-            prenom: essayant.prenom,
-            email: essayant.email,
-            telephone: essayant.telephone,
-            dateDeNaissance: essayant.dateDeNaissance.toISOString().split('T')[0],
-            numeroAdherent: essayant.numeroAdherent,
+            id: membre.id,
+            nom: membre.nom,
+            prenom: membre.prenom,
+            email: membre.email,
+            telephone: membre.telephone ?? '',
+            dateDeNaissance: membre.dateDeNaissance.toISOString().split('T')[0],
+            numeroAdherent: membre.numeroAdherent,
         },
     };
 }
@@ -240,7 +238,7 @@ export async function genererCoachTokenAction() {
     if (!userId) return { success: false, error: 'Non autorisé' };
 
     const token = crypto.randomUUID();
-    const expireLe = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 jours
+    const expireLe = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     await prisma.coachToken.create({
         data: { token, expireLe, creePar: userId },
@@ -254,10 +252,7 @@ export async function getCoachTokenActifAction() {
     const { userId } = await auth();
     if (!userId) return { success: false, error: 'Non autorisé' };
 
-    const coachToken = await prisma.coachToken.findFirst({
-        orderBy: { creeLe: 'desc' },
-    });
-
+    const coachToken = await prisma.coachToken.findFirst({ orderBy: { creeLe: 'desc' } });
     if (!coachToken) return { success: true, token: null };
 
     return {
@@ -279,8 +274,8 @@ export async function getEssayantsForCoachAction(coachToken: string) {
     });
     if (!token) return { success: false, error: 'Token invalide ou expiré' };
 
-    const essayants = await prisma.essayant.findMany({
-        where: { adherent: null }, // non convertis uniquement
+    const essayants = await prisma.membre.findMany({
+        where: { statut: 'ESSAYANT' },
         orderBy: { nom: 'asc' },
         select: {
             id: true,

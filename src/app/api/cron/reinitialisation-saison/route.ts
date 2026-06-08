@@ -8,12 +8,12 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const adherents = await prisma.adherent.findMany({
+    const adherents = await prisma.membre.findMany({
         where: { inscriptionValide: true },
         select: { id: true, email: true, prenom: true },
     });
 
-    await prisma.adherent.updateMany({
+    await prisma.membre.updateMany({
         where: { inscriptionValide: true },
         data: { inscriptionValide: false },
     });

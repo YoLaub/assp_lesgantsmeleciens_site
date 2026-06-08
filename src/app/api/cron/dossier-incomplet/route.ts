@@ -11,8 +11,9 @@ export async function GET(req: NextRequest) {
     const ilYaUnMois = new Date();
     ilYaUnMois.setDate(ilYaUnMois.getDate() - 30);
 
-    const adherents = await prisma.adherent.findMany({
+    const adherents = await prisma.membre.findMany({
         where: {
+            statut: { not: 'ESSAYANT' },
             inscriptionValide: false,
             dateInscription: { lt: ilYaUnMois },
         },
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
             await sendRappelDossierIncomplet({
                 email: adherent.email,
                 prenom: adherent.prenom,
-                numeroAdherent: adherent.numeroAdherent,
+                numeroAdherent: adherent.numeroAdherent ?? '',
             });
             envoyes++;
         } catch (e) {

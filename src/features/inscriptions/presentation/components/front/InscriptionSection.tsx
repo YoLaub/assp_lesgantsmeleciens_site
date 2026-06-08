@@ -11,8 +11,7 @@ interface PrefillData {
     email?: string;
     telephone1?: string;
     dateDeNaissance?: string;
-    numeroAdherentExistant?: string;
-    essayantId?: number;
+    membreId?: number;
 }
 
 interface InscriptionSectionProps {

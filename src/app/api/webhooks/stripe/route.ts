@@ -21,12 +21,12 @@ export async function POST(req: NextRequest) {
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        const adherent = await prisma.adherent.findFirst({
+        const adherent = await prisma.membre.findFirst({
             where: { stripeSessionId: session.id },
         });
 
         if (adherent) {
-            await prisma.adherent.update({
+            await prisma.membre.update({
                 where: { id: adherent.id },
                 data: { inscriptionValide: true },
             });
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
                 await sendConfirmationPaiement({
                     email: adherent.email,
                     prenom: adherent.prenom,
-                    numeroAdherent: adherent.numeroAdherent,
+                    numeroAdherent: adherent.numeroAdherent ?? '',
                     montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
                     saison: config?.saison ?? 'en cours',
                 });
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
                 await sendNotificationPaiementRecu({
                     nom: adherent.nom,
                     prenom: adherent.prenom,
-                    numeroAdherent: adherent.numeroAdherent,
+                    numeroAdherent: adherent.numeroAdherent ?? '',
                     montant: adherent.montantSnapshot ? Number(adherent.montantSnapshot) : 0,
                 });
             } catch (e) {
