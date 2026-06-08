@@ -7,7 +7,11 @@ import { X, Play } from "lucide-react";
 import headerBg from "@/../public/Header.webp";
 import logoBlanc from "@/../public/logoBlanc.webp";
 
-const VIDEO_URL = process.env.NEXT_PUBLIC_HERO_VIDEO_URL ?? "";
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
+const videoPublicId = process.env.NEXT_PUBLIC_HERO_VIDEO_PUBLIC_ID ?? "";
+const VIDEO_URL = cloudName && videoPublicId
+    ? `https://res.cloudinary.com/${cloudName}/video/upload/q_auto/${videoPublicId}`
+    : "";
 
 export function Header() {
     const [videoOpen, setVideoOpen] = useState(false);
