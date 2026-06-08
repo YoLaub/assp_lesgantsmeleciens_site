@@ -1,0 +1,170 @@
+```mermaid
+erDiagram
+
+  IMAGE_CATEGORY {
+    uuid id PK
+    string name
+    string slug UK
+  }
+
+  IMAGE {
+    uuid id PK
+    string title
+    string alt
+    string publicId
+    int version
+    string format
+    int width
+    int height
+    int bytes
+    string blurDataUrl
+    int order
+    uuid categoryId FK
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  DISCIPLINE {
+    uuid id PK
+    string title
+    string coach
+    string category
+    text citation
+    text description
+    string[] tags
+    boolean active
+    string[] imageOrder
+    uuid coachImageId FK
+    json seo
+    int order
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  ACTUALITE {
+    uuid id PK
+    string title
+    text description
+    string[] tags
+    boolean active
+    boolean featured
+    string[] imageOrder
+    json seo
+    int order
+    datetime publishedAt
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  ADHERENT {
+    int id PK
+    string numeroAdherent UK
+    string nom
+    string prenom
+    date dateDeNaissance
+    string sexe
+    enum categorie
+    string email UK
+    string telephone1
+    string adresse
+    boolean oxygene
+    boolean renouvellement
+    enum reglementSigne
+    enum certificatMedical
+    enum autorisationParentale
+    enum couponSport
+    enum bonCaf
+    boolean droitImage
+    boolean engagementPrisConnaissance
+    decimal montantSnapshot
+    enum typePaiement
+    string stripeSessionId
+    boolean inscriptionValide
+    string accesToken
+    datetime accesTokenExpireLe
+    int essayantId FK
+    datetime dateInscription
+  }
+
+  QUESTIONNAIRE_SANTE {
+    int id PK
+    int adherentId FK
+    boolean q1
+    boolean q2
+    boolean q3
+    boolean q4
+    boolean q5
+    boolean q6
+    boolean q7
+    boolean q8
+    boolean q9
+    datetime rempliLe
+  }
+
+  DOCUMENT {
+    uuid id PK
+    enum type
+    string name
+    string url
+    int adherentId FK
+    datetime createdAt
+  }
+
+  ESSAYANT {
+    int id PK
+    string numeroAdherent UK
+    string nom
+    string prenom
+    string email UK
+    string telephone
+    date dateDeNaissance
+    int nombrePresences
+    boolean accesBloque
+    string accesToken
+    datetime accesTokenExpireLe
+    datetime dateCreation
+  }
+
+  PRESENCE_ESSAI {
+    int id PK
+    int essayantId FK
+    datetime pointeLe
+    string pointePar
+  }
+
+  COACH_TOKEN {
+    int id PK
+    string token UK
+    datetime expireLe
+    datetime creeLe
+    string creePar
+  }
+
+  CONFIG_TARIFS {
+    int id PK
+    string saison
+    decimal tarifEnfant
+    decimal tarifAdos
+    decimal tarifAdulte
+    decimal supplementOxygene
+    decimal deductionCouponSport
+    datetime modifieLe
+    string modifiePar
+  }
+
+  REGLEMENT_INTERIEUR {
+    int id PK
+    text contenu
+    datetime modifieLe
+    string modifiePar
+  }
+
+  IMAGE_CATEGORY ||--o{ IMAGE : "contient"
+  IMAGE }o--o{ ACTUALITE : "illustre"
+  IMAGE }o--o{ DISCIPLINE : "illustre"
+  IMAGE |o--o{ DISCIPLINE : "photo coach"
+  ADHERENT ||--o{ DOCUMENT : "possède"
+  ADHERENT ||--o| QUESTIONNAIRE_SANTE : "remplit"
+  ADHERENT |o--|| ESSAYANT : "converti depuis"
+  ESSAYANT ||--o{ PRESENCE_ESSAI : "cumule"
+```
