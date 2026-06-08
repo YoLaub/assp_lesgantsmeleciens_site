@@ -226,3 +226,9 @@ model ReglementInterieur {
   modifiePar String?  // ID Clerk de l'admin
 }
 
+model QuestionnaireSanteQuestion {
+  code  String @id
+  label String @db.Text
+  ordre Int
+}
+
