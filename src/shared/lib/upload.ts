@@ -23,9 +23,17 @@ function getR2Client() {
 }
 
 async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
+    const accountId = process.env.R2_ACCOUNT_ID;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const bucket = process.env.R2_BUCKET_NAME;
+
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucket) {
+        throw new Error('Variables R2 manquantes (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME)');
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
     const r2 = getR2Client();
-    const bucket = process.env.R2_BUCKET_NAME ?? '';
 
     await r2.send(new PutObjectCommand({
         Bucket: bucket,
@@ -34,8 +42,7 @@ async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
         ContentType: file.type,
     }));
 
-    // URL publique du bucket R2 (domaine personnalisé ou URL r2.dev)
-    const publicBase = process.env.R2_PUBLIC_URL ?? `https://pub-${process.env.R2_ACCOUNT_ID}.r2.dev`;
+    const publicBase = process.env.R2_PUBLIC_URL ?? `https://pub-${accountId}.r2.dev`;
     return { url: `${publicBase}/${key}` };
 }
 

@@ -284,10 +284,15 @@ export async function uploadDocumentAdherentAction(
     const membre = await findMembreByToken(token);
     if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    const { url } = await uploadDocumentFile(file, 'documents', type);
+    let url: string;
+    try {
+        ({ url } = await uploadDocumentFile(file, 'documents', type));
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Erreur lors de l\'upload';
+        return { success: false as const, error: msg };
+    }
 
     await prisma.$transaction(async (tx) => {
-        // Remplacer un document du même type s'il existe déjà
         await tx.document.deleteMany({ where: { membreId: membre.id, type: DocumentType[type] } });
         await tx.document.create({
             data: { membreId: membre.id, type: DocumentType[type], url, name: file.name },
@@ -297,7 +302,7 @@ export async function uploadDocumentAdherentAction(
         }
     });
 
-    return { success: true, url };
+    return { success: true as const, url };
 }
 
 // ─── Checkout Stripe ──────────────────────────────────────────────────────────
