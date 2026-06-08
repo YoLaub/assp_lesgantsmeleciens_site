@@ -143,7 +143,7 @@ model Membre {
   nom                        String         @db.VarChar(100)
   prenom                     String         @db.VarChar(100)
   email                      String         @unique @db.VarChar(150)
-  telephone                  String         @db.VarChar(20)
+  telephone                  String?        @db.VarChar(20)
   dateDeNaissance            DateTime       @db.Date
   dateCreation               DateTime       @default(now())
 
@@ -177,7 +177,7 @@ model Membre {
   typePaiement               TypePaiement?
   stripeSessionId            String?        @db.VarChar(255)
   inscriptionValide          Boolean        @default(false)
-  dateInscription            DateTime?
+  dateInscription            DateTime?      // null = essayant non encore inscrit ; non-null = dossier ouvert
 
   presences     PresenceEssai[]
   questionnaire QuestionnaireSanteReponses?
