@@ -16,7 +16,6 @@ function getR2Client(endpoint: string, accessKeyId: string, secretAccessKey: str
         region: 'auto',
         endpoint,
         credentials: { accessKeyId, secretAccessKey },
-        forcePathStyle: true,
     });
 }
 
