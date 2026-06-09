@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { CloudImage } from '@/shared/components/CloudImage';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import AdherentForm from "@/features/adherents/presentation/components/front/AdherentForm";
@@ -19,11 +21,10 @@ interface InscriptionSectionProps {
     prefill?: PrefillData;
     image?: CloudinaryAsset;
     blurDataUrl?: string;
-    essaiForm?: React.ReactNode;
 }
 
 
-export default function InscriptionSection({ prefill, image, blurDataUrl, essaiForm }: InscriptionSectionProps) {
+export default function InscriptionSection({ prefill, image, blurDataUrl }: InscriptionSectionProps) {
     const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     // ─── Renouvellement ───────────────────────────────────────────────────────
@@ -69,29 +70,6 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, essaiF
     return (
         <section className="py-16 bg-white w-full">
             <div className="max-w-6xl mx-auto px-4">
-
-                {/* ── Essai intégré ─────────────────────────────────────────── */}
-                {essaiForm && (
-                    <>
-                        <h2 className="text-center text-2xl md:text-3xl font-bold tracking-widest uppercase mb-8 text-gray-900">
-                            Cours d'Essai
-                        </h2>
-                        <div className="max-w-md mx-auto mb-4">
-                            <p className="text-center text-gray-500 text-sm mb-6">3 cours d'essai gratuits avant de rejoindre le club.</p>
-                            {essaiForm}
-                        </div>
-
-                        {/* Séparateur */}
-                        <div className="relative my-10">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="bg-white px-4 text-gray-500 font-medium uppercase tracking-widest">Ou</span>
-                            </div>
-                        </div>
-                    </>
-                )}
 
                 {/* Titre de section */}
                 <h2 className="text-center text-2xl md:text-3xl font-bold tracking-widest uppercase mb-16 text-gray-900">
@@ -169,6 +147,32 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, essaiF
                 >
                     <div className="overflow-hidden">
                         <div className="pt-8 border-t border-gray-200">
+
+                            {/* ── Banner essai ──────────────────────────────────────── */}
+                            <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+                                <p className="text-amber-800 font-bold uppercase text-sm tracking-tight flex-1">
+                                    Offre : 3 cours d'essai avant inscription !
+                                </p>
+                                <Link
+                                    href="/essai"
+                                    className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-amber-600 transition-colors self-start sm:self-auto"
+                                >
+                                    <Sparkles className="h-4 w-4" />
+                                    <span>Je tente l'essai</span>
+                                    <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </div>
+
+                            {/* ── Séparateur "OU" ───────────────────────────────────── */}
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-300" />
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="bg-white px-4 text-gray-500 font-medium uppercase tracking-widest">Ou</span>
+                                </div>
+                            </div>
+
                             <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 shadow-inner">
 
                                 {/* ── Bouton Renouvellement ────────────────────────────── */}
