@@ -6,6 +6,7 @@ import {
     requestAccesDossierAction,
     createCheckoutAction,
     soumettreQuestionnaireAction,
+    soumettreQuestionnaireEnfantAction,
     signerReglementAction,
     setTypePaiementAction,
     patchAutorisationSortieAction,
@@ -58,6 +59,7 @@ interface DossierData {
     inscriptionValide: boolean;
     stripeSessionId: string | null;
     questionnaire: Questionnaire | null;
+    questionnaireEnfantRempli: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -171,17 +173,21 @@ function QuestionnaireSection({
     token,
     onDone,
     questions,
+    action,
+    groupBySection,
 }: {
     token: string;
     onDone: (certificatReq: boolean) => void;
-    questions: { code: string; label: string }[];
+    questions: { code: string; label: string; section?: string }[];
+    action: (token: string, reponses: Record<string, boolean>) => Promise<{ success: boolean; certificatMedicalReq?: boolean; error?: string }>;
+    groupBySection?: boolean;
 }) {
-    const [reponses, setReponses] = useState<Partial<Record<keyof Questionnaire, boolean>>>({});
+    const [reponses, setReponses] = useState<Record<string, boolean>>({});
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const toutesRepondues = questions.every(({ code }) => reponses[code as keyof Questionnaire] !== undefined);
-    const certificatRequis = questions.some(({ code }) => reponses[code as keyof Questionnaire] === true);
+    const toutesRepondues = questions.every(({ code }) => reponses[code] !== undefined);
+    const certificatRequis = questions.some(({ code }) => reponses[code] === true);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -189,7 +195,7 @@ function QuestionnaireSection({
         setSubmitting(true);
         setError(null);
 
-        const result = await soumettreQuestionnaireAction(token, reponses as Questionnaire);
+        const result = await action(token, reponses);
         setSubmitting(false);
 
         if (result.success) {
@@ -199,36 +205,60 @@ function QuestionnaireSection({
         }
     };
 
+    const renderQuestion = (code: string, label: string) => (
+        <div key={code} className="space-y-1">
+            <p className="text-sm text-gray-800">{label}</p>
+            <div className="flex gap-6">
+                {(["true", "false"] as const).map((val) => (
+                    <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                            type="radio"
+                            name={code}
+                            value={val}
+                            checked={reponses[code] === (val === "true")}
+                            onChange={() => setReponses((r) => ({ ...r, [code]: val === "true" }))}
+                            className="text-[#FF8A00] focus:ring-[#FF8A00]"
+                        />
+                        {val === "true" ? "OUI" : "NON"}
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
+
+    const renderQuestions = () => {
+        if (!groupBySection) {
+            return questions.map(({ code, label }) => renderQuestion(code, label));
+        }
+
+        const groups = new Map<string, { code: string; label: string }[]>();
+        for (const q of questions) {
+            const section = q.section ?? '';
+            if (!groups.has(section)) groups.set(section, []);
+            groups.get(section)!.push({ code: q.code, label: q.label });
+        }
+
+        return Array.from(groups.entries()).map(([section, qs]) => (
+            <div key={section} className="space-y-3">
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4 mb-2 border-t border-gray-100 pt-3">{section}</h4>
+                {qs.map(({ code, label }) => renderQuestion(code, label))}
+            </div>
+        ));
+    };
+
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
             <div>
                 <h3 className="font-semibold text-gray-900">Questionnaire de santé QS-Sport</h3>
                 <p className="text-sm text-gray-500 mt-1">
-                    Cerfa 15699-01 — détermine si un certificat médical est nécessaire.
+                    {groupBySection
+                        ? "FNSMR v.2 — détermine si un certificat médical est nécessaire."
+                        : "Cerfa 15699-01 — détermine si un certificat médical est nécessaire."}
                 </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-                {questions.map(({ code, label }) => (
-                    <div key={code} className="space-y-1">
-                        <p className="text-sm text-gray-800">{label}</p>
-                        <div className="flex gap-6">
-                            {(["true", "false"] as const).map((val) => (
-                                <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name={code}
-                                        value={val}
-                                        checked={reponses[code as keyof Questionnaire] === (val === "true")}
-                                        onChange={() => setReponses((r) => ({ ...r, [code]: val === "true" }))}
-                                        className="text-[#FF8A00] focus:ring-[#FF8A00]"
-                                    />
-                                    {val === "true" ? "OUI" : "NON"}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                {renderQuestions()}
 
                 {toutesRepondues && (
                     <div className={`p-3 rounded-lg text-sm font-medium ${certificatRequis ? "bg-orange-50 text-orange-700 border border-orange-200" : "bg-green-50 text-green-700 border border-green-200"}`}>
@@ -811,11 +841,13 @@ function DossierVue({
     paiementStatus,
     token,
     questions,
+    questionsEnfant,
 }: {
     dossier: DossierData;
     paiementStatus?: "succes" | "annule";
     token: string;
     questions: { code: string; label: string }[];
+    questionsEnfant: { code: string; label: string; section: string }[];
 }) {
     const [dossier, setDossier] = useState(initial);
     const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -824,7 +856,9 @@ function DossierVue({
     const mineur = isMineur(dossier.dateDeNaissance);
 
     // Étapes à compléter
-    const questionnaireManquant = dossier.questionnaire === null;
+    const questionnaireManquant = mineur
+        ? !dossier.questionnaireEnfantRempli
+        : dossier.questionnaire === null;
     const reglementManquant = dossier.reglementSigne === "non_fourni";
     const typePaiementManquant = dossier.typePaiement === null;
     const telephoneManquant = !dossier.telephone1;
@@ -911,10 +945,27 @@ function DossierVue({
 
             {/* ── Étapes à compléter ─────────────────────────────────────────── */}
 
-            {questionnaireManquant && (
+            {questionnaireManquant && mineur && (
+                <QuestionnaireSection
+                    token={token}
+                    questions={questionsEnfant}
+                    action={(t, r) => soumettreQuestionnaireEnfantAction(t, r as Parameters<typeof soumettreQuestionnaireEnfantAction>[1])}
+                    groupBySection
+                    onDone={(certReq) =>
+                        setDossier((d) => ({
+                            ...d,
+                            questionnaireEnfantRempli: true,
+                            certificatMedicalReq: certReq,
+                        }))
+                    }
+                />
+            )}
+
+            {questionnaireManquant && !mineur && (
                 <QuestionnaireSection
                     token={token}
                     questions={questions}
+                    action={(t, r) => soumettreQuestionnaireAction(t, r as Parameters<typeof soumettreQuestionnaireAction>[1])}
                     onDone={(certReq) =>
                         setDossier((d) => ({
                             ...d,
@@ -1068,9 +1119,10 @@ interface MonDossierViewProps {
     token?: string;
     paiementStatus?: "succes" | "annule";
     questions: { code: string; label: string }[];
+    questionsEnfant: { code: string; label: string; section: string }[];
 }
 
-export default function MonDossierView({ token, paiementStatus, questions }: MonDossierViewProps) {
+export default function MonDossierView({ token, paiementStatus, questions, questionsEnfant }: MonDossierViewProps) {
     const [dossier, setDossier] = useState<DossierData | null>(null);
     const [loading, setLoading] = useState(!!token);
     const [tokenError, setTokenError] = useState(false);
@@ -1123,7 +1175,7 @@ export default function MonDossierView({ token, paiementStatus, questions }: Mon
 
     return (
         <main className="min-h-screen bg-gray-50 py-20 px-4">
-            {dossier && <DossierVue dossier={dossier} paiementStatus={paiementStatus} token={token} questions={questions} />}
+            {dossier && <DossierVue dossier={dossier} paiementStatus={paiementStatus} token={token} questions={questions} questionsEnfant={questionsEnfant} />}
         </main>
     );
 }

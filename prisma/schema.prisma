@@ -179,9 +179,10 @@ model Membre {
   inscriptionValide          Boolean        @default(false)
   dateInscription            DateTime?      // null = essayant non encore inscrit ; non-null = dossier ouvert
 
-  presences     PresenceEssai[]
-  questionnaire QuestionnaireSanteReponses?
-  documents     Document[]
+  presences           PresenceEssai[]
+  questionnaire       QuestionnaireSanteReponses?
+  questionnaireEnfant QuestionnaireSanteReponsesEnfant?
+  documents           Document[]
 }
 
 model QuestionnaireSanteReponses {
@@ -227,5 +228,43 @@ model QuestionnaireSanteQuestion {
   code  String @id
   label String @db.Text
   ordre Int
+}
+
+model QuestionnaireSanteQuestionEnfant {
+  code    String @id
+  label   String @db.Text
+  ordre   Int
+  section String @db.VarChar(100)
+}
+
+model QuestionnaireSanteReponsesEnfant {
+  id       Int    @id @default(autoincrement())
+  membreId Int    @unique
+  membre   Membre @relation(fields: [membreId], references: [id], onDelete: Cascade)
+  q1  Boolean
+  q2  Boolean
+  q3  Boolean
+  q4  Boolean
+  q5  Boolean
+  q6  Boolean
+  q7  Boolean
+  q8  Boolean
+  q9  Boolean
+  q10 Boolean
+  q11 Boolean
+  q12 Boolean
+  q13 Boolean
+  q14 Boolean
+  q15 Boolean
+  q16 Boolean
+  q17 Boolean
+  q18 Boolean
+  q19 Boolean
+  q20 Boolean
+  q21 Boolean
+  q22 Boolean
+  q23 Boolean
+  q24 Boolean
+  rempliLe DateTime @default(now())
 }
 

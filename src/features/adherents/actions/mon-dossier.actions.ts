@@ -13,7 +13,7 @@ import { z } from 'zod';
 async function findMembreByToken(token: string) {
     return prisma.membre.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { questionnaire: true },
+        include: { questionnaire: true, questionnaireEnfant: true },
     });
 }
 
@@ -59,7 +59,7 @@ export async function getMonDossierAction(token: string) {
 
     const membre = await prisma.membre.findFirst({
         where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
-        include: { questionnaire: true, documents: true },
+        include: { questionnaire: true, questionnaireEnfant: true, documents: true },
     });
 
     if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
@@ -103,6 +103,7 @@ export async function getMonDossierAction(token: string) {
                       q9: membre.questionnaire.q9,
                   }
                 : null,
+            questionnaireEnfantRempli: !!membre.questionnaireEnfant,
         },
     };
 }
@@ -117,8 +118,6 @@ const QuestionnaireSchema = z.object({
     q5: z.boolean(),
     q6: z.boolean(),
     q7: z.boolean(),
-    q8: z.boolean(),
-    q9: z.boolean(),
 });
 
 export async function soumettreQuestionnaireAction(
@@ -133,18 +132,18 @@ export async function soumettreQuestionnaireAction(
     const membre = await findMembreByToken(token);
     if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
 
-    const { q1, q2, q3, q4, q5, q6, q7, q8, q9 } = parsed.data;
-    const certificatMedicalReq = [q1, q2, q3, q4, q5, q6, q7, q8, q9].some(Boolean);
+    const { q1, q2, q3, q4, q5, q6, q7 } = parsed.data;
+    const certificatMedicalReq = [q1, q2, q3, q4, q5, q6, q7].some(Boolean);
 
     await prisma.$transaction(async (tx) => {
         if (membre.questionnaire) {
             await tx.questionnaireSanteReponses.update({
                 where: { membreId: membre.id },
-                data: { q1, q2, q3, q4, q5, q6, q7, q8, q9 },
+                data: { q1, q2, q3, q4, q5, q6, q7, q8: false, q9: false },
             });
         } else {
             await tx.questionnaireSanteReponses.create({
-                data: { membreId: membre.id, q1, q2, q3, q4, q5, q6, q7, q8, q9 },
+                data: { membreId: membre.id, q1, q2, q3, q4, q5, q6, q7, q8: false, q9: false },
             });
         }
         await tx.membre.update({
@@ -153,6 +152,53 @@ export async function soumettreQuestionnaireAction(
                 certificatMedicalReq,
                 // Si certificat requis et non encore déclaré → reste non_fourni (l'adhérent devra le déclarer)
                 // Si certificat plus requis → repasse à non_fourni
+                certificatMedical: certificatMedicalReq ? membre.certificatMedical : 'non_fourni',
+            },
+        });
+    });
+
+    return { success: true, certificatMedicalReq };
+}
+
+const QuestionnaireEnfantSchema = z.object({
+    q1: z.boolean(), q2: z.boolean(), q3: z.boolean(), q4: z.boolean(),
+    q5: z.boolean(), q6: z.boolean(), q7: z.boolean(), q8: z.boolean(),
+    q9: z.boolean(), q10: z.boolean(), q11: z.boolean(), q12: z.boolean(),
+    q13: z.boolean(), q14: z.boolean(), q15: z.boolean(), q16: z.boolean(),
+    q17: z.boolean(), q18: z.boolean(), q19: z.boolean(), q20: z.boolean(),
+    q21: z.boolean(), q22: z.boolean(), q23: z.boolean(), q24: z.boolean(),
+});
+
+export async function soumettreQuestionnaireEnfantAction(
+    token: string,
+    reponses: z.infer<typeof QuestionnaireEnfantSchema>
+) {
+    if (!token) return { success: false, error: 'Token manquant' };
+
+    const parsed = QuestionnaireEnfantSchema.safeParse(reponses);
+    if (!parsed.success) return { success: false, error: 'Données invalides' };
+
+    const membre = await findMembreByToken(token);
+    if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
+
+    const vals = parsed.data;
+    const certificatMedicalReq = Object.values(vals).some(Boolean);
+
+    await prisma.$transaction(async (tx) => {
+        if (membre.questionnaireEnfant) {
+            await tx.questionnaireSanteReponsesEnfant.update({
+                where: { membreId: membre.id },
+                data: { ...vals },
+            });
+        } else {
+            await tx.questionnaireSanteReponsesEnfant.create({
+                data: { membreId: membre.id, ...vals },
+            });
+        }
+        await tx.membre.update({
+            where: { id: membre.id },
+            data: {
+                certificatMedicalReq,
                 certificatMedical: certificatMedicalReq ? membre.certificatMedical : 'non_fourni',
             },
         });
