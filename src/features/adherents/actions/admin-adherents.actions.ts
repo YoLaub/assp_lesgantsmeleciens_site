@@ -4,7 +4,7 @@ import { prisma } from '@/shared/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { sendDocumentValide, sendDocumentRejete, sendBonCafValide } from '@/shared/lib/mail';
+import { sendDocumentValide, sendDocumentRejete, sendBonCafValide, sendNotificationRejetDossier } from '@/shared/lib/mail';
 
 const CHAMPS_ADMIN_AUTORISES = [
     'renouvellement',
@@ -67,6 +67,24 @@ export async function patchAdherentAction(id: number, data: z.infer<typeof Patch
     await prisma.membre.update({ where: { id }, data: safeData });
     revalidatePath('/admin/club/adherents');
     revalidatePath(`/admin/club/adherents/${id}`);
+
+    return { success: true };
+}
+
+// ─── Notification rejet dossier (US-006) ─────────────────────────────────────
+
+export async function notifierRejetDossierAction(id: number) {
+    await requireAdmin();
+
+    const membre = await prisma.membre.findUnique({ where: { id }, select: { email: true, prenom: true } });
+    if (!membre) return { success: false, error: 'Adhérent introuvable' };
+
+    try {
+        await sendNotificationRejetDossier({ email: membre.email, prenom: membre.prenom });
+    } catch (e) {
+        console.error('[notifierRejetDossierAction] email:', e);
+        return { success: false, error: "Erreur lors de l'envoi de l'email" };
+    }
 
     return { success: true };
 }

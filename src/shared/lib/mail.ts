@@ -365,6 +365,23 @@ export async function sendLienAccesEssai(params: {
     );
 }
 
+/** Email — Notification rejet dossier (→ adhérent, depuis admin) */
+export async function sendNotificationRejetDossier(params: {
+    email: string;
+    prenom: string;
+}) {
+    await sendEmail(
+        { email: params.email, name: params.prenom },
+        "Votre dossier d'inscription — action requise",
+        `<html><body>
+      <h2>Bonjour ${params.prenom},</h2>
+      <p>Votre dossier d'inscription aux Gants Méléciens n'a pas pu être validé en l'état.</p>
+      <p>Merci de prendre contact avec le club pour régulariser votre situation :<br>
+      <a href="mailto:${process.env.CLUB_EMAIL ?? 'lesgantsmeleciens@gmail.com'}">${process.env.CLUB_EMAIL ?? 'lesgantsmeleciens@gmail.com'}</a></p>
+    </body></html>`,
+    );
+}
+
 // ─── Compat ancien code ─────────────────────────────────────────────────────
 
 /** @deprecated Utiliser sendConfirmationInscription */

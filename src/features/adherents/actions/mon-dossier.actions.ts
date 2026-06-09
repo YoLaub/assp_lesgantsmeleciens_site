@@ -190,16 +190,17 @@ export async function setTypePaiementAction(token: string, typePaiement: 'sur_pl
     return { success: true };
 }
 
-export async function declarerCertificatAction(token: string) {
+// ─── Autorisation sortie seul (US-002) ───────────────────────────────────────
+
+export async function patchAutorisationSortieAction(token: string, autorise: boolean) {
     if (!token) return { success: false, error: 'Token manquant' };
 
     const membre = await findMembreByToken(token);
     if (!membre) return { success: false, error: 'Lien invalide ou expiré' };
-    if (!membre.certificatMedicalReq) return { success: false, error: 'Certificat non requis' };
 
     await prisma.membre.update({
         where: { id: membre.id },
-        data: { certificatMedical: 'declare' },
+        data: { autorisationParentale: autorise ? 'declare' : 'non_fourni' },
     });
 
     return { success: true };
@@ -355,6 +356,28 @@ export async function createCheckoutAction(token: string) {
     });
 
     return { success: true, url: session.url };
+}
+
+// ─── Renouvellement — recherche membre par email (US-007) ─────────────────────
+
+export async function rechercherMembreParEmailAction(email: string) {
+    if (!email || !email.includes('@')) return { success: false, error: 'Email invalide' };
+    const membre = await prisma.membre.findFirst({
+        where: { email, statut: { not: 'ESSAYANT' } },
+        select: {
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true,
+            dateDeNaissance: true,
+            sexe: true,
+            adresse: true,
+            codePostal: true,
+            ville: true,
+        },
+    });
+    if (!membre) return { success: false, error: 'Aucun dossier trouvé pour cet email' };
+    return { success: true, data: membre };
 }
 
 function isMineur(dateDeNaissance: Date): boolean {

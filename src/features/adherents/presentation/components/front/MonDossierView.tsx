@@ -8,7 +8,7 @@ import {
     soumettreQuestionnaireAction,
     signerReglementAction,
     setTypePaiementAction,
-    declarerCertificatAction,
+    patchAutorisationSortieAction,
     updateTelephoneAction,
     updateDroitImageAction,
     validerEngagementAction,
@@ -379,8 +379,8 @@ function TypePaiementSection({ token, onDone }: { token: string; onDone: (type: 
 function CertificatSection({ token, onDone }: { token: string; onDone: () => void }) {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [declaring, setDeclaring] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -394,21 +394,10 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
         setUploading(false);
 
         if (result.success) {
-            onDone();
+            setSuccess(true);
+            setTimeout(() => onDone(), 2000);
         } else {
             setError(result.error ?? "Erreur lors de l'upload");
-        }
-    };
-
-    const handleDeclare = async () => {
-        setDeclaring(true);
-        setError(null);
-        const result = await declarerCertificatAction(token);
-        setDeclaring(false);
-        if (result.success) {
-            onDone();
-        } else {
-            setError(result.error ?? "Erreur");
         }
     };
 
@@ -424,7 +413,6 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
                 </p>
             </div>
 
-            {/* Option 1 : upload */}
             <form onSubmit={handleUpload} className="space-y-3">
                 <p className="text-sm font-medium text-orange-900">Déposer mon certificat en ligne</p>
                 <label htmlFor="certificat-upload" className="block text-sm text-orange-800">
@@ -438,27 +426,20 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
                     className="block w-full text-sm text-orange-800 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-orange-100 file:text-orange-800 hover:file:bg-orange-200"
                 />
                 {error && <p className="text-red-600 text-sm">{error}</p>}
-                <button
-                    type="submit"
-                    disabled={!file || uploading}
-                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
-                >
-                    {uploading ? "Envoi en cours..." : "Envoyer le certificat"}
-                </button>
+                {success ? (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-medium">
+                        ✓ Votre certificat médical a bien été importé. Il sera vérifié par le club.
+                    </div>
+                ) : (
+                    <button
+                        type="submit"
+                        disabled={!file || uploading}
+                        className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                    >
+                        {uploading ? "Envoi en cours..." : "Envoyer le certificat"}
+                    </button>
+                )}
             </form>
-
-            {/* Option 2 : déclaration */}
-            <div className="border-t border-orange-200 pt-3">
-                <p className="text-sm text-orange-700 mb-2">Vous n'avez pas encore le certificat ?</p>
-                <button
-                    type="button"
-                    onClick={handleDeclare}
-                    disabled={declaring}
-                    className="w-full bg-white border border-orange-400 text-orange-700 hover:bg-orange-50 disabled:opacity-50 font-medium py-2 rounded-lg transition-colors text-sm"
-                >
-                    {declaring ? "Enregistrement..." : "Je l'apporterai au club"}
-                </button>
-            </div>
         </div>
     );
 }
@@ -477,6 +458,7 @@ function PhotoIdSection({
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -490,7 +472,8 @@ function PhotoIdSection({
         setUploading(false);
 
         if (result.success && result.url) {
-            onDone(result.url);
+            setSuccess(true);
+            setTimeout(() => onDone(result.url!), 2000);
         } else {
             setError(result.error ?? "Erreur lors de l'upload");
         }
@@ -521,13 +504,19 @@ function PhotoIdSection({
                         className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                     />
                     {error && <p className="text-red-600 text-sm">{error}</p>}
-                    <button
-                        type="submit"
-                        disabled={!file || uploading}
-                        className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
-                    >
-                        {uploading ? "Envoi en cours..." : "Envoyer la photo"}
-                    </button>
+                    {success ? (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-medium">
+                            ✓ Votre photo d'identité a bien été importée.
+                        </div>
+                    ) : (
+                        <button
+                            type="submit"
+                            disabled={!file || uploading}
+                            className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
+                        >
+                            {uploading ? "Envoi en cours..." : "Envoyer la photo"}
+                        </button>
+                    )}
                 </form>
             )}
         </div>
@@ -612,6 +601,11 @@ function CoordonneesSection({
                         placeholder="06 12 34 56 78"
                         className={inputCls}
                     />
+                    {mineur && (
+                        <p className="text-xs text-orange-600 mt-1">
+                            Pour les mineurs, merci de nous communiquer si possible les deux numéros de téléphone (père et mère) en cas de parents séparés.
+                        </p>
+                    )}
                 </div>
                 {error && <p className="text-red-600 text-sm">{error}</p>}
                 {saved ? (
@@ -742,6 +736,70 @@ function EngagementSection({ token, onDone }: { token: string; onDone: () => voi
                     {submitting ? "Enregistrement..." : "Confirmer"}
                 </button>
             </form>
+        </div>
+    );
+}
+
+// ─── Section Autorisation sortie seul (US-002) ───────────────────────────────
+
+function AutorisationSortieSection({
+    token,
+    statut,
+    onDone,
+}: {
+    token: string;
+    statut: StatutDocument;
+    onDone: (statut: StatutDocument) => void;
+}) {
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleChange = async (autorise: boolean) => {
+        setSaving(true);
+        setError(null);
+        const result = await patchAutorisationSortieAction(token, autorise);
+        setSaving(false);
+        if (result.success) {
+            onDone(autorise ? 'declare' : 'non_fourni');
+        } else {
+            setError(result.error ?? 'Erreur');
+        }
+    };
+
+    if (statut === 'declare' || statut === 'valide') {
+        return (
+            <div className="flex justify-between items-center">
+                <span className="text-gray-700">Autorisation de sortie seul</span>
+                <StatutBadge statut={statut} />
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-2">
+            <div className="flex justify-between items-center">
+                <span className="text-gray-700">Autorisation de sortie seul</span>
+                <StatutBadge statut={statut} />
+            </div>
+            <p className="text-sm text-gray-600">
+                J'autorise mon enfant à quitter la salle de sport seul à l'issue des cours
+            </p>
+            <div className="flex gap-6">
+                {(['oui', 'non'] as const).map((val) => (
+                    <label key={val} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input
+                            type="radio"
+                            name="autorisation-sortie"
+                            value={val}
+                            disabled={saving}
+                            onChange={() => handleChange(val === 'oui')}
+                            className="text-[#FF8A00] focus:ring-[#FF8A00]"
+                        />
+                        {val === 'oui' ? 'OUI' : 'NON'}
+                    </label>
+                ))}
+            </div>
+            {error && <p className="text-red-600 text-xs">{error}</p>}
         </div>
     );
 }
@@ -939,10 +997,11 @@ function DossierVue({
                             </div>
                         )}
                         {mineur && (
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Autorisation parentale</span>
-                                <StatutBadge statut={dossier.autorisationParentale} />
-                            </div>
+                            <AutorisationSortieSection
+                                token={token}
+                                statut={dossier.autorisationParentale}
+                                onDone={(s) => setDossier((d) => ({ ...d, autorisationParentale: s }))}
+                            />
                         )}
                         {dossier.couponSport !== "non_fourni" && (
                             <div className="flex justify-between items-center">

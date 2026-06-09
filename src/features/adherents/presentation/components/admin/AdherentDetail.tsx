@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Phone, Calendar, MapPin, CheckCircle, XCircle } from "lucide-react";
-import { patchAdherentAction, validerDocumentAdminAction } from "@/features/adherents/actions/admin-adherents.actions";
+import { patchAdherentAction, validerDocumentAdminAction, notifierRejetDossierAction } from "@/features/adherents/actions/admin-adherents.actions";
 
 type StatutDocument = "non_fourni" | "declare" | "valide";
 
@@ -41,6 +41,7 @@ interface AdherentDetailData {
     inscriptionValide: boolean;
     dateInscription: Date;
     questionnaire: Questionnaire | null;
+    codePassSport: string | null;
     documents: { id: string; type: string; url: string; name: string | null }[];
 }
 
@@ -167,6 +168,8 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [checkboxPending, setCheckboxPending] = useState<string | null>(null);
+    const [rejetEnvoye, setRejetEnvoye] = useState(false);
+    const [rejetPending, setRejetPending] = useState(false);
 
     const isMineur = (() => {
         const d = new Date(adherent.dateDeNaissance);
@@ -239,6 +242,12 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                             <span className="font-medium">Droit à l'image :</span>
                             {adherent.droitImage ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-slate-300" />}
                         </div>
+                        {adherent.codePassSport && (
+                            <div className="flex items-center gap-2 text-slate-600">
+                                <span className="font-medium">Code Pass Sport :</span>
+                                <span className="font-mono text-sm">{adherent.codePassSport}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -277,7 +286,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                             />
                         )}
                         {isMineur && (
-                            <DocumentRow label="Autorisation parentale" statut={adherent.autorisationParentale} field="autorisationParentale" adherentId={adherent.id} withEmail />
+                            <DocumentRow label="Autorisation sortie seul" statut={adherent.autorisationParentale} field="autorisationParentale" adherentId={adherent.id} withEmail />
                         )}
                         {adherent.couponSport !== "non_fourni" && (
                             <DocumentRow label="Pass Sport" statut={adherent.couponSport} note="Déduction appliquée" field="couponSport" adherentId={adherent.id} />
@@ -344,6 +353,25 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         ) : adherent.inscriptionValide ? (
                             <p className="text-center text-sm font-medium text-green-600">✓ Paiement reçu</p>
                         ) : null}
+                        <div className="pt-2 border-t border-slate-100">
+                            {rejetEnvoye ? (
+                                <p className="text-center text-sm text-slate-500">Notification envoyée ✓</p>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        setRejetPending(true);
+                                        await notifierRejetDossierAction(adherent.id);
+                                        setRejetPending(false);
+                                        setRejetEnvoye(true);
+                                    }}
+                                    disabled={adherent.inscriptionValide || rejetPending}
+                                    className="w-full bg-red-50 border border-red-200 text-red-700 hover:bg-red-100 disabled:opacity-40 font-medium py-2 rounded-xl transition-colors text-sm"
+                                >
+                                    {rejetPending ? "Envoi…" : "Notifier le rejet"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
