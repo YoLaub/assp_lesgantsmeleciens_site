@@ -19,6 +19,14 @@ function clerkFrontendApi(): string {
 const clerkHost = clerkFrontendApi();
 const clerkSrc = clerkHost ? ` https://${clerkHost}` : "";
 
+// Domaine public R2 (ex: https://pub-xxx.r2.dev ou domaine custom)
+const r2PublicUrl = process.env.R2_PUBLIC_URL ?? "";
+let r2Host = "";
+try {
+    if (r2PublicUrl) r2Host = new URL(r2PublicUrl).origin;
+} catch { /* ignore URL invalide */ }
+const r2Src = r2Host ? ` ${r2Host}` : "";
+
 const contentSecurityPolicy = [
     `default-src 'self'`,
     `base-uri 'self'`,
@@ -26,11 +34,12 @@ const contentSecurityPolicy = [
     `frame-ancestors 'none'`,
     // 'unsafe-inline'/'unsafe-eval' requis par Next.js (hydratation), Clerk et hCaptcha.
     // Durcissable plus tard via une CSP à nonce (voir proxy.ts).
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com${clerkSrc}`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com https://vercel.live${clerkSrc}`,
     `style-src 'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com`,
-    `img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com https://*.clerk.com`,
+    `img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com https://*.clerk.com https://lh3.googleusercontent.com${r2Src}`,
+    `media-src 'self' https://res.cloudinary.com${r2Src}`,
     `font-src 'self' data:`,
-    `connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com${clerkSrc}`,
+    `connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com${clerkSrc}${r2Src}`,
     `frame-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.clerk.accounts.dev${clerkSrc}`,
     `worker-src 'self' blob:`,
     `form-action 'self'${clerkSrc}`,
