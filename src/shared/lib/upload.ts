@@ -36,12 +36,18 @@ async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
     const buffer = Buffer.from(await file.arrayBuffer());
     const r2 = getR2Client(endpoint, accessKeyId, secretAccessKey);
 
-    await r2.send(new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type,
-    }));
+    try {
+        await r2.send(new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            Body: buffer,
+            ContentType: file.type,
+        }));
+    } catch (err: unknown) {
+        const e = err as { name?: string; $metadata?: { httpStatusCode?: number }; Code?: string; message?: string };
+        const detail = `R2 PutObject échoué — name:${e?.name} code:${e?.Code} status:${e?.$metadata?.httpStatusCode} msg:${e?.message} bucket:${bucket} endpoint:${endpoint}`;
+        throw new Error(detail);
+    }
 
     const publicBase = process.env.R2_PUBLIC_URL ?? '';
     if (!publicBase) throw new Error('Variable R2_PUBLIC_URL manquante');
