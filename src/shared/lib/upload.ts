@@ -16,6 +16,10 @@ function getR2Client(endpoint: string, accessKeyId: string, secretAccessKey: str
         region: 'auto',
         endpoint,
         credentials: { accessKeyId, secretAccessKey },
+        forcePathStyle: true,
+        // AWS SDK v3 envoie des headers checksum par défaut non supportés par R2
+        requestChecksumCalculation: 'WHEN_REQUIRED',
+        responseChecksumValidation: 'WHEN_REQUIRED',
     });
 }
 
