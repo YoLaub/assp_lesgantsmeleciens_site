@@ -1,131 +1,78 @@
 'use server';
-
-import { prisma } from '@/shared/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { sendDocumentValide, sendDocumentRejete, sendBonCafValide, sendNotificationRejetDossier } from '@/shared/lib/mail';
-
-const CHAMPS_ADMIN_AUTORISES = [
-    'renouvellement',
-    'fnsmr',
-    'reglementSigne',
-    'certificatMedical',
-    'autorisationParentale',
-    'couponSport',
-    'bonCaf',
-    'inscriptionValide',
-] as const;
-
-const PatchAdherentSchema = z.object({
-    renouvellement: z.boolean().optional(),
-    fnsmr: z.boolean().optional(),
-    reglementSigne: z.enum(['non_fourni', 'declare', 'valide']).optional(),
-    certificatMedical: z.enum(['non_fourni', 'declare', 'valide']).optional(),
-    autorisationParentale: z.enum(['non_fourni', 'declare', 'valide']).optional(),
-    couponSport: z.enum(['non_fourni', 'declare', 'valide']).optional(),
-    bonCaf: z.enum(['non_fourni', 'declare', 'valide']).optional(),
-    inscriptionValide: z.boolean().optional(),
-});
+import { getAdherentsUseCase } from '../domain/use-cases/admin/get-adherents.use-case';
+import { getAdherentByIdUseCase } from '../domain/use-cases/admin/get-adherent-by-id.use-case';
+import { patchAdherentUseCase } from '../domain/use-cases/admin/patch-adherent.use-case';
+import { validerDocumentUseCase } from '../domain/use-cases/admin/valider-document.use-case';
+import { notifierRejetDossierUseCase } from '../domain/use-cases/admin/notifier-rejet-dossier.use-case';
 
 async function requireAdmin() {
-    const { userId } = await auth();
-    if (!userId) throw new Error('Non autorisé');
-    return userId;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Non autorisé');
+  return userId;
 }
 
+const PatchAdherentSchema = z.object({
+  renouvellement: z.boolean().optional(), fnsmr: z.boolean().optional(),
+  reglementSigne: z.enum(['non_fourni', 'declare', 'valide']).optional(),
+  certificatMedical: z.enum(['non_fourni', 'declare', 'valide']).optional(),
+  autorisationParentale: z.enum(['non_fourni', 'declare', 'valide']).optional(),
+  couponSport: z.enum(['non_fourni', 'declare', 'valide']).optional(),
+  bonCaf: z.enum(['non_fourni', 'declare', 'valide']).optional(),
+  inscriptionValide: z.boolean().optional(),
+});
+
 export async function getAdherentsAction() {
-    await requireAdmin();
-    return prisma.membre.findMany({
-        where: { statut: { not: 'ESSAYANT' } },
-        include: { questionnaire: true },
-        orderBy: { dateInscription: 'desc' },
-    });
+  await requireAdmin();
+  return getAdherentsUseCase();
 }
 
 export async function getAdherentByIdAction(id: number) {
-    await requireAdmin();
-    return prisma.membre.findUnique({
-        where: { id },
-        include: { questionnaire: true, documents: true },
-    });
+  await requireAdmin();
+  return getAdherentByIdUseCase(id);
 }
 
 export async function patchAdherentAction(id: number, data: z.infer<typeof PatchAdherentSchema>) {
-    await requireAdmin();
-
-    const parsed = PatchAdherentSchema.safeParse(data);
-    if (!parsed.success) return { success: false, error: 'Données invalides' };
-
-    // Sécurité : seuls les champs autorisés peuvent être modifiés
-    const safeData = Object.fromEntries(
-        Object.entries(parsed.data).filter(([key]) =>
-            (CHAMPS_ADMIN_AUTORISES as readonly string[]).includes(key)
-        )
-    );
-
-    await prisma.membre.update({ where: { id }, data: safeData });
-    revalidatePath('/admin/club/adherents');
-    revalidatePath(`/admin/club/adherents/${id}`);
-
-    return { success: true };
+  await requireAdmin();
+  const parsed = PatchAdherentSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Données invalides' };
+  await patchAdherentUseCase(id, parsed.data as Parameters<typeof patchAdherentUseCase>[1]);
+  revalidatePath('/admin/club/adherents');
+  revalidatePath(`/admin/club/adherents/${id}`);
+  return { success: true };
 }
 
-// ─── Notification rejet dossier (US-006) ─────────────────────────────────────
-
-export async function notifierRejetDossierAction(id: number) {
-    await requireAdmin();
-
-    const membre = await prisma.membre.findUnique({ where: { id }, select: { email: true, prenom: true } });
-    if (!membre) return { success: false, error: 'Adhérent introuvable' };
-
-    try {
-        await sendNotificationRejetDossier({ email: membre.email, prenom: membre.prenom });
-    } catch (e) {
-        console.error('[notifierRejetDossierAction] email:', e);
-        return { success: false, error: "Erreur lors de l'envoi de l'email" };
-    }
-
-    return { success: true };
-}
-
-const LABELS_DOCUMENTS: Record<string, string> = {
-    certificatMedical: 'certificat médical',
-    autorisationParentale: 'autorisation parentale',
-    reglementSigne: 'règlement intérieur',
-    couponSport: 'Pass Sport',
-    bonCaf: 'aide CAF',
-};
+const LABELS_DOCUMENTS: Record<string, string> = { certificatMedical: 'certificat médical', autorisationParentale: 'autorisation parentale', reglementSigne: 'règlement intérieur', couponSport: 'Pass Sport', bonCaf: 'aide CAF' };
 
 export async function validerDocumentAdminAction(
-    id: number,
-    field: 'certificatMedical' | 'autorisationParentale' | 'reglementSigne' | 'couponSport' | 'bonCaf',
-    statut: 'valide' | 'non_fourni',
+  id: number,
+  field: 'certificatMedical' | 'autorisationParentale' | 'reglementSigne' | 'couponSport' | 'bonCaf',
+  statut: 'valide' | 'non_fourni'
 ) {
-    await requireAdmin();
+  await requireAdmin();
+  const { email, prenom } = await validerDocumentUseCase(id, field, statut);
+  if (!email || !prenom) return { success: false, error: 'Adhérent introuvable' };
+  revalidatePath('/admin/club/adherents');
+  revalidatePath(`/admin/club/adherents/${id}`);
+  const label = LABELS_DOCUMENTS[field] ?? field;
+  try {
+    if (statut === 'valide') { field === 'bonCaf' ? await sendBonCafValide({ email, prenom }) : await sendDocumentValide({ email, prenom, labelDocument: label }); }
+    else { await sendDocumentRejete({ email, prenom, labelDocument: label }); }
+  } catch (e) { console.error('[validerDocumentAdminAction]', e); }
+  return { success: true };
+}
 
-    const membre = await prisma.membre.findUnique({ where: { id }, select: { email: true, prenom: true, bonCaf: true } });
-    if (!membre) return { success: false, error: 'Adhérent introuvable' };
-
-    await prisma.membre.update({ where: { id }, data: { [field]: statut } });
-    revalidatePath('/admin/club/adherents');
-    revalidatePath(`/admin/club/adherents/${id}`);
-
-    const label = LABELS_DOCUMENTS[field] ?? field;
-
-    try {
-        if (statut === 'valide') {
-            if (field === 'bonCaf') {
-                await sendBonCafValide({ email: membre.email, prenom: membre.prenom });
-            } else {
-                await sendDocumentValide({ email: membre.email, prenom: membre.prenom, labelDocument: label });
-            }
-        } else {
-            await sendDocumentRejete({ email: membre.email, prenom: membre.prenom, labelDocument: label });
-        }
-    } catch (e) {
-        console.error('[validerDocumentAdminAction] email:', e);
-    }
-
+export async function notifierRejetDossierAction(id: number) {
+  await requireAdmin();
+  try {
+    const { email, prenom } = await notifierRejetDossierUseCase(id);
+    await sendNotificationRejetDossier({ email, prenom });
     return { success: true };
+  } catch (e) {
+    console.error('[notifierRejetDossierAction]', e);
+    return { success: false, error: "Erreur lors de l'envoi de l'email" };
+  }
 }
