@@ -1,5 +1,9 @@
 'use server';
+import type { QuestionSante as _QuestionSante } from '@/features/adhesion/domain/models/inscription.model';
 import { auth } from '@clerk/nextjs/server';
+
+export type QuestionSante = _QuestionSante;
+export type QuestionSanteEnfant = _QuestionSante;
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';

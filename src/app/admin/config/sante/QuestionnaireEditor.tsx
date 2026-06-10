@@ -6,7 +6,7 @@ import type { QuestionSante, QuestionSanteEnfant } from '@/features/adherents/ac
 
 interface QuestionnaireEditorProps {
     questions: (QuestionSante | QuestionSanteEnfant)[];
-    updateAction: (questions: { code: string; label: string }[]) => Promise<{ success: boolean; error?: string }>;
+    updateAction: (questions: { id: number; label: string }[]) => Promise<{ success: boolean; error?: string }>;
     groupBySection?: boolean;
 }
 
@@ -16,15 +16,15 @@ export function QuestionnaireEditor({ questions: initial, updateAction, groupByS
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const setLabel = (code: string, label: string) =>
-        setQuestions((qs) => qs.map((q) => (q.code === code ? { ...q, label } : q)));
+    const setLabel = (id: number, label: string) =>
+        setQuestions((qs) => qs.map((q) => (q.id === id ? { ...q, label } : q)));
 
     const handleSave = () => {
         setSaved(false);
         setError(null);
         startTransition(async () => {
             const result = await updateAction(
-                questions.map(({ code, label }) => ({ code, label }))
+                questions.map(({ id, label }) => ({ id, label }))
             );
             if (result.success) setSaved(true);
             else setError(result.error ?? 'Erreur');
@@ -32,15 +32,15 @@ export function QuestionnaireEditor({ questions: initial, updateAction, groupByS
     };
 
     const renderQuestion = (q: QuestionSante | QuestionSanteEnfant, globalIndex: number) => (
-        <div key={q.code} className="space-y-1">
+        <div key={q.id} className="space-y-1">
             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Question {globalIndex + 1}
             </label>
             <textarea
                 value={q.label}
-                onChange={(e) => setLabel(q.code, e.target.value)}
+                onChange={(e) => setLabel(q.id, e.target.value)}
                 rows={2}
-                title={`Libellé de la question ${q.code}`}
+                title={`Libellé de la question ${q.id}`}
                 className="w-full rounded-lg border border-slate-200 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 resize-none"
             />
         </div>
@@ -54,7 +54,7 @@ export function QuestionnaireEditor({ questions: initial, updateAction, groupByS
         // Grouper par section
         const groups = new Map<string, (QuestionSante | QuestionSanteEnfant)[]>();
         for (const q of questions) {
-            const section = (q as QuestionSanteEnfant).section ?? '';
+            const section = q.section ?? '';
             if (!groups.has(section)) groups.set(section, []);
             groups.get(section)!.push(q);
         }

@@ -63,7 +63,7 @@ export async function sendNotificationNouveauDossier(params: {
     montant: number;
     typePaiement?: string | null;
     certificatRequis: boolean;
-    adherentId: number;
+    adherentId: string;
 }) {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (!adminEmail) return;
