@@ -96,7 +96,7 @@ function IdentificationEssayantForm() {
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 interface EssayantData {
-    id: number;
+    id: string;
     numeroAdherent: string;
     nom: string;
     prenom: string;

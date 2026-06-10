@@ -102,7 +102,7 @@ export async function AdminDashboard() {
                                     <ActivityItem
                                         key={adh.id}
                                         type="club"
-                                        text={`Nouvelle inscription : ${adh.prenom} ${adh.nom}`}
+                                        text={`Nouvelle inscription : ${adh.membre.prenom} ${adh.membre.nom}`}
                                         time={getTimeAgo(adh.dateInscription ?? undefined)}
                                         icon={PlusCircle}
                                         dotColor="bg-slate-900"

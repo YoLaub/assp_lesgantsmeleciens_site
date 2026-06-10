@@ -21,7 +21,7 @@ export default async function AdminAdherentDetailPage({ params }: PageProps) {
                 Retour à la liste
             </Link>
 
-            <AdherentDetail adherent={adherent as Parameters<typeof AdherentDetail>[0]['adherent']} />
+            <AdherentDetail adherent={adherent as unknown as Parameters<typeof AdherentDetail>[0]['adherent']} />
         </div>
     );
 }

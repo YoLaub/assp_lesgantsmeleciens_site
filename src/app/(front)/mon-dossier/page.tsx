@@ -18,8 +18,8 @@ export default async function MonDossierPage({ searchParams }: MonDossierPagePro
         <MonDossierView
             token={params.token}
             paiementStatus={params.paiement as 'succes' | 'annule' | undefined}
-            questions={questions}
-            questionsEnfant={questionsEnfant}
+            questions={questions.map(q => ({ ...q, code: `q${q.ordre}`, section: q.section ?? '' }))}
+            questionsEnfant={questionsEnfant.map(q => ({ ...q, code: `q${q.ordre}`, section: q.section ?? '' }))}
         />
     );
 }

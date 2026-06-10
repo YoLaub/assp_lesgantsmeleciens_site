@@ -19,7 +19,7 @@ export default async function AdminAdherentsPage() {
                 </button>
             </div>
 
-            <AdherentsList adherents={adherents as Parameters<typeof AdherentsList>[0]['adherents']} />
+            <AdherentsList adherents={adherents as unknown as Parameters<typeof AdherentsList>[0]['adherents']} />
         </div>
     );
 }

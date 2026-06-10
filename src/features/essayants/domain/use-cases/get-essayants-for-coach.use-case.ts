@@ -10,5 +10,6 @@ export async function getEssayantsForCoachUseCase() {
     prenom: i.membre.prenom,
     nombrePresences: i.nombrePresences,
     accesBloque: i.accesBloque,
+    presences: (i as { presences?: { pointeLe: Date }[] }).presences ?? [],
   }));
 }
