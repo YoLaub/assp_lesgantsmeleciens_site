@@ -7,7 +7,9 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const QUESTIONS_ADULTE = [
+type QuestionSeed = { label: string; type: string; ordre: number; section?: string };
+
+const QUESTIONS_ADULTE: QuestionSeed[] = [
     { label: "Votre médecin vous a dit que vous étiez atteint d'un problème cardiaque, d'une hypertension artérielle, d'une affection de longue durée (ALD) ou d'une autre maladie chronique", type: "majeur", ordre: 1 },
     { label: "Avez-vous ressenti une douleur dans la poitrine, des palpitations, un essoufflement inhabituel ou un malaise durant les 12 derniers mois ?", type: "majeur", ordre: 2 },
     { label: "Ressentez-vous une douleur, un manque de force ou une raideur suite à un problème osseux, articulaire ou musculaire survenu durant les 12 derniers mois ?", type: "majeur", ordre: 3 },
@@ -17,7 +19,7 @@ const QUESTIONS_ADULTE = [
     { label: "Pensez-vous avoir besoin d'un avis médical pour poursuivre votre pratique sportive ?", type: "majeur", ordre: 7 },
 ];
 
-const QUESTIONS_ENFANT = [
+const QUESTIONS_ENFANT: QuestionSeed[] = [
     { label: "Es-tu allé(e) à l'hôpital pendant toute une journée ou plusieurs jours ?", type: "mineur", ordre: 1, section: "Depuis l'année dernière" },
     { label: "As-tu été opéré(e) ?", type: "mineur", ordre: 2, section: "Depuis l'année dernière" },
     { label: "As-tu beaucoup plus grandi que les autres années ?", type: "mineur", ordre: 3, section: "Depuis l'année dernière" },
