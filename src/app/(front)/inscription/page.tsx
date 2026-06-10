@@ -19,7 +19,7 @@ export default async function InscriptionPage({ searchParams }: InscriptionPageP
                 email: result.data.email,
                 telephone1: result.data.telephone ?? undefined,
                 dateDeNaissance: result.data.dateDeNaissance,
-                membreId: result.data.id,
+                membreId: result.data.membreId,
             };
         }
     }

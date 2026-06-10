@@ -47,7 +47,7 @@ interface AdherentFormProps {
         prenom?: string;
         email?: string;
         dateDeNaissance?: string;
-        membreId?: number;
+        membreId?: string;
     };
     readonlyFields?: (keyof FormValues)[];
 }
