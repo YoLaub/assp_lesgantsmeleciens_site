@@ -1,5 +1,5 @@
 # Index d'Architecture — asso_lesgantsmeleciens_site
-> Généré le 2026-06-08 — Scanner v2
+> Généré le 2026-06-08 — mis à jour le 2026-06-10 (migration DDD v2)
 
 ## Stack
 
@@ -89,7 +89,9 @@ STACK DÉTECTÉ :
 | `/admin/content/disciplines/new` | `src/app/admin/content/disciplines/new/page.tsx` |
 | `/admin/content/disciplines/[id]` | `src/app/admin/content/disciplines/[id]/page.tsx` |
 | `/admin/content/gallery` | `src/app/admin/content/gallery/page.tsx` |
-| `/admin/settings/reglement` | `src/app/admin/settings/reglement/page.tsx` |
+| `/admin/config/reglement` | `src/app/admin/config/reglement/page.tsx` |
+| `/admin/config/sante` | `src/app/admin/config/sante/page.tsx` |
+| `/admin/config/tarifs` | `src/app/admin/config/tarifs/page.tsx` |
 
 ### Autres pages
 
@@ -172,35 +174,63 @@ STACK DÉTECTÉ :
 
 ---
 
+### 📦 Bounded Context: Adhesion (DDD v2 — NOUVEAU)
+
+**Architecture** : Clean Architecture complète (domain/data)
+
+> Introduit par la migration DDD v2 (2026-06-10). Sépare la notion de **Membre** (identité pérenne, UUID) de **Inscription** (adhésion par saison, autoincrement).
+
+- **Domain models** (`src/features/adhesion/domain/models/`) :
+  - `Membre { id (UUID), nom, prenom, email, telephone?, sexe?, ville?, codePostal?, adresse?, dateDeNaissance, numeroAdherent?, accesToken?, accesTokenExpireLe?, dateCreation, inscriptions[] }`
+  - `Inscription { id (int), statut (ESSAYANT|ACTIF|BLOQUE|ARCHIVE), photo?, certificatMedical, engagementPrisConnaissance, autorisationParentale, couponSport, bonCaf, codePassSport?, montantSnapshot?, inscriptionValide, fnsmr, droitImage, reglementSigne, oxygene, renouvellement, typePaiement?, accesBloque, telephone2?, stripeSessionId?, categorie?, nombrePresences, dateInscription?, saison, membreId (FK) }`
+  - Types enums : `StatutInscription`, `StatutDocument`, `TypePaiement`, `Categorie`
+  - Composites : `InscriptionAvecMembre`, `InscriptionAvecDetails` (avec documents, questionnaire, présences)
+- **Repository interfaces** :
+  - `IMembreRepository` : `findById`, `findByEmail`, `findByToken`, `findByEmailAndNumero`, `findAllWithInscription`, `create`, `updateToken`, `generateUniqueNumero`
+  - `IInscriptionRepository` : lecture (findById, findCurrentByMembreId, findByToken, findByStripeSessionId, findByEssayantsByToken, findAllEssayants, findAllAdherents, findAdherentById), écriture (create, update), présences, documents, questionnaire, config
+- **Data** (`src/features/adhesion/data/`) :
+  - Datasources : `membre.postgres.datasource.ts`, `inscription.postgres.datasource.ts`
+  - Repos impls : `membre.repository.impl.ts`, `inscription.repository.impl.ts`
+  - Tests : `inscription.repository.impl.test.ts`
+
+---
+
 ### 📦 Module: Adherents (Inscriptions)
 
-**Architecture** : Server Actions + Prisma direct (pas de Clean Architecture)
+**Architecture** : Use-cases DDD + thin Server Actions wrappers (refactoré v2)
 
-- **Actions** :
-  - `admin-adherents.actions.ts` : `getAdherentsAction()`, `getAdherentByIdAction(id)`, `patchAdherentAction(id, data)`, `validerDocumentAdminAction(...)`
+> Les Server Actions sont désormais des wrappers minces sur des use-cases isolés qui utilisent `IMembreRepository` et `IInscriptionRepository`.
+
+- **Use-cases** (`src/features/adherents/domain/use-cases/`) :
+  - Front : `createAdherentUseCase`, `getMonDossierUseCase`, `createCheckoutUseCase`, `soumettreQuestionnaireUseCase`, `signerReglementUseCase`, `setTypePaiementUseCase`, `patchAutorisationSortieUseCase`, `updateTelephoneUseCase`, `updateDroitImageUseCase`, `validerEngagementUseCase`, `uploadDocumentAdherentUseCase`
+  - Admin : `getAdherentsUseCase`, `getAdherentByIdUseCase`, `patchAdherentUseCase`, `validerDocumentUseCase`, `notifierRejetDossierUseCase`
+- **Actions** (thin wrappers) :
+  - `admin-adherents.actions.ts` : `getAdherentsAction()`, `getAdherentByIdAction(id)`, `patchAdherentAction(id, data)`, `validerDocumentAdminAction(...)`, `notifierRejetDossierAction(id)`
   - `create-adherent.actions.ts` : `createAdherentAction(input: CreateAdherentInput)`
-  - `mon-dossier.actions.ts` : `requestAccesDossierAction(input)`, `getMonDossierAction(token)`, `soumettreQuestionnaireAction(token, data)`, `signerReglementAction(token)`, `setTypePaiementAction(token, type)`, `declarerCertificatAction(token)`, `updateTelephoneAction(token, data)`, `updateDroitImageAction(token, bool)`, `validerEngagementAction(token)`, `uploadDocumentAdherentAction(token, file, type)`, `createCheckoutAction(token)`
+  - `mon-dossier.actions.ts` : `requestAccesDossierAction`, `getMonDossierAction`, `soumettreQuestionnaireAction`, `soumettreQuestionnaireEnfantAction`, `signerReglementAction`, `setTypePaiementAction`, `patchAutorisationSortieAction`, `updateTelephoneAction`, `updateDroitImageAction`, `validerEngagementAction`, `uploadDocumentAdherentAction`, `createCheckoutAction`, `rechercherMembreParEmailAction`
+  - `questionnaire-questions.actions.ts` : gestion des questions santé admin (testé)
   - `config-tarifs.actions.ts` : `getConfigTarifsAction()`, `updateConfigTarifsAction(data)`
   - `reglement.actions.ts` : `getReglementAction()`, `updateReglementAction(data)`
-  - `upload.actions.ts` (admin) : upload de photo vers R2
 - **Presentation** :
   - Admin : `AdherentDetail`, `AdherentsList`, `ConfigTarifsForm`
   - Front : `AdherentForm`, `MonDossierView`
 - **Règles métier** :
   - `requireAdmin()` dans `admin-adherents.actions.ts` : vérifie que l'utilisateur Clerk est connecté
-  - Accès dossier par token unique en base, avec expiration
+  - Accès dossier par token unique (`Membre.accesToken`), avec expiration
   - Paiement en ligne via Stripe Checkout Session
   - Documents uploadés sur Cloudinary — remplacement si même type déjà présent
-- **Tests** : aucun
+- **Tests** : `questionnaire-questions.actions.test.ts`
 
 ---
 
 ### 📦 Module: Essayants (Essai libre)
 
-**Architecture** : Server Actions + Prisma direct
+**Architecture** : Use-cases DDD + thin Server Actions wrappers (refactoré v2)
 
-- **Actions** (`src/features/essayants/actions/essayants.actions.ts`) :
-  - `createEssayantAction(input)`, `requestAccesEssaiAction(input)`, `getMonEssaiAction(token)`, `pointerPresenceAction(essayantId, coachToken, nomCoach)`, `getEssayantConversionDataAction(token)`, `genererCoachTokenAction()`, `getCoachTokenActifAction()`, `getEssayantsForCoachAction(coachToken)`
+- **Use-cases** (`src/features/essayants/domain/use-cases/`) :
+  - `createEssayantUseCase`, `requestAccesEssaiUseCase`, `getMonEssaiUseCase`, `pointerPresenceUseCase`, `getEssayantConversionDataUseCase`, `getEssayantsForCoachUseCase`
+- **Actions** (thin wrappers — `src/features/essayants/actions/essayants.actions.ts`) :
+  - `createEssayantAction(input)`, `requestAccesEssaiAction(input)`, `getMonEssaiAction(token)`, `pointerPresenceAction(inscriptionId, coachToken, nomCoach)`, `getEssayantConversionDataAction(token)`, `genererCoachTokenAction()`, `getCoachTokenActifAction()`, `getEssayantsForCoachAction(coachToken)`
 - **Presentation** :
   - Admin : `CoachTokenManager`
   - Coach : `CoachDashboard`
@@ -209,7 +239,7 @@ STACK DÉTECTÉ :
   - 3 présences max avant blocage (`accesBloque = true`)
   - Conversion Essayant → Adherent possible après 3 présences
   - CoachToken requis pour pointer les présences (accès coach sans compte admin Clerk)
-- **Tests** : aucun
+- **Tests** : `essayants.actions.test.ts`
 
 ---
 
@@ -255,12 +285,13 @@ STACK DÉTECTÉ :
 | `prisma.ts` | `prisma` (PrismaClient) | Singleton Prisma avec pool pg |
 | `cloudinary.server.ts` | `generateBlurBase64(asset)`, `deleteCloudinaryAsset(asset)`, `deleteCloudinaryAssets(assets)` | Opérations Cloudinary serveur |
 | `cloudinary.ts` | config client Cloudinary | Config front |
-| `mail.ts` | 16 fonctions `send*` | Email via Brevo API |
+| `mail.ts` | 21 fonctions `send*` | Email via Brevo API (nouvelles : sendRelanceEssayant, sendConversionEssayant, sendNotificationConversionAdmin, sendLienAccesEssai, sendNotificationRejetDossier) |
 | `upload.ts` | `uploadDocumentFile(file, subFolder)`, `uploadPublicImage(file, subFolder)` | Upload vers Cloudinary |
 | `result.ts` | re-exports neverthrow + `genererNumeroAdherentUnique()`, `genererNumeroEssayantUnique()`, `calculerCategorie(dateNaissance)` | Result monad + utilitaires métier |
 | `hcaptcha.ts` | vérification hCaptcha | Validation captcha |
 | `sanitize.ts` | sanitize HTML | TipTap output sanitization (testé) |
-| `adherent-utils.ts` | utilitaires adhérent | — |
+| `adherent-utils.ts` | `genererNumeroMembreUnique()`, `calculerCategorie(dateDeNaissance)` | Utilitaires adhesion DDD |
+| `rate-limit.ts` | `checkRateLimit(key, limit, windowMs)`, `getClientIp()` | Rate limiting (Upstash Redis prod, mémoire dev) |
 
 ### 🖼️ Shared Components (`src/shared/components/`)
 
@@ -282,19 +313,20 @@ STACK DÉTECTÉ :
 
 ## Métriques
 
-- Nombre total de routes : 28 (9 front + 15 admin + 2 cron + 1 webhook + 1 coach + 1 login)
-- Nombre de modules métier : 6 (actualites, disciplines, gallery, adherents, essayants, inscriptions)
-- Nombre de fichiers source : 178 TS/TSX
-- Fichiers de test : 17
-- Couverture de test : partielle — `gallery` bien testée, adherents/essayants/disciplines/actualites : 0 test
+- Nombre total de routes : 31 (9 front + 18 admin + 2 cron + 1 webhook + 1 coach + 1 login)
+- Nombre de modules métier : 7 (actualites, disciplines, gallery, adhesion, adherents, essayants, inscriptions)
+- Nombre de fichiers source : 205 TS/TSX
+- Fichiers de test : 20
+- Couverture de test : partielle — `gallery` bien testée, `adhesion` (inscription repo), `essayants` (actions), `adherents` (questionnaire) testés ; disciplines/actualites : 0 test
 
 ---
 
 ## Points d'attention
 
-1. ⚠️ **Variables d'environnement manquantes dans .env** : 13 variables référencées dans le code absentes du `.env` — dont des clés critiques (CLERK, STRIPE, HCAPTCHA)
-2. ⚠️ **Couverture de tests très partielle** : seul le module `gallery` est testé. Les modules métier critiques (adherents, essayants) n'ont aucun test.
-3. ⚠️ **Architecture hybride** : `gallery`, `actualites`, `disciplines` = Clean Architecture ; `adherents`, `essayants` = Server Actions directs sur Prisma. Incohérence à clarifier.
+1. ⚠️ **Variables d'environnement manquantes dans .env** : 13 variables référencées dans le code absentes du `.env` — dont des clés critiques (CLERK, STRIPE, HCAPTCHA, UPSTASH)
+2. ⚠️ **Couverture de tests partielle** : `gallery` bien testée, tests ajoutés pour `adhesion`, `essayants`, `adherents/questionnaire` — mais les use-cases principaux (create-adherent, create-essayant, paiement) n'ont aucun test.
+3. ℹ️ **Architecture hybride résolue partiellement** : `adherents` et `essayants` ont migré vers DDD v2 avec use-cases, mais les datasources postgres sont toujours dans `adhesion/data` (bounded context partagé) — pas encore aligné sur le pattern `gallery`/`actualites`/`disciplines`.
 4. ⚠️ **`src/proxy.ts`** : fichier middleware nommé de façon non-conventionnelle (Next.js attend `src/middleware.ts` ou `middleware.ts` à la racine).
 5. ℹ️ **Dual upload** : `src/app/admin/club/adherents/actions/upload.actions.ts` (photos → R2) vs `src/shared/lib/upload.ts` (documents/images → Cloudinary). Deux chemins distincts selon le type de fichier.
 6. ℹ️ **`uploadDocumentFile`** : malgré le nom, cette fonction upload sur Cloudinary (pas R2).
+7. ℹ️ **Bounded context `adhesion`** : les repos (`IMembreRepository`, `IInscriptionRepository`) sont définis dans `src/features/adhesion/domain/repositories/` et leur implémentation dans `src/features/adhesion/data/` — mais les use-cases eux-mêmes vivent dans `src/features/adherents/` et `src/features/essayants/`. Décision architecturale à clarifier si le projet évolue.

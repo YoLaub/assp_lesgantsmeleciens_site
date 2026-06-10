@@ -1,107 +1,82 @@
-```mermaid
 graph LR
   subgraph Acteurs
-    V((Visiteur))
-    ADH((Adhérent<br/>token email))
-    ESS((Essayant<br/>token email))
+    VISITOR((Visiteur))
+    ADHERENT((Adhérent<br/>token email))
+    ESSAYANT((Essayant<br/>token email))
     COACH((Coach<br/>CoachToken))
-    ADM((Admin<br/>Clerk))
+    ADMIN((Admin<br/>Clerk))
   end
 
-  subgraph "Site public"
-    UC1[Consulter l'accueil]
-    UC2[Voir les actualités]
-    UC3[Voir les disciplines]
-    UC4[Voir la galerie]
-    UC5[S'inscrire à l'association]
-    UC6[Demander un essai libre]
-    UC7[Consulter les mentions légales]
-    UC8[Demander lien accès dossier]
-    UC9[Demander lien accès essai]
+  subgraph Public["Accès public"]
+    UC1[Voir accueil / disciplines / actualités]
+    UC2[Voir galerie photos]
+    UC3[S'inscrire comme adhérent]
+    UC4[Demander un essai libre]
+    UC5[Accéder à son dossier par email]
+    UC6[Accéder à son espace essai par email]
   end
 
-  subgraph "Espace adhérent"
-    UC10[Consulter son dossier]
-    UC11[Signer le règlement]
-    UC12[Remplir questionnaire santé]
-    UC13[Uploader un document]
-    UC14[Déclarer certificat médical]
-    UC15[Choisir mode de paiement]
-    UC16[Payer en ligne via Stripe]
-    UC17[Valider l'engagement]
-    UC18[Mettre à jour téléphone]
-    UC19[Gérer droit à l'image]
+  subgraph DossierAdherent["Espace adhérent - token"]
+    UC7[Voir son dossier complet]
+    UC8[Soumettre le questionnaire santé]
+    UC9[Signer le règlement intérieur]
+    UC10[Choisir mode de paiement]
+    UC11[Payer en ligne - Stripe]
+    UC12[Uploader ses documents]
+    UC13[Valider engagement / auto. sortie]
   end
 
-  subgraph "Espace essayant"
-    UC20[Voir son suivi d'essai]
-    UC21[Consulter ses présences]
-    UC22[Demander conversion en adhérent]
+  subgraph EspaceEssai["Espace essayant - token"]
+    UC14[Voir ses présences]
+    UC15[Voir les infos conversion]
   end
 
-  subgraph "Portail coach"
-    UC23[Voir les essayants du jour]
-    UC24[Pointer une présence]
+  subgraph EspaceCoach["Portail coach - CoachToken"]
+    UC16[Voir liste essayants]
+    UC17[Pointer une présence]
   end
 
-  subgraph "Administration contenu"
-    UC25[Gérer les actualités]
-    UC26[Gérer les disciplines]
-    UC27[Gérer la galerie]
-    UC28[Réordonner les éléments]
+  subgraph Admin["Administration - Clerk"]
+    UC18[Voir dashboard]
+    UC19[Gérer les adhérents]
+    UC20[Valider les documents]
+    UC21[Notifier rejet dossier]
+    UC22[Gérer les essayants]
+    UC23[Générer un token coach]
+    UC24[Gérer actualités / disciplines / galerie]
+    UC25[Configurer les tarifs]
+    UC26[Éditer le règlement intérieur]
+    UC27[Éditer questionnaire santé]
   end
 
-  subgraph "Administration club"
-    UC29[Voir la liste des adhérents]
-    UC30[Consulter un dossier adhérent]
-    UC31[Valider un document]
-    UC32[Uploader photo adhérent]
-    UC33[Voir les essayants]
-    UC34[Gérer les tokens coach]
-    UC35[Configurer les tarifs]
-    UC36[Éditer le règlement intérieur]
-    UC37[Accéder au dashboard]
-  end
+  VISITOR --> UC1
+  VISITOR --> UC2
+  VISITOR --> UC3
+  VISITOR --> UC4
+  VISITOR --> UC5
+  VISITOR --> UC6
 
-  V --> UC1
-  V --> UC2
-  V --> UC3
-  V --> UC4
-  V --> UC5
-  V --> UC6
-  V --> UC7
-  V --> UC8
-  V --> UC9
+  ADHERENT --> UC7
+  ADHERENT --> UC8
+  ADHERENT --> UC9
+  ADHERENT --> UC10
+  ADHERENT --> UC11
+  ADHERENT --> UC12
+  ADHERENT --> UC13
 
-  ADH --> UC10
-  ADH --> UC11
-  ADH --> UC12
-  ADH --> UC13
-  ADH --> UC14
-  ADH --> UC15
-  ADH --> UC16
-  ADH --> UC17
-  ADH --> UC18
-  ADH --> UC19
+  ESSAYANT --> UC14
+  ESSAYANT --> UC15
 
-  ESS --> UC20
-  ESS --> UC21
-  ESS --> UC22
+  COACH --> UC16
+  COACH --> UC17
 
-  COACH --> UC23
-  COACH --> UC24
-
-  ADM --> UC25
-  ADM --> UC26
-  ADM --> UC27
-  ADM --> UC28
-  ADM --> UC29
-  ADM --> UC30
-  ADM --> UC31
-  ADM --> UC32
-  ADM --> UC33
-  ADM --> UC34
-  ADM --> UC35
-  ADM --> UC36
-  ADM --> UC37
-```
+  ADMIN --> UC18
+  ADMIN --> UC19
+  ADMIN --> UC20
+  ADMIN --> UC21
+  ADMIN --> UC22
+  ADMIN --> UC23
+  ADMIN --> UC24
+  ADMIN --> UC25
+  ADMIN --> UC26
+  ADMIN --> UC27

@@ -1,0 +1,89 @@
+classDiagram
+  namespace AdhesionDomain {
+    class IMembreRepository {
+      <<interface>>
+      +findById(id) Membre
+      +findByEmail(email) Membre
+      +findByToken(token) Membre
+      +findByEmailAndNumero(email, numero) Membre
+      +findAllWithInscription() Membre[]
+      +create(data) Membre
+      +updateToken(id, token, exp) void
+      +generateUniqueNumero() string
+    }
+
+    class IInscriptionRepository {
+      <<interface>>
+      +findById(id) InscriptionAvecDetails
+      +findCurrentByMembreId(membreId) Inscription
+      +findByToken(token) InscriptionAvecDetails
+      +findByStripeSessionId(sessionId) InscriptionAvecMembre
+      +findAllAdherents() InscriptionAvecMembre[]
+      +findAllEssayants() InscriptionAvecMembre[]
+      +create(data) Inscription
+      +update(id, data) Inscription
+      +createPresence(inscriptionId, pointePar) PresenceEssai
+      +createDocument(inscriptionId, type, url, name) Document
+      +upsertQuestionnaire(inscriptionId, type, reponses) void
+      +getCurrentSaison() string
+    }
+
+    class Membre {
+      <<model>>
+      +string id (UUID)
+      +string nom
+      +string prenom
+      +string email
+      +string telephone?
+      +DateTime dateDeNaissance
+      +string numeroAdherent?
+      +string accesToken?
+      +DateTime accesTokenExpireLe?
+    }
+
+    class Inscription {
+      <<model>>
+      +int id
+      +StatutInscription statut
+      +string saison
+      +string membreId (FK)
+      +boolean inscriptionValide
+      +boolean accesBloque
+      +int nombrePresences
+      +TypePaiement typePaiement?
+      +string stripeSessionId?
+    }
+  }
+
+  namespace AdherentsFeature {
+    class AdherentsUseCases {
+      +createAdherentUseCase(input)
+      +getMonDossierUseCase(token)
+      +soumettreQuestionnaireUseCase(token, data)
+      +uploadDocumentAdherentUseCase(token, file, type)
+      +createCheckoutUseCase(token)
+      +validerEngagementUseCase(token)
+      +getAdherentsUseCase()
+      +validerDocumentUseCase(inscriptionId, type)
+      +notifierRejetDossierUseCase(id)
+    }
+  }
+
+  namespace EssayantsFeature {
+    class EssayantsUseCases {
+      +createEssayantUseCase(input)
+      +requestAccesEssaiUseCase(input)
+      +getMonEssaiUseCase(token)
+      +pointerPresenceUseCase(inscriptionId, coachToken, nomCoach)
+      +getEssayantConversionDataUseCase(token)
+      +getEssayantsForCoachUseCase(coachToken)
+    }
+  }
+
+  Membre "1" --> "many" Inscription : a
+  AdherentsUseCases --> IMembreRepository : uses
+  AdherentsUseCases --> IInscriptionRepository : uses
+  EssayantsUseCases --> IMembreRepository : uses
+  EssayantsUseCases --> IInscriptionRepository : uses
+  IMembreRepository ..> Membre : returns
+  IInscriptionRepository ..> Inscription : returns

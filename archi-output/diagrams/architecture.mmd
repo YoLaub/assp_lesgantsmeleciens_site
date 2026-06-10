@@ -1,49 +1,43 @@
-```mermaid
 graph TB
-  subgraph Navigateur["Navigateur"]
-    FRONT["Pages Front<br/>/(front)/* · /coach"]
-    ADMIN["Back-office Admin<br/>/admin/*"]
+  subgraph Client["Navigateur"]
+    FRONT["Next.js 16 / React 19<br/>App Router + Server Components"]
   end
 
-  subgraph Middleware["Middleware (src/proxy.ts)"]
-    MW["clerkMiddleware<br/>auth.protect() sur /admin/*"]
+  subgraph Vercel["Vercel (prod)"]
+    SERVER["Server Actions<br/>+ Route Handlers"]
+    CRON["Cron Jobs<br/>/api/cron/*"]
+    WEBHOOK["Webhooks<br/>/api/webhooks/stripe"]
   end
 
-  subgraph Server["Next.js 16 — Serveur"]
-    SA["Server Actions<br/>features/**/actions/"]
-    CA["Clean Architecture<br/>gallery · disciplines · actualites<br/>domain → data → datasource"]
-    API["API Routes<br/>/api/cron/* · /api/webhooks/stripe"]
+  subgraph Data["Données"]
+    DB[("PostgreSQL<br/>Prisma Postgres")]
+    REDIS[("Upstash Redis<br/>Rate limiting")]
   end
 
-  subgraph Data["Base de données"]
-    PG[("PostgreSQL<br/>Prisma v7 + adapter pg")]
+  subgraph Auth["Authentification"]
+    CLERK["Clerk<br/>Auth admin JWT"]
   end
 
-  subgraph Storage["Stockage fichiers"]
-    CDY["Cloudinary<br/>Images publiques<br/>disciplines · actualites · gallery"]
-    R2["Cloudflare R2<br/>Photos adhérents<br/>via AWS S3 SDK"]
+  subgraph Media["Médias & Fichiers"]
+    CLOUDINARY["Cloudinary<br/>Images + Documents"]
+    R2["Cloudflare R2<br/>Photos adhérents"]
   end
 
-  subgraph Ext["Services externes"]
-    CLERK["Clerk<br/>Auth admin uniquement"]
-    STRIPE["Stripe<br/>Paiement inscription"]
-    BREVO["Brevo<br/>16 templates email"]
-    HCAP["hCaptcha<br/>Formulaires publics"]
+  subgraph External["Services externes"]
+    STRIPE["Stripe<br/>Paiements inscription"]
+    BREVO["Brevo<br/>Emails transactionnels"]
   end
 
-  FRONT -->|Server Actions| SA
-  ADMIN -->|Server Actions| SA
-  ADMIN -.->|protégé| MW
-  MW -.->|auth.protect| CLERK
-  SA --> CA
-  SA -->|directs sur Prisma<br/>adherents · essayants| PG
-  CA --> PG
-  SA --> CDY
-  SA --> R2
-  SA --> BREVO
-  SA --> STRIPE
-  SA -.->|verify token| HCAP
-  API --> PG
-  API --> BREVO
-  API -->|webhook paiement| STRIPE
-```
+  FRONT --> SERVER
+  SERVER --> DB
+  SERVER --> REDIS
+  SERVER --> CLOUDINARY
+  SERVER --> R2
+  SERVER --> STRIPE
+  SERVER --> BREVO
+  FRONT -.->|UI auth sign-in| CLERK
+  SERVER -.->|Verify session| CLERK
+  CRON --> DB
+  CRON --> BREVO
+  WEBHOOK -->|stripe events| DB
+  WEBHOOK --> BREVO
