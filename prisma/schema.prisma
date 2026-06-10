@@ -60,26 +60,6 @@ model Discipline {
   updatedAt DateTime @updatedAt
 }
 
-enum DocumentType {
-  MEDICAL_CERTIFICATE
-  ID_PHOTO
-  ADDRESS_PROOF
-  CAF_VOUCHER
-  OTHER
-}
-
-model Document {
-  id         String       @id @default(uuid())
-  type       DocumentType
-  name       String?
-  url        String
-
-  membre     Membre       @relation(fields: [membreId], references: [id], onDelete: Cascade)
-  membreId   Int
-
-  createdAt  DateTime     @default(now())
-}
-
 model Actualite {
   id          String    @id @default(uuid())
   title       String
@@ -98,7 +78,7 @@ model Actualite {
   updatedAt   DateTime  @updatedAt
 }
 
-// ─── Nouveaux modèles : adhésion, membres, tarifs ────────────────────────────
+// ─── Enums adhesion ──────────────────────────────────────────────────────────
 
 enum StatutDocument {
   non_fourni
@@ -111,18 +91,152 @@ enum TypePaiement {
   en_ligne
 }
 
+enum StatutInscription {
+  ESSAYANT
+  ACTIF
+  BLOQUE
+  ARCHIVE
+}
+
 enum Categorie {
   enfant
   ados
   adulte
 }
 
-enum StatutMembre {
-  ESSAYANT
-  ACTIF
-  BLOQUE
-  ARCHIVE
+// ─── Membre (identité uniquement) ────────────────────────────────────────────
+
+model Membre {
+  id                 String   @id @default(uuid())
+  nom                String   @db.VarChar(100)
+  prenom             String   @db.VarChar(100)
+  email              String   @unique @db.VarChar(150)
+  telephone          String?  @db.VarChar(20)
+  sexe               String?  @db.VarChar(10)
+  ville              String?  @db.VarChar(100)
+  codePostal         String?  @db.VarChar(5)
+  adresse            String?  @db.Text
+  dateDeNaissance    DateTime @db.Date
+  numeroAdherent     String?  @unique @db.VarChar(10)
+  accesToken         String?  @db.VarChar(255)
+  accesTokenExpireLe DateTime?
+  dateCreation       DateTime @default(now())
+
+  inscriptions       Inscription[]
 }
+
+// ─── Inscription (adhésion par saison) ───────────────────────────────────────
+
+model Inscription {
+  id                         Int               @id @default(autoincrement())
+  statut                     StatutInscription @default(ESSAYANT)
+  photo                      String?           @db.VarChar(255)
+  certificatMedical          StatutDocument    @default(non_fourni)
+  certificatMedicalReq       Boolean           @default(false)
+  engagementPrisConnaissance Boolean           @default(false)
+  autorisationParentale      StatutDocument    @default(non_fourni)
+  couponSport                StatutDocument    @default(non_fourni)
+  bonCaf                     StatutDocument    @default(non_fourni)
+  codePassSport              String?           @db.VarChar(100)
+  montantSnapshot            Decimal?          @db.Decimal(8, 2)
+  inscriptionValide          Boolean           @default(false)
+  fnsmr                      Boolean           @default(false)
+  droitImage                 Boolean           @default(false)
+  reglementSigne             StatutDocument    @default(non_fourni)
+  oxygene                    Boolean           @default(false)
+  renouvellement             Boolean           @default(false)
+  typePaiement               TypePaiement?
+  accesBloque                Boolean           @default(false)
+  telephone2                 String?           @db.VarChar(20)
+  stripeSessionId            String?           @db.VarChar(255)
+  categorie                  Categorie?
+  nombrePresences            Int               @default(0)
+  dateInscription            DateTime?
+  saison                     String            @db.VarChar(100)
+
+  membreId                   String
+  membre                     Membre            @relation(fields: [membreId], references: [id], onDelete: Cascade)
+
+  presences                  PresenceEssai[]
+  documents                  Document[]
+  questionnaire              QuestionnaireSante?
+
+  @@unique([membreId, saison])
+}
+
+// ─── Présences essai ──────────────────────────────────────────────────────────
+
+model PresenceEssai {
+  id            Int         @id @default(autoincrement())
+  pointeLe      DateTime    @default(now())
+  pointePar     String      @db.VarChar(100)
+
+  inscriptionId Int
+  inscription   Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Documents adhérent ───────────────────────────────────────────────────────
+
+model Document {
+  id            String      @id @default(uuid())
+  type          String      @db.VarChar(50)
+  name          String?     @db.VarChar(255)
+  url           String      @db.Text
+  createdAt     DateTime    @default(now())
+
+  inscriptionId Int
+  inscription   Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Questionnaire santé (normalisé) ─────────────────────────────────────────
+
+model QuestionnaireSante {
+  id            Int         @id @default(autoincrement())
+  type          String      @db.VarChar(10)  // 'majeur' | 'mineur'
+  createdAt     DateTime    @default(now())
+
+  inscriptionId Int         @unique
+  inscription   Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
+
+  reponses      Reponse[]
+  interroges    Interroge[]
+}
+
+model Question {
+  id        Int     @id @default(autoincrement())
+  label     String  @unique @db.VarChar(255)
+  type      String  @db.VarChar(10)   // 'majeur' | 'mineur'
+  ordre     Int
+  section   String? @db.VarChar(100)  // uniquement pour 'mineur'
+
+  reponses   Reponse[]
+  interroges Interroge[]
+}
+
+model Reponse {
+  id                   Int                @id @default(autoincrement())
+  reponse              Boolean?
+
+  questionnaireSanteId Int
+  questionnaireSante   QuestionnaireSante @relation(fields: [questionnaireSanteId], references: [id], onDelete: Cascade)
+
+  questionId           Int
+  question             Question           @relation(fields: [questionId], references: [id])
+
+  @@unique([questionnaireSanteId, questionId])
+}
+
+model Interroge {
+  questionnaireSanteId Int
+  questionnaireSante   QuestionnaireSante @relation(fields: [questionnaireSanteId], references: [id], onDelete: Cascade)
+
+  questionId           Int
+  question             Question           @relation(fields: [questionId], references: [id])
+
+  @@id([questionnaireSanteId, questionId])
+}
+
+// ─── Config ───────────────────────────────────────────────────────────────────
 
 model ConfigTarifs {
   id                   Int      @id @default(autoincrement())
@@ -134,79 +248,6 @@ model ConfigTarifs {
   deductionCouponSport Decimal  @db.Decimal(8, 2) @default(50.00)
   modifieLe            DateTime @default(now())
   modifiePar           String?
-}
-
-model Membre {
-  id                         Int            @id @default(autoincrement())
-  statut                     StatutMembre   @default(ESSAYANT)
-
-  nom                        String         @db.VarChar(100)
-  prenom                     String         @db.VarChar(100)
-  email                      String         @unique @db.VarChar(150)
-  telephone                  String?        @db.VarChar(20)
-  dateDeNaissance            DateTime       @db.Date
-  dateCreation               DateTime       @default(now())
-
-  accesToken                 String?        @db.VarChar(255)
-  accesTokenExpireLe         DateTime?
-
-  nombrePresences            Int            @default(0)
-  accesBloque                Boolean        @default(false)
-
-  numeroAdherent             String?        @unique @db.VarChar(10)
-  sexe                       String?        @db.VarChar(10)
-  categorie                  Categorie?
-  photo                      String?        @db.VarChar(255)
-  telephone2                 String?        @db.VarChar(20)
-  adresse                    String?        @db.Text
-  codePostal                 String?        @db.VarChar(5)
-  ville                      String?        @db.VarChar(100)
-  oxygene                    Boolean        @default(false)
-  renouvellement             Boolean        @default(false)
-  fnsmr                      Boolean        @default(false)
-  reglementSigne             StatutDocument @default(non_fourni)
-  certificatMedical          StatutDocument @default(non_fourni)
-  certificatMedicalReq       Boolean        @default(false)
-  autorisationParentale      StatutDocument @default(non_fourni)
-  couponSport                StatutDocument @default(non_fourni)
-  bonCaf                     StatutDocument @default(non_fourni)
-  droitImage                 Boolean        @default(false)
-  codePassSport              String?        @db.VarChar(100)
-  engagementPrisConnaissance Boolean        @default(false)
-  montantSnapshot            Decimal?       @db.Decimal(8, 2)
-  typePaiement               TypePaiement?
-  stripeSessionId            String?        @db.VarChar(255)
-  inscriptionValide          Boolean        @default(false)
-  dateInscription            DateTime?      // null = essayant non encore inscrit ; non-null = dossier ouvert
-
-  presences           PresenceEssai[]
-  questionnaire       QuestionnaireSanteReponses?
-  questionnaireEnfant QuestionnaireSanteReponsesEnfant?
-  documents           Document[]
-}
-
-model QuestionnaireSanteReponses {
-  id       Int    @id @default(autoincrement())
-  membreId Int    @unique
-  membre   Membre @relation(fields: [membreId], references: [id], onDelete: Cascade)
-  q1       Boolean
-  q2       Boolean
-  q3       Boolean
-  q4       Boolean
-  q5       Boolean
-  q6       Boolean
-  q7       Boolean
-  q8       Boolean
-  q9       Boolean
-  rempliLe DateTime @default(now())
-}
-
-model PresenceEssai {
-  id        Int      @id @default(autoincrement())
-  membreId  Int
-  membre    Membre   @relation(fields: [membreId], references: [id], onDelete: Cascade)
-  pointeLe  DateTime @default(now())
-  pointePar String   @db.VarChar(100)
 }
 
 model CoachToken {
@@ -223,48 +264,3 @@ model ReglementInterieur {
   modifieLe  DateTime @default(now()) @updatedAt
   modifiePar String?
 }
-
-model QuestionnaireSanteQuestion {
-  code  String @id
-  label String @db.Text
-  ordre Int
-}
-
-model QuestionnaireSanteQuestionEnfant {
-  code    String @id
-  label   String @db.Text
-  ordre   Int
-  section String @db.VarChar(100)
-}
-
-model QuestionnaireSanteReponsesEnfant {
-  id       Int    @id @default(autoincrement())
-  membreId Int    @unique
-  membre   Membre @relation(fields: [membreId], references: [id], onDelete: Cascade)
-  q1  Boolean
-  q2  Boolean
-  q3  Boolean
-  q4  Boolean
-  q5  Boolean
-  q6  Boolean
-  q7  Boolean
-  q8  Boolean
-  q9  Boolean
-  q10 Boolean
-  q11 Boolean
-  q12 Boolean
-  q13 Boolean
-  q14 Boolean
-  q15 Boolean
-  q16 Boolean
-  q17 Boolean
-  q18 Boolean
-  q19 Boolean
-  q20 Boolean
-  q21 Boolean
-  q22 Boolean
-  q23 Boolean
-  q24 Boolean
-  rempliLe DateTime @default(now())
-}
-
