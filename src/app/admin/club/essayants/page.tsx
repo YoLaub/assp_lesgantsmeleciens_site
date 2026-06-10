@@ -1,13 +1,20 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from '@/shared/lib/prisma';
+import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
 
 export default async function AdminEssayantsPage() {
-    const essayants = await prisma.membre.findMany({
-        where: { statut: 'ESSAYANT' },
-        orderBy: { dateCreation: 'desc' },
-        include: { presences: { orderBy: { pointeLe: 'desc' }, take: 1 } },
-    });
+    const rawEssayants = await inscriptionRepository.findAllEssayants();
+
+    const essayants = rawEssayants.map((e) => ({
+        id: e.id,
+        nom: e.membre.nom,
+        prenom: e.membre.prenom,
+        numeroAdherent: e.membre.numeroAdherent,
+        nombrePresences: e.nombrePresences,
+        accesBloque: e.accesBloque,
+        dateCreation: e.membre.dateCreation,
+        presences: (e as { presences?: { pointeLe: Date }[] }).presences ?? [],
+    }));
 
     const dernierEssaiCount = essayants.filter((e) => e.nombrePresences === 2 && !e.accesBloque).length;
     const aConverterCount = essayants.filter((e) => e.accesBloque).length;
