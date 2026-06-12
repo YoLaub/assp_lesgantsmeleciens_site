@@ -286,7 +286,12 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                             />
                         )}
                         {isMineur && (
-                            <DocumentRow label="Autorisation sortie seul" statut={adherent.autorisationParentale} field="autorisationParentale" adherentId={adherent.id} withEmail />
+                            <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                                <p className="text-sm font-medium text-slate-800">Autorisation sortie seul</p>
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${adherent.autorisationParentale === 'declare' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {adherent.autorisationParentale === 'declare' ? 'Accordée' : 'Refusée'}
+                                </span>
+                            </div>
                         )}
                         {adherent.couponSport !== "non_fourni" && (
                             <DocumentRow label="Pass Sport" statut={adherent.couponSport} note="Déduction appliquée" field="couponSport" adherentId={adherent.id} />
