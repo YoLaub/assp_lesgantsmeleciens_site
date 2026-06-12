@@ -273,7 +273,12 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
                     <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Documents</h2>
                     <div>
-                        <DocumentRow label="Règlement intérieur" statut={adherent.reglementSigne} field="reglementSigne" adherentId={adherent.id} readOnly />
+                        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+                                <p className="text-sm font-medium text-slate-800">Règlement intérieur</p>
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${adherent.reglementSigne === 'declare' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {adherent.reglementSigne === 'declare' ? 'Signé' : 'Non signé'}
+                                </span>
+                            </div>
                         {adherent.certificatMedicalReq && (
                             <DocumentRow
                                 label="Certificat médical"
