@@ -121,7 +121,7 @@ export async function updateTelephoneAction(token: string, data: z.infer<typeof 
 const UpdateAdresseSchema = z.object({
   adresse: z.string().min(3),
   codePostal: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
-  codeInsee: z.string().regex(/^\w{5}$/, 'Code INSEE invalide'),
+  codeInsee: z.string().regex(/^[0-9A-Z]{5}$/i, 'Code INSEE invalide'),
   communeNom: z.string().min(1),
 });
 

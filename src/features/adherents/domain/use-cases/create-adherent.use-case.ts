@@ -1,6 +1,7 @@
 import { membreRepository } from '@/features/adhesion/data/repositories/membre.repository.impl';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
 import { calculerCategorie } from '@/shared/lib/adherent-utils';
+import { hashToken } from '@/shared/lib/token';
 import { prisma } from '@/shared/lib/prisma';
 import type { StatutDocument } from '@/features/adhesion/domain/models/inscription.model';
 
@@ -76,7 +77,7 @@ export async function createAdherentUseCase(input: CreateAdherentInput) {
     telephone: input.telephone,
     dateDeNaissance: input.dateDeNaissance,
     numeroAdherent,
-    accesToken: crypto.randomUUID(),
+    accesToken: hashToken(crypto.randomUUID()),
     accesTokenExpireLe: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   });
 

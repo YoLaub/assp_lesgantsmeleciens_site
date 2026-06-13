@@ -47,7 +47,7 @@ export const inscriptionDataSource = {
     return prisma.inscription.findMany({
       where: { statut: 'ESSAYANT' },
       include: {
-        membre: true,
+        membre: { include: { commune: true } },
         presences: { orderBy: { pointeLe: 'desc' }, take: 1 },
       },
       orderBy: { id: 'desc' },
