@@ -3,6 +3,7 @@
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
 import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { sendLienAccesDossier } from '@/shared/lib/mail';
+import { hashToken } from '@/shared/lib/token';
 import { z } from 'zod';
 import { prisma } from '@/shared/lib/prisma';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
@@ -28,7 +29,7 @@ export async function requestAccesDossierAction(input: { email: string; numeroAd
   if (membre) {
     const token = crypto.randomUUID();
     const expireLe = new Date(Date.now() + 60 * 60 * 1000);
-    await prisma.membre.update({ where: { id: membre.id }, data: { accesToken: token, accesTokenExpireLe: expireLe } });
+    await prisma.membre.update({ where: { id: membre.id }, data: { accesToken: hashToken(token), accesTokenExpireLe: expireLe } });
     try { await sendLienAccesDossier({ email: membre.email, prenom: membre.prenom, token }); }
     catch (e) { console.error('[requestAccesDossierAction]', e); }
   }
