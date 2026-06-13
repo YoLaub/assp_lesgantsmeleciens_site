@@ -86,6 +86,16 @@ TTL (1h) est valide. On le stocke haché.
   - `membreDataSource.findByToken`
   - `inscriptionDataSource.findByToken`
 - Le nom de colonne reste `accesToken` (contient désormais le hash, pas le secret brut).
+
+**Refactors du flux essai requis par le hash** (le token brut ne doit plus jamais être
+re-servi depuis la base) :
+- `get-mon-essai.use-case` : **ne renvoie plus** `accesToken`. `getMonEssaiAction` cesse de le
+  retourner. `MonEssaiView` utilise le `token` brut qu'il reçoit **déjà en prop** (depuis l'URL)
+  pour construire le lien de conversion `/inscription?conversion=...&token=<token>`.
+- `pointer-presence.use-case` : **retourne** le `newToken` brut généré à la conversion.
+  `pointerPresenceAction` utilise ce `newToken` pour l'email de conversion au lieu de **re-lire**
+  `accesToken` en base.
+
 - `numeroAdherent` **reste en clair** : c'est un identifiant affiché à l'utilisateur et
   recherché par les admins, pas un secret. Le hacher casserait l'affichage/recherche sans
   aucun gain (il est déjà connu du membre).
@@ -121,4 +131,9 @@ TTL (1h) est valide. On le stocke haché.
 - `src/features/adherents/actions/mon-dossier.actions.ts`
 - `src/features/adherents/domain/use-cases/` : `update-adresse.use-case.ts`
 - `src/features/essayants/domain/use-cases/request-acces-essai.use-case.ts`
+- `src/features/essayants/domain/use-cases/create-essayant.use-case.ts` (génère aussi un token)
+- `src/features/essayants/domain/use-cases/get-mon-essai.use-case.ts` (ne renvoie plus le token)
+- `src/features/essayants/domain/use-cases/pointer-presence.use-case.ts` (retourne le newToken)
+- `src/features/essayants/actions/essayants.actions.ts` (conversion utilise newToken)
+- `src/features/essayants/presentation/components/front/MonEssaiView.tsx` (lien via prop token)
 - `src/features/adherents/presentation/components/front/MonDossierView.tsx` + composant autocomplétion
