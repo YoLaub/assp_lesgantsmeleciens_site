@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
+import { hashToken } from '@/shared/lib/token';
 
 const INCLUDE_MEMBRE = { membre: true } as const;
 
@@ -29,7 +30,7 @@ export const inscriptionDataSource = {
   findByToken(token: string) {
     return prisma.inscription.findFirst({
       where: {
-        membre: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
+        membre: { accesToken: hashToken(token), accesTokenExpireLe: { gt: new Date() } },
       },
       include: INCLUDE_FULL,
     });

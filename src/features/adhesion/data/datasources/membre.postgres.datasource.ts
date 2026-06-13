@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
+import { hashToken } from '@/shared/lib/token';
 
 export const membreDataSource = {
   findById(id: string) {
@@ -12,7 +13,7 @@ export const membreDataSource = {
 
   findByToken(token: string) {
     return prisma.membre.findFirst({
-      where: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
+      where: { accesToken: hashToken(token), accesTokenExpireLe: { gt: new Date() } },
     });
   },
 
