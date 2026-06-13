@@ -26,14 +26,16 @@ export default function AdresseAutocomplete({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (query.trim().length < 4) {
-      setFeatures([]);
-      return;
-    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    const q = query.trim();
     debounceRef.current = setTimeout(async () => {
+      if (q.length < 4) {
+        setFeatures([]);
+        setOpen(false);
+        return;
+      }
       try {
-        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&type=housenumber&limit=5`;
+        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&type=housenumber&limit=5`;
         const res = await fetch(url);
         if (!res.ok) return;
         const json = await res.json();
