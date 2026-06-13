@@ -168,8 +168,9 @@ export async function rechercherMembreParEmailAction(email: string) {
   if (!email || !email.includes('@')) return { success: false, error: 'Email invalide' };
   const membre = await prisma.membre.findFirst({
     where: { email },
-    select: { nom: true, prenom: true, email: true, telephone: true, dateDeNaissance: true, sexe: true, adresse: true, codePostal: true, ville: true },
+    select: { nom: true, prenom: true, email: true, telephone: true, dateDeNaissance: true, sexe: true, adresse: true, codePostal: true, commune: { select: { nom: true } } },
   });
   if (!membre) return { success: false, error: 'Aucun dossier trouvé pour cet email' };
-  return { success: true, data: membre };
+  const { commune, ...rest } = membre;
+  return { success: true, data: { ...rest, ville: commune?.nom ?? null } };
 }
