@@ -80,7 +80,7 @@ export async function getMonEssaiAction(token: string) {
   if (!token) return { success: false, error: 'Token manquant' };
   const data = await getMonEssaiUseCase(token);
   if (!data) return { success: false, error: 'Lien invalide ou expiré' };
-  return { success: true, essayant: data, accesToken: data.accesToken };
+  return { success: true, essayant: data };
 }
 
 export async function pointerPresenceAction(inscriptionId: number, coachToken: string, nomCoach: string) {

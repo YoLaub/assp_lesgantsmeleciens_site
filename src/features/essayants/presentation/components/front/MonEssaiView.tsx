@@ -106,7 +106,6 @@ interface EssayantData {
 
 export default function MonEssaiView({ token }: { token?: string }) {
     const [essayant, setEssayant] = useState<EssayantData | null>(null);
-    const [accesToken, setAccesToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(!!token);
     const [tokenError, setTokenError] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -117,7 +116,6 @@ export default function MonEssaiView({ token }: { token?: string }) {
             setLoading(false);
             if (result.success && result.essayant) {
                 setEssayant(result.essayant as EssayantData);
-                setAccesToken(result.accesToken ?? null);
             } else {
                 setTokenError(true);
             }
@@ -164,9 +162,9 @@ export default function MonEssaiView({ token }: { token?: string }) {
                 </div>
 
                 {/* Lien inscription — toujours visible dès l'accès au suivi */}
-                {accesToken && (
+                {token && (
                     <Link
-                        href={`/inscription?conversion=${essayant.numeroAdherent}&token=${accesToken}`}
+                        href={`/inscription?conversion=${essayant.numeroAdherent}&token=${token}`}
                         className={`block w-full text-center font-bold py-3 rounded-lg transition-colors ${
                             essayant.accesBloque
                                 ? "bg-[#FF8A00] hover:bg-[#e67a00] text-white"
