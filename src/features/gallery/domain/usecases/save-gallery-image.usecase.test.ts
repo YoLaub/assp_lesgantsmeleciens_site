@@ -42,10 +42,10 @@ describe('SaveGalleryImageUseCase', () => {
         const repo = createMockRepository();
         const useCase = new SaveGalleryImageUseCase(repo);
 
-        const result = await useCase.execute(makeGalleryImage({ src: '' }));
+        const result = await useCase.execute(makeGalleryImage({ publicId: '' }));
 
         expect(result.isErr()).toBe(true);
-        expect(result._unsafeUnwrapErr()).toContain('requise');
+        expect(result._unsafeUnwrapErr()).toContain('requises');
         expect(repo.save).not.toHaveBeenCalled();
     });
 
