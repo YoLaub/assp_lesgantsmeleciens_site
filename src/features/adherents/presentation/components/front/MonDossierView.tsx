@@ -14,7 +14,9 @@ import {
     updateDroitImageAction,
     validerEngagementAction,
     uploadDocumentAdherentAction,
+    updateAdresseAction,
 } from "@/features/adherents/actions/mon-dossier.actions";
+import AdresseAutocomplete, { type AdresseSelection } from "./AdresseAutocomplete";
 import { getReglementAction } from "@/features/adherents/actions/reglement.actions";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
@@ -40,6 +42,9 @@ interface DossierData {
     nom: string;
     prenom: string;
     email: string;
+    adresse: string | null;
+    codePostal: string | null;
+    ville: string | null;
     categorie: string;
     dateDeNaissance: Date;
     telephone1: string | null;
@@ -654,6 +659,77 @@ function CoordonneesSection({
     );
 }
 
+// ─── Section Adresse postale ──────────────────────────────────────────────────
+
+function AdresseSection({
+    token,
+    adresse,
+    codePostal,
+    ville,
+    onDone,
+}: {
+    token: string;
+    adresse: string | null;
+    codePostal: string | null;
+    ville: string | null;
+    onDone: (adresse: string, codePostal: string, ville: string) => void;
+}) {
+    const [selection, setSelection] = useState<AdresseSelection | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [saved, setSaved] = useState(false);
+
+    const dejaSaisie = Boolean(adresse && codePostal && ville);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selection) return;
+        setSubmitting(true);
+        setError(null);
+
+        const result = await updateAdresseAction(token, selection);
+        setSubmitting(false);
+
+        if (result.success) {
+            setSaved(true);
+            onDone(selection.adresse, selection.codePostal, selection.communeNom);
+        } else {
+            setError(result.error ?? "Erreur");
+        }
+    };
+
+    return (
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div>
+                <h3 className="font-semibold text-gray-900">Adresse postale</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                    Recherchez votre adresse et sélectionnez-la dans la liste.
+                </p>
+                {dejaSaisie && (
+                    <p className="text-sm text-gray-700 mt-2">
+                        Actuelle : {adresse}, {codePostal} {ville}
+                    </p>
+                )}
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <AdresseAutocomplete
+                    defaultValue={dejaSaisie ? `${adresse}, ${codePostal} ${ville}` : ""}
+                    onSelect={setSelection}
+                />
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                {saved && <p className="text-green-600 text-sm">Adresse enregistrée.</p>}
+                <button
+                    type="submit"
+                    disabled={submitting || !selection}
+                    className="bg-black hover:bg-gray-800 disabled:bg-gray-400 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                >
+                    {submitting ? "Enregistrement…" : "Enregistrer l'adresse"}
+                </button>
+            </form>
+        </div>
+    );
+}
+
 // ─── Section Droit à l'image (B4) ────────────────────────────────────────────
 
 function DroitImageSection({
@@ -1004,6 +1080,16 @@ function DossierVue({
                     telephone1={dossier.telephone1}
                     telephone2={dossier.telephone2}
                     onDone={(t1, t2) => setDossier((d) => ({ ...d, telephone1: t1, telephone2: t2 }))}
+                />
+            )}
+
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && (
+                <AdresseSection
+                    token={token}
+                    adresse={dossier.adresse}
+                    codePostal={dossier.codePostal}
+                    ville={dossier.ville}
+                    onDone={(adresse, codePostal, ville) => setDossier((d) => ({ ...d, adresse, codePostal, ville }))}
                 />
             )}
 
