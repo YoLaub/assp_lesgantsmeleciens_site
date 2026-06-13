@@ -2,10 +2,10 @@ import { prisma } from '@/shared/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
 import { hashToken } from '@/shared/lib/token';
 
-const INCLUDE_MEMBRE = { membre: true } as const;
+const INCLUDE_MEMBRE = { membre: { include: { commune: true } } } as const;
 
 const INCLUDE_FULL = {
-  membre: true,
+  membre: { include: { commune: true } },
   presences: { orderBy: { pointeLe: 'asc' as const } },
   documents: true,
   questionnaire: {

@@ -5,7 +5,8 @@ export interface Membre {
   email: string;
   telephone: string | null;
   sexe: string | null;
-  ville: string | null;
+  codeInsee: string | null;
+  communeNom: string | null;
   codePostal: string | null;
   adresse: string | null;
   dateDeNaissance: Date;
