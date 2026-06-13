@@ -1,6 +1,7 @@
 'use server';
 
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
+import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { sendLienAccesDossier } from '@/shared/lib/mail';
 import { z } from 'zod';
 import { prisma } from '@/shared/lib/prisma';
@@ -17,6 +18,9 @@ import { uploadDocumentAdherentUseCase } from '../domain/use-cases/upload-docume
 import { createCheckoutUseCase } from '../domain/use-cases/create-checkout.use-case';
 
 export async function requestAccesDossierAction(input: { email: string; numeroAdherent: string; hcaptchaToken: string }) {
+  const allowed = await checkRateLimit('acces-dossier');
+  if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
   const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
   if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
