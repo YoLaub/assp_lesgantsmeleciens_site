@@ -13,6 +13,7 @@ import { signerReglementUseCase } from '../domain/use-cases/signer-reglement.use
 import { setTypePaiementUseCase } from '../domain/use-cases/set-type-paiement.use-case';
 import { patchAutorisationSortieUseCase } from '../domain/use-cases/patch-autorisation-sortie.use-case';
 import { updateTelephoneUseCase } from '../domain/use-cases/update-telephone.use-case';
+import { updateAdresseUseCase } from '../domain/use-cases/update-adresse.use-case';
 import { updateDroitImageUseCase } from '../domain/use-cases/update-droit-image.use-case';
 import { validerEngagementUseCase } from '../domain/use-cases/valider-engagement.use-case';
 import { uploadDocumentAdherentUseCase } from '../domain/use-cases/upload-document-adherent.use-case';
@@ -114,6 +115,23 @@ export async function updateTelephoneAction(token: string, data: z.infer<typeof 
   const inscription = await inscriptionRepository.findByToken(token);
   if (!inscription) return { success: false, error: 'Lien invalide ou expiré' };
   await updateTelephoneUseCase({ id: inscription.id, membreId: inscription.membreId }, parsed.data.telephone1, parsed.data.telephone2);
+  return { success: true };
+}
+
+const UpdateAdresseSchema = z.object({
+  adresse: z.string().min(3),
+  codePostal: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
+  codeInsee: z.string().regex(/^\w{5}$/, 'Code INSEE invalide'),
+  communeNom: z.string().min(1),
+});
+
+export async function updateAdresseAction(token: string, data: z.infer<typeof UpdateAdresseSchema>) {
+  if (!token) return { success: false, error: 'Token manquant' };
+  const parsed = UpdateAdresseSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Adresse invalide' };
+  const inscription = await inscriptionRepository.findByToken(token);
+  if (!inscription) return { success: false, error: 'Lien invalide ou expiré' };
+  await updateAdresseUseCase(inscription.membreId, parsed.data);
   return { success: true };
 }
 
