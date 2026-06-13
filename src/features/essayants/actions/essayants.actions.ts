@@ -90,7 +90,7 @@ export async function pointerPresenceAction(inscriptionId: number, coachToken: s
   const result = await pointerPresenceUseCase(inscriptionId, nomCoach);
   if (!result.success) return result;
 
-  const { nouvPresences, bloque, membre } = result;
+  const { nouvPresences, bloque, membre, newToken } = result;
 
   if (nouvPresences === 1 || nouvPresences === 2) {
     try { await sendRelanceEssayant({ email: membre.email, prenom: membre.prenom, numeroAdherent: membre.numeroAdherent ?? '', nombrePresences: nouvPresences }); }
@@ -98,12 +98,14 @@ export async function pointerPresenceAction(inscriptionId: number, coachToken: s
   }
 
   if (bloque) {
-    const updated = await prisma.membre.findFirst({ where: { email: membre.email }, select: { accesToken: true } });
-    if (updated?.accesToken) {
-      try { await sendConversionEssayant({ email: membre.email, prenom: membre.prenom, numeroAdherent: membre.numeroAdherent ?? '', accesToken: updated.accesToken }); }
+    if (newToken) {
+      try { await sendConversionEssayant({ email: membre.email, prenom: membre.prenom, numeroAdherent: membre.numeroAdherent ?? '', accesToken: newToken }); }
       catch (e) { console.error('[pointerPresenceAction] conversion', e); }
     }
-    try { await sendNotificationConversionAdmin({ nom: (await prisma.membre.findFirst({ where: { email: membre.email }, select: { nom: true } }))?.nom ?? '', prenom: membre.prenom, numeroAdherent: membre.numeroAdherent ?? '' }); }
+    try {
+      const m = await prisma.membre.findFirst({ where: { email: membre.email }, select: { nom: true } });
+      await sendNotificationConversionAdmin({ nom: m?.nom ?? '', prenom: membre.prenom, numeroAdherent: membre.numeroAdherent ?? '' });
+    }
     catch (e) { console.error('[pointerPresenceAction] notifAdmin', e); }
   }
 
