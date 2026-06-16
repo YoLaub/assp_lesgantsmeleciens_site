@@ -1,0 +1,198 @@
+/* =========================================
+   CardStackCarousel — 3D Perspective Card Fan
+   ========================================= */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+
+/* --- Cards viewport --- */
+
+.viewport {
+  position: relative;
+  width: 100%;
+  height: 550px;
+  perspective: 1200px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.cardsContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Card base --- */
+
+.card {
+  position: absolute;
+  width: 400px;
+  height: 500px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity, filter;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* --- Position classes --- */
+
+.posCenter {
+  transform: translateX(0) translateZ(0) rotateY(0deg) scale(1);
+  opacity: 1;
+  z-index: 5;
+  filter: blur(0px);
+}
+
+.posLeft1 {
+  transform: translateX(-45%) translateZ(-120px) rotateY(5deg) scale(0.85);
+  opacity: 0.7;
+  z-index: 3;
+  filter: blur(1px);
+}
+
+.posLeft2 {
+  transform: translateX(-80%) translateZ(-250px) rotateY(8deg) scale(0.7);
+  opacity: 0.4;
+  z-index: 1;
+  filter: blur(2px);
+}
+
+.posRight1 {
+  transform: translateX(45%) translateZ(-120px) rotateY(-5deg) scale(0.85);
+  opacity: 0.7;
+  z-index: 3;
+  filter: blur(1px);
+}
+
+.posRight2 {
+  transform: translateX(80%) translateZ(-250px) rotateY(-8deg) scale(0.7);
+  opacity: 0.4;
+  z-index: 1;
+  filter: blur(2px);
+}
+
+.posHidden {
+  transform: translateX(0) translateZ(-400px) scale(0.5);
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(4px);
+}
+
+/* --- Navigation arrows --- */
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #6b7280;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.navButton:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--brand-red);
+  border-color: var(--brand-red);
+  box-shadow: 0 0 15px rgba(223, 6, 6, 0.3);
+}
+
+.prevButton {
+  left: 16px;
+}
+
+.nextButton {
+  right: 16px;
+}
+
+/* --- Grab cursor for drag --- */
+
+.viewport.dragging {
+  cursor: grabbing;
+}
+
+.viewport:not(.dragging) {
+  cursor: grab;
+}
+
+/* --- Dot indicators --- */
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #d1d5db;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  padding: 0;
+}
+
+.dot:hover {
+  background: #9ca3af;
+}
+
+.dotActive {
+  background: var(--brand-red);
+  transform: scale(1.3);
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 768px) {
+  .viewport {
+    height: 400px;
+  }
+
+  .card {
+    width: 280px;
+    height: 350px;
+  }
+
+  .navButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .prevButton {
+    left: 8px;
+  }
+
+  .nextButton {
+    right: 8px;
+  }
+}

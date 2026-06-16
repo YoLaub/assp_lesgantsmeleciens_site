@@ -40,3 +40,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+src/generated
+
+# Uploads
+public/uploads/**
+!public/uploads/.gitkeep
+/prisma/migrations/migration_lock.toml
+
+.playwright-mcp/
+# clerk configuration (can include secrets)
+/.clerk/
+.claude/settings.local.json
+
+.claude
+docs
+.idea/

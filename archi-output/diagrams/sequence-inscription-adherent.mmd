@@ -1,0 +1,45 @@
+sequenceDiagram
+  actor User as Futur adhérent
+  participant Page as /inscription<br/>(Next.js)
+  participant Action as createAdherentAction<br/>(Server Action)
+  participant UC as createAdherentUseCase
+  participant RL as checkRateLimit<br/>(Upstash Redis)
+  participant HC as hCaptcha API
+  participant DB as PostgreSQL<br/>(Prisma)
+  participant Mail as Brevo
+
+  User->>Page: Remplit le formulaire
+  Page->>Page: Validation Zod côté client
+  User->>Page: Soumet
+  Page->>Action: createAdherentAction(input)
+  Action->>RL: checkRateLimit(ip, 5 req/h)
+  alt Rate limit atteint
+    RL-->>Action: false
+    Action-->>Page: Erreur rate limit
+    Page-->>User: "Trop de tentatives"
+  end
+  RL-->>Action: true
+  Action->>HC: Vérifier hcaptchaToken
+  HC-->>Action: OK
+  Action->>UC: createAdherentUseCase(input)
+  UC->>DB: IMembreRepository.findByEmail(email)
+  alt Membre existant
+    DB-->>UC: Membre existant
+    UC->>DB: IInscriptionRepository.findCurrentByMembreId(id)
+    alt Déjà inscrit cette saison
+      UC-->>Action: Err - déjà inscrit
+      Action-->>Page: Erreur
+      Page-->>User: "Dossier existant"
+    end
+  else Nouveau membre
+    UC->>DB: IMembreRepository.create(data)
+    DB-->>UC: Membre créé (UUID)
+  end
+  UC->>DB: IInscriptionRepository.create(data, saison)
+  DB-->>UC: Inscription créée
+  UC->>Mail: sendConfirmationInscription(membre)
+  UC->>Mail: sendNotificationNouveauDossier(admin)
+  Mail-->>UC: OK
+  UC-->>Action: Result.ok
+  Action-->>Page: Succès
+  Page-->>User: Confirmation + lien dossier envoyé par email

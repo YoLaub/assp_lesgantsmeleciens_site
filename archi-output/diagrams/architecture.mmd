@@ -1,0 +1,43 @@
+graph TB
+  subgraph Client["Navigateur"]
+    FRONT["Next.js 16 / React 19<br/>App Router + Server Components"]
+  end
+
+  subgraph Vercel["Vercel (prod)"]
+    SERVER["Server Actions<br/>+ Route Handlers"]
+    CRON["Cron Jobs<br/>/api/cron/*"]
+    WEBHOOK["Webhooks<br/>/api/webhooks/stripe"]
+  end
+
+  subgraph Data["Données"]
+    DB[("PostgreSQL<br/>Prisma Postgres")]
+    REDIS[("Upstash Redis<br/>Rate limiting")]
+  end
+
+  subgraph Auth["Authentification"]
+    CLERK["Clerk<br/>Auth admin JWT"]
+  end
+
+  subgraph Media["Médias & Fichiers"]
+    CLOUDINARY["Cloudinary<br/>Images + Documents"]
+    R2["Cloudflare R2<br/>Photos adhérents"]
+  end
+
+  subgraph External["Services externes"]
+    STRIPE["Stripe<br/>Paiements inscription"]
+    BREVO["Brevo<br/>Emails transactionnels"]
+  end
+
+  FRONT --> SERVER
+  SERVER --> DB
+  SERVER --> REDIS
+  SERVER --> CLOUDINARY
+  SERVER --> R2
+  SERVER --> STRIPE
+  SERVER --> BREVO
+  FRONT -.->|UI auth sign-in| CLERK
+  SERVER -.->|Verify session| CLERK
+  CRON --> DB
+  CRON --> BREVO
+  WEBHOOK -->|stripe events| DB
+  WEBHOOK --> BREVO

@@ -1,0 +1,150 @@
+erDiagram
+  MEMBRE {
+    uuid id PK
+    string nom
+    string prenom
+    string email UK
+    string telephone
+    string sexe
+    string ville
+    string codePostal
+    string adresse
+    date dateDeNaissance
+    string numeroAdherent UK
+    string accesToken
+    datetime accesTokenExpireLe
+    datetime dateCreation
+  }
+
+  INSCRIPTION {
+    int id PK
+    enum statut
+    string saison
+    string membreId FK
+    string photo
+    enum certificatMedical
+    enum autorisationParentale
+    enum couponSport
+    enum bonCaf
+    enum reglementSigne
+    boolean engagementPrisConnaissance
+    boolean inscriptionValide
+    boolean accesBloque
+    boolean fnsmr
+    boolean droitImage
+    boolean oxygene
+    boolean renouvellement
+    enum typePaiement
+    decimal montantSnapshot
+    enum categorie
+    int nombrePresences
+    datetime dateInscription
+    string stripeSessionId
+  }
+
+  PRESENCE_ESSAI {
+    int id PK
+    datetime pointeLe
+    string pointePar
+    int inscriptionId FK
+  }
+
+  DOCUMENT {
+    uuid id PK
+    string type
+    string name
+    string url
+    datetime createdAt
+    int inscriptionId FK
+  }
+
+  QUESTIONNAIRE_SANTE {
+    int id PK
+    string type
+    datetime createdAt
+    int inscriptionId FK UK
+  }
+
+  QUESTION {
+    int id PK
+    string label UK
+    string type
+    int ordre
+    string section
+  }
+
+  REPONSE {
+    int id PK
+    boolean reponse
+    int questionnaireSanteId FK
+    int questionId FK
+  }
+
+  INTERROGE {
+    int questionnaireSanteId FK
+    int questionId FK
+  }
+
+  IMAGE_CATEGORY {
+    int id PK
+    string name
+    string slug UK
+  }
+
+  IMAGE {
+    uuid id PK
+    string title
+    string alt
+    string publicId UK
+    int order
+    int categoryId FK
+  }
+
+  DISCIPLINE {
+    uuid id PK
+    string title
+    string slug UK
+    boolean active
+    int order
+  }
+
+  ACTUALITE {
+    uuid id PK
+    string title
+    string slug UK
+    boolean active
+    boolean featured
+    datetime publishedAt
+  }
+
+  CONFIG_TARIFS {
+    int id PK
+    string saison
+    decimal tarifEnfant
+    decimal tarifAdos
+    decimal tarifAdulte
+    decimal supplementOxygene
+    decimal deductionCouponSport
+  }
+
+  COACH_TOKEN {
+    int id PK
+    string token UK
+    datetime expireLe
+  }
+
+  REGLEMENT_INTERIEUR {
+    int id PK
+    text contenu
+    datetime modifieLe
+  }
+
+  MEMBRE ||--o{ INSCRIPTION : "a"
+  INSCRIPTION ||--o{ PRESENCE_ESSAI : "a"
+  INSCRIPTION ||--o{ DOCUMENT : "contient"
+  INSCRIPTION ||--o| QUESTIONNAIRE_SANTE : "a"
+  QUESTIONNAIRE_SANTE ||--o{ REPONSE : "contient"
+  QUESTIONNAIRE_SANTE ||--o{ INTERROGE : "liste"
+  QUESTION ||--o{ REPONSE : "reçoit"
+  QUESTION ||--o{ INTERROGE : "figure dans"
+  IMAGE_CATEGORY ||--o{ IMAGE : "regroupe"
