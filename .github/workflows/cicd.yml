@@ -7,7 +7,8 @@ on:
   workflow_dispatch:   # déclenchement manuel depuis l'onglet Actions (toute branche)
 
 permissions:
-  contents: read
+  contents: write        # nécessaire pour le job promote (PR develop → main)
+  pull-requests: write   # nécessaire pour gh pr create
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -88,3 +89,127 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 7
+
+  # ── Sécurité — dépendances ───────────────────────────────────────────────────
+  security-audit:
+    name: Audit dépendances (npm audit)
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit CVE (high+)
+        run: npm audit --audit-level=high
+
+  # ── Sécurité — scan DAST (ZAP baseline) ─────────────────────────────────────
+  security-zap:
+    name: ZAP baseline scan
+    runs-on: ubuntu-latest
+    needs: ci
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lesgants_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/lesgants_ci
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_Y2xlcmsuZXhhbXBsZS5jb20k' }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY || 'sk_test_0000000000000000000000000000000000000000' }}
+      NEXT_PUBLIC_HCAPTCHA_SITEKEY: ${{ secrets.NEXT_PUBLIC_HCAPTCHA_SITEKEY || '10000000-ffff-ffff-ffff-000000000001' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Appliquer les migrations Prisma
+        run: npx prisma migrate deploy
+
+      - name: Build
+        run: npm run build
+
+      - name: Démarrer l'app en arrière-plan
+        run: npm run start &
+        env:
+          PORT: 3000
+
+      - name: Attendre que l'app réponde
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false   # avertit sans bloquer le CI (passer à true quand les alertes sont traitées)
+          artifact_name: zap-report
+
+  # ── Promote develop → main (PR automatique) ──────────────────────────────────
+  promote:
+    name: PR develop → main
+    runs-on: ubuntu-latest
+    needs: [ci, security-audit, security-zap]
+    # Se déclenche uniquement sur le push develop (pas sur les PRs ni main)
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Créer ou mettre à jour la PR develop → main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Vérifie si une PR develop→main est déjà ouverte
+          EXISTING=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING déjà ouverte — mise à jour ignorée."
+          else
+            gh pr create \
+              --base main \
+              --head develop \
+              --title "chore: promote develop → main ($(date +'%Y-%m-%d'))" \
+              --body "$(cat <<'BODY'
+          ## Promotion automatique develop → main
+
+          Tous les jobs CI ont passé :
+          - Lint · Typecheck · Build · Tests (80 %)
+          - Audit npm (CVE high+)
+          - ZAP baseline scan
+
+          Merge après relecture.
+          BODY
+          )"
+          fi
