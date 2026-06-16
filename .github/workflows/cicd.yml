@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, develop]
   pull_request:
+  workflow_dispatch:   # déclenchement manuel depuis l'onglet Actions (toute branche)
 
 permissions:
   contents: read
