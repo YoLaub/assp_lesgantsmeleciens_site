@@ -11,7 +11,7 @@ export default async function AdminCoachTokenPage() {
         <div className="p-8 space-y-8 font-sans max-w-xl">
             <div>
                 <h1 className="text-2xl font-black uppercase tracking-tight text-slate-900">Lien coach</h1>
-                <p className="text-slate-500 text-sm">Gérez le magic link d'accès au tableau de bord coach.</p>
+                <p className="text-slate-500 text-sm">Gérez le magic link d&apos;accès au tableau de bord coach.</p>
             </div>
 
             <CoachTokenManager tokenData={tokenData ?? null} />

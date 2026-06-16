@@ -98,8 +98,12 @@ export async function validerDocumentAdminAction(
   revalidatePath(`/admin/club/adherents/${id}`);
   const label = LABELS_DOCUMENTS[field] ?? field;
   try {
-    if (statut === 'valide') { field === 'bonCaf' ? await sendBonCafValide({ email, prenom }) : await sendDocumentValide({ email, prenom, labelDocument: label }); }
-    else { await sendDocumentRejete({ email, prenom, labelDocument: label }); }
+    if (statut === 'valide') {
+      if (field === 'bonCaf') await sendBonCafValide({ email, prenom });
+      else await sendDocumentValide({ email, prenom, labelDocument: label });
+    } else {
+      await sendDocumentRejete({ email, prenom, labelDocument: label });
+    }
   } catch (e) { console.error('[validerDocumentAdminAction]', e); }
   return { success: true };
 }

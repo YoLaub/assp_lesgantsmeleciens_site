@@ -16,7 +16,7 @@ const mockTransaction = vi.fn();
 vi.mock('@/shared/lib/prisma', () => ({
     prisma: {
         image: mockPrismaImage,
-        $transaction: (...args: any[]) => mockTransaction(...args),
+        $transaction: (...args: unknown[]) => mockTransaction(...args),
     },
 }));
 

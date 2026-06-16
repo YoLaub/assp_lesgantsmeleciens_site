@@ -126,7 +126,7 @@ function IdentificationForm() {
         return (
             <div className="text-center py-8">
                 <p className="text-gray-700 font-medium">
-                    Si ces informations correspondent à un dossier, un email vient d'être envoyé.
+                    Si ces informations correspondent à un dossier, un email vient d&apos;être envoyé.
                 </p>
             </div>
         );
@@ -142,7 +142,7 @@ function IdentificationForm() {
                 <input id="email-dossier" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
             </div>
             <div>
-                <label htmlFor="numero-dossier" className="block text-sm font-medium text-gray-700">Numéro d'adhérent</label>
+                <label htmlFor="numero-dossier" className="block text-sm font-medium text-gray-700">Numéro d&apos;adhérent</label>
                 <input
                     id="numero-dossier"
                     required
@@ -337,7 +337,7 @@ function ReglementSection({ token, onDone }: { token: string; onDone: () => void
                         className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
                     />
                     <span className="text-sm text-gray-700">
-                        J'ai lu et j'accepte le règlement intérieur du club.{" "}
+                        J&apos;ai lu et j&apos;accepte le règlement intérieur du club.{" "}
                         <span className="text-red-500">*</span>
                     </span>
                 </label>
@@ -518,10 +518,10 @@ function PhotoIdSection({
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
             <div>
                 <h3 className="font-semibold text-gray-900">
-                    Photo d'identité <span className="text-red-500">*</span>
+                    Photo d&apos;identité <span className="text-red-500">*</span>
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                    Un selfie récent peut suffire si vous ne disposez pas d'une photo d'identité formelle.
+                    Un selfie récent peut suffire si vous ne disposez pas d&apos;une photo d&apos;identité formelle.
                 </p>
             </div>
             {documentExistant ? (
@@ -541,7 +541,7 @@ function PhotoIdSection({
                     {error && <p className="text-red-600 text-sm">{error}</p>}
                     {success ? (
                         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-medium">
-                            ✓ Votre photo d'identité a bien été importée.
+                            ✓ Votre photo d&apos;identité a bien été importée.
                         </div>
                     ) : (
                         <button
@@ -784,7 +784,7 @@ function DroitImageSection({
 
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900">Droit à l'image</h3>
+            <h3 className="font-semibold text-gray-900">Droit à l&apos;image</h3>
             <form onSubmit={handleSubmit} className="space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input
@@ -794,7 +794,7 @@ function DroitImageSection({
                         className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
                     />
                     <span className="text-sm text-gray-700">
-                        J'autorise le club à utiliser mon image dans ses communications (photos, vidéos, site web, réseaux sociaux).
+                        J&apos;autorise le club à utiliser mon image dans ses communications (photos, vidéos, site web, réseaux sociaux).
                     </span>
                 </label>
                 {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -849,7 +849,7 @@ function EngagementSection({ token, onDone }: { token: string; onDone: () => voi
                         className="mt-0.5 text-blue-600"
                     />
                     <span className="text-sm text-blue-800">
-                        Je m'engage à avoir pris connaissance de l'ensemble des informations communiquées par le club.{" "}
+                        Je m&apos;engage à avoir pris connaissance de l&apos;ensemble des informations communiquées par le club.{" "}
                         <span className="text-red-500">*</span>
                     </span>
                 </label>
@@ -1029,7 +1029,7 @@ function DossierVue({
                     Dossier de {dossier.prenom} {dossier.nom}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    Numéro d'adhérent : <strong>{dossier.numeroAdherent}</strong>
+                    Numéro d&apos;adhérent : <strong>{dossier.numeroAdherent}</strong>
                 </p>
             </div>
 

@@ -151,14 +151,14 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
                             {/* ── Banner essai ──────────────────────────────────────── */}
                             <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
                                 <p className="text-amber-800 font-bold uppercase text-sm tracking-tight flex-1">
-                                    Offre : 3 cours d'essai avant inscription !
+                                    Offre : 3 cours d&apos;essai avant inscription !
                                 </p>
                                 <Link
                                     href="/essai"
                                     className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-amber-600 transition-colors self-start sm:self-auto"
                                 >
                                     <Sparkles className="h-4 w-4" />
-                                    <span>Je tente l'essai</span>
+                                    <span>Je tente l&apos;essai</span>
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </div>

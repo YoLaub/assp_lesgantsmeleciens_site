@@ -34,7 +34,7 @@ export default async function AdminEssayantsPage() {
                         <div>
                             <p className="text-sm font-bold text-orange-800">Dernier essai en cours</p>
                             <p className="text-xs text-orange-600">
-                                {dernierEssaiCount === 1 ? "Cet essayant" : "Ces essayants"} arrive{dernierEssaiCount === 1 ? "" : "nt"} au bout — pensez à les relancer pour l'inscription.
+                                {dernierEssaiCount === 1 ? "Cet essayant" : "Ces essayants"} arrive{dernierEssaiCount === 1 ? "" : "nt"} au bout — pensez à les relancer pour l&apos;inscription.
                             </p>
                         </div>
                     </div>
@@ -44,7 +44,7 @@ export default async function AdminEssayantsPage() {
                         <span className="text-2xl font-black text-red-600">{aConverterCount}</span>
                         <div>
                             <p className="text-sm font-bold text-red-800">À convertir en adhérent</p>
-                            <p className="text-xs text-red-600">Essais terminés — accès bloqué jusqu'à inscription.</p>
+                            <p className="text-xs text-red-600">Essais terminés — accès bloqué jusqu&apos;à inscription.</p>
                         </div>
                     </div>
                 )}
