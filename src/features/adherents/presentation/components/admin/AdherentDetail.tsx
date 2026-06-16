@@ -33,7 +33,7 @@ interface AdherentDetailData {
     reglementSigne: StatutDocument;
     certificatMedical: StatutDocument;
     certificatMedicalReq: boolean;
-    autorisationParentale: StatutDocument;
+    autorisationSortieSeul: boolean | null;
     couponSport: StatutDocument;
     bonCaf: StatutDocument;
     montantSnapshot: number | null;
@@ -164,10 +164,44 @@ function DocumentRow({
     );
 }
 
+function BonCafAdminRow({ adherentId, statut }: { adherentId: number; statut: StatutDocument }) {
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+    const envoye = statut === "valide";
+
+    const handleEnvoyer = () => {
+        startTransition(async () => {
+            // Marque le bon CAF comme traité et envoie l'email d'instructions CAF.
+            await validerDocumentAdminAction(adherentId, "bonCaf", "valide");
+            router.refresh();
+        });
+    };
+
+    return (
+        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+            <div>
+                <p className="text-sm font-medium text-slate-800">Bon CAF</p>
+                <p className="text-xs text-slate-400">Information uniquement — aucun impact montant</p>
+            </div>
+            {envoye ? (
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Instructions envoyées ✓</span>
+            ) : (
+                <button
+                    type="button"
+                    onClick={handleEnvoyer}
+                    disabled={isPending}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                >
+                    {isPending ? "Envoi…" : "Envoyer instructions CAF"}
+                </button>
+            )}
+        </div>
+    );
+}
+
 export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [checkboxPending, setCheckboxPending] = useState<string | null>(null);
     const [rejetEnvoye, setRejetEnvoye] = useState(false);
     const [rejetPending, setRejetPending] = useState(false);
 
@@ -179,13 +213,6 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
         if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
         return age < 18;
     })();
-
-    const handleToggleBoolean = async (field: "renouvellement", current: boolean) => {
-        setCheckboxPending(field);
-        await patchAdherentAction(adherent.id, { [field]: !current });
-        setCheckboxPending(null);
-        router.refresh();
-    };
 
     const handleMarquerPaye = () => {
         startTransition(async () => {
@@ -293,8 +320,14 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         {isMineur && (
                             <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
                                 <p className="text-sm font-medium text-slate-800">Autorisation sortie seul</p>
-                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${adherent.autorisationParentale === 'declare' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {adherent.autorisationParentale === 'declare' ? 'Accordée' : 'Refusée'}
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    adherent.autorisationSortieSeul === true ? 'bg-green-100 text-green-700'
+                                    : adherent.autorisationSortieSeul === false ? 'bg-slate-200 text-slate-700'
+                                    : 'bg-red-100 text-red-700'
+                                }`}>
+                                    {adherent.autorisationSortieSeul === true ? 'Autorisé'
+                                        : adherent.autorisationSortieSeul === false ? 'Non autorisé'
+                                        : 'Non renseigné'}
                                 </span>
                             </div>
                         )}
@@ -302,7 +335,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                             <DocumentRow label="Pass Sport" statut={adherent.couponSport} note="Déduction appliquée" field="couponSport" adherentId={adherent.id} />
                         )}
                         {adherent.bonCaf !== "non_fourni" && (
-                            <DocumentRow label="Bon CAF" statut={adherent.bonCaf} note="Information uniquement — aucun impact montant" field="bonCaf" adherentId={adherent.id} withEmail />
+                            <BonCafAdminRow adherentId={adherent.id} statut={adherent.bonCaf} />
                         )}
                         {adherent.documents.some((d) => d.type === "ID_PHOTO") && (
                             <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
@@ -323,20 +356,20 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                     </div>
                 </div>
 
-                {/* ── FNSMR, renouvellement & paiement ── */}
+                {/* ── Type d'inscription, renouvellement & paiement ── */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
-                        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Options admin</h2>
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={adherent.renouvellement}
-                                onChange={() => handleToggleBoolean("renouvellement", adherent.renouvellement)}
-                                disabled={checkboxPending === "renouvellement"}
-                                className="rounded text-[#FF8A00] focus:ring-[#FF8A00]"
-                            />
-                            <span className="text-sm text-slate-700">Renouvellement</span>
-                        </label>
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-3">
+                        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Type d&apos;inscription</h2>
+                        <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                                adherent.renouvellement
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-slate-100 text-slate-600"
+                            }`}
+                        >
+                            {adherent.renouvellement ? "Renouvellement" : "Nouvelle adhésion"}
+                        </span>
+                        <p className="text-xs text-slate-400">Détecté automatiquement d&apos;après l&apos;historique d&apos;inscription.</p>
                     </div>
 
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">

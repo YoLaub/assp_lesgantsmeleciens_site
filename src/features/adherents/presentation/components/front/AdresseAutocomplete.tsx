@@ -29,13 +29,17 @@ export default function AdresseAutocomplete({
     if (debounceRef.current) clearTimeout(debounceRef.current);
     const q = query.trim();
     debounceRef.current = setTimeout(async () => {
-      if (q.length < 4) {
+      if (q.length < 3) {
         setFeatures([]);
         setOpen(false);
         return;
       }
       try {
-        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&type=housenumber&limit=5`;
+        // Pas de filtre `type=housenumber` : il ne renvoie aucun résultat tant
+        // que la saisie ne contient pas un numéro de voirie complet, ce qui rend
+        // l'autocomplétion inutilisable. `autocomplete=1` active le mode adapté
+        // à la saisie au fil de l'eau (voies + numéros).
+        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&autocomplete=1&limit=5`;
         const res = await fetch(url);
         if (!res.ok) return;
         const json = await res.json();

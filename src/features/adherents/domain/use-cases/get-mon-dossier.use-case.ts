@@ -30,7 +30,7 @@ export async function getMonDossierUseCase(token: string) {
     reglementSigne: inscription.reglementSigne,
     certificatMedical: inscription.certificatMedical,
     certificatMedicalReq: inscription.certificatMedicalReq,
-    autorisationParentale: inscription.autorisationParentale,
+    autorisationSortieSeul: inscription.autorisationSortieSeul,
     couponSport: inscription.couponSport,
     bonCaf: inscription.bonCaf,
     droitImage: inscription.droitImage,

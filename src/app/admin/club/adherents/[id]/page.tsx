@@ -35,7 +35,7 @@ export default async function AdminAdherentDetailPage({ params }: PageProps) {
         reglementSigne: adherent.reglementSigne,
         certificatMedical: adherent.certificatMedical,
         certificatMedicalReq: adherent.certificatMedicalReq,
-        autorisationParentale: adherent.autorisationParentale,
+        autorisationSortieSeul: adherent.autorisationSortieSeul,
         couponSport: adherent.couponSport,
         bonCaf: adherent.bonCaf,
         montantSnapshot: adherent.montantSnapshot,

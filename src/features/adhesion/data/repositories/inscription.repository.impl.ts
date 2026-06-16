@@ -47,6 +47,7 @@ function toInscription(raw: RawFlat): Inscription {
     certificatMedicalReq: raw.certificatMedicalReq,
     engagementPrisConnaissance: raw.engagementPrisConnaissance,
     autorisationParentale: raw.autorisationParentale as Inscription['autorisationParentale'],
+    autorisationSortieSeul: raw.autorisationSortieSeul,
     couponSport: raw.couponSport as Inscription['couponSport'],
     bonCaf: raw.bonCaf as Inscription['bonCaf'],
     codePassSport: raw.codePassSport,

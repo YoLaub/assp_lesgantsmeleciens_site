@@ -43,6 +43,7 @@ describe('inscriptionRepository.findAllEssayants', () => {
             id: 1, statut: 'ESSAYANT', nombrePresences: 1, accesBloque: false,
             photo: null, certificatMedical: 'non_fourni', certificatMedicalReq: false,
             engagementPrisConnaissance: false, autorisationParentale: 'non_fourni',
+            autorisationSortieSeul: null,
             couponSport: 'non_fourni', bonCaf: 'non_fourni', codePassSport: null,
             montantSnapshot: null, inscriptionValide: false, fnsmr: false, droitImage: false,
             reglementSigne: 'non_fourni', oxygene: false, renouvellement: false,

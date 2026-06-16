@@ -54,7 +54,7 @@ interface DossierData {
     reglementSigne: StatutDocument;
     certificatMedical: StatutDocument;
     certificatMedicalReq: boolean;
-    autorisationParentale: StatutDocument;
+    autorisationSortieSeul: boolean | null;
     couponSport: StatutDocument;
     bonCaf: StatutDocument;
     droitImage: boolean;
@@ -680,6 +680,7 @@ function AdresseSection({
     const [saved, setSaved] = useState(false);
 
     const dejaSaisie = Boolean(adresse && codePostal && ville);
+    const inputCls = "mt-1 w-full rounded-md border border-gray-300 p-2 text-sm focus:border-[#FF8A00] focus:outline-none focus:ring-1 focus:ring-[#FF8A00]";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -716,6 +717,25 @@ function AdresseSection({
                     defaultValue={dejaSaisie ? `${adresse}, ${codePostal} ${ville}` : ""}
                     onSelect={setSelection}
                 />
+
+                {/* Champs structurés issus de la sélection (lecture seule) */}
+                {selection && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-lg bg-gray-50 border border-gray-200 p-3">
+                        <div className="sm:col-span-3">
+                            <label className="block text-xs font-medium text-gray-500">Adresse</label>
+                            <input value={selection.adresse} readOnly className={`${inputCls} bg-white`} />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500">Code postal</label>
+                            <input value={selection.codePostal} readOnly className={`${inputCls} bg-white`} />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-medium text-gray-500">Commune</label>
+                            <input value={selection.communeNom} readOnly className={`${inputCls} bg-white`} />
+                        </div>
+                    </div>
+                )}
+
                 {error && <p className="text-red-600 text-sm">{error}</p>}
                 {saved && <p className="text-green-600 text-sm">Adresse enregistrée.</p>}
                 <button
@@ -854,8 +874,8 @@ function AutorisationSortieSection({
     onDone,
 }: {
     token: string;
-    statut: StatutDocument;
-    onDone: (statut: StatutDocument) => void;
+    statut: boolean | null;
+    onDone: (statut: boolean) => void;
 }) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -866,17 +886,20 @@ function AutorisationSortieSection({
         const result = await patchAutorisationSortieAction(token, autorise);
         setSaving(false);
         if (result.success) {
-            onDone(autorise ? 'declare' : 'non_fourni');
+            onDone(autorise);
         } else {
             setError(result.error ?? 'Erreur');
         }
     };
 
-    if (statut === 'declare' || statut === 'valide') {
+    // Déjà répondu → état final (OUI ou NON), plus de validation admin.
+    if (statut !== null) {
         return (
             <div className="flex justify-between items-center">
                 <span className="text-gray-700">Autorisation de sortie seul</span>
-                <StatutBadge statut={statut} />
+                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statut ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"}`}>
+                    {statut ? "Autorisé" : "Non autorisé"}
+                </span>
             </div>
         );
     }
@@ -885,10 +908,10 @@ function AutorisationSortieSection({
         <div className="space-y-2">
             <div className="flex justify-between items-center">
                 <span className="text-gray-700">Autorisation de sortie seul</span>
-                <StatutBadge statut={statut} />
+                <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">À renseigner</span>
             </div>
             <p className="text-sm text-gray-600">
-                J'autorise mon enfant à quitter la salle de sport seul à l'issue des cours
+                {"J'autorise mon enfant à quitter la salle de sport seul à l'issue des cours"}
             </p>
             <div className="flex gap-6">
                 {(['oui', 'non'] as const).map((val) => (
@@ -947,12 +970,20 @@ function DossierVue({
     const documentsRequis: StatutDocument[] = [
         dossier.reglementSigne,
         ...(dossier.certificatMedicalReq ? [dossier.certificatMedical] : []),
-        ...(mineur ? [dossier.autorisationParentale] : []),
     ];
-    const tousValides = documentsRequis.every((s) => s === "valide");
-    const tousDeciares = documentsRequis.every((s) => s !== "non_fourni");
+    // Sortie seul (mineurs) : OUI ou NON sont deux réponses finales valides ;
+    // seul « non répondu » (null) bloque le dossier.
+    const autorisationSortieManquante = mineur && dossier.autorisationSortieSeul == null;
+    // Dossier « validé » : le règlement signé est un état final (l'admin ne le
+    // valide pas) ; seul le certificat médical, quand il est requis, doit être
+    // validé par l'admin. L'autorisation de sortie doit être renseignée.
+    const tousValides =
+        dossier.reglementSigne !== "non_fourni" &&
+        (!dossier.certificatMedicalReq || dossier.certificatMedical === "valide") &&
+        !autorisationSortieManquante;
+    const tousDeciares = documentsRequis.every((s) => s !== "non_fourni") && !autorisationSortieManquante;
     const documentsManquants = documentsRequis.some((s) => s === "non_fourni");
-    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant || photoManquante;
+    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant || photoManquante || autorisationSortieManquante;
 
     let statutLabel = "";
     let statutColor = "";
@@ -1125,7 +1156,9 @@ function DossierVue({
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                             <span className="text-gray-700">Règlement intérieur</span>
-                            <StatutBadge statut={dossier.reglementSigne} />
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${dossier.reglementSigne !== "non_fourni" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                                {dossier.reglementSigne !== "non_fourni" ? "Signé" : "Non signé"}
+                            </span>
                         </div>
                         {dossier.certificatMedicalReq && (
                             <div className="flex justify-between items-center">
@@ -1136,8 +1169,8 @@ function DossierVue({
                         {mineur && (
                             <AutorisationSortieSection
                                 token={token}
-                                statut={dossier.autorisationParentale}
-                                onDone={(s) => setDossier((d) => ({ ...d, autorisationParentale: s }))}
+                                statut={dossier.autorisationSortieSeul}
+                                onDone={(s) => setDossier((d) => ({ ...d, autorisationSortieSeul: s }))}
                             />
                         )}
                         {dossier.couponSport !== "non_fourni" && (
@@ -1150,7 +1183,7 @@ function DossierVue({
                             <div className="space-y-1">
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-700">Bon CAF</span>
-                                    <StatutBadge statut={dossier.bonCaf} />
+                                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">À envoyer à votre CAF</span>
                                 </div>
                                 <p className="text-xs text-gray-500">
                                     Envoyez le document signé à votre CAF, vous serez remboursé(e).

@@ -16,12 +16,18 @@ export async function createCheckoutUseCase(token: string, appUrl: string) {
   if (inscription.inscriptionValide) throw new Error('Inscription déjà validée');
   if (!inscription.montantSnapshot) throw new Error('Montant introuvable');
 
-  const documentsRequis = [
-    inscription.reglementSigne,
-    ...(inscription.certificatMedicalReq ? [inscription.certificatMedical] : []),
-    ...(isMineur(inscription.membre.dateDeNaissance) ? [inscription.autorisationParentale] : []),
-  ];
-  if (!documentsRequis.every((s) => s === 'valide')) throw new Error('Documents en attente de validation');
+  // Le règlement signé est un état final (pas de validation admin) ; seul le
+  // certificat médical, quand il est requis, doit être validé par l'admin.
+  if (inscription.reglementSigne === 'non_fourni') throw new Error('Règlement non signé');
+  if (inscription.certificatMedicalReq && inscription.certificatMedical !== 'valide') {
+    throw new Error('Certificat médical en attente de validation');
+  }
+
+  // Sortie seul (mineurs) : le parent doit avoir répondu (oui OU non), les deux
+  // réponses étant des états finaux valides.
+  if (isMineur(inscription.membre.dateDeNaissance) && inscription.autorisationSortieSeul === null) {
+    throw new Error('Autorisation de sortie seul non renseignée');
+  }
 
   const saison = await inscriptionRepository.getCurrentSaison();
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);

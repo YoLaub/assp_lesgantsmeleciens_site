@@ -13,8 +13,8 @@ function getRaisonsIncomplet(adh: AdherentRow): string[] {
         raisons.push("Certificat médical manquant");
     if (adh.certificatMedicalReq && adh.certificatMedical === "declare")
         raisons.push("Certificat médical en attente de validation");
-    if (mineur && adh.autorisationParentale === "non_fourni")
-        raisons.push("Autorisation parentale manquante");
+    if (mineur && adh.autorisationSortieSeul == null)
+        raisons.push("Autorisation de sortie seul non renseignée");
     if (!adh.typePaiement) raisons.push("Mode de paiement non choisi");
 
     return raisons;
@@ -35,7 +35,7 @@ interface AdherentRow {
     reglementSigne: StatutDocument;
     certificatMedical: StatutDocument;
     certificatMedicalReq: boolean;
-    autorisationParentale: StatutDocument;
+    autorisationSortieSeul: boolean | null;
     couponSport: StatutDocument;
     bonCaf: StatutDocument;
     dateDeNaissance: Date;
@@ -54,11 +54,11 @@ function getStatutDossier(adh: AdherentRow): { label: string; color: string } {
     const documentsRequis: StatutDocument[] = [
         adh.reglementSigne,
         ...(adh.certificatMedicalReq ? [adh.certificatMedical] : []),
-        ...(mineur ? [adh.autorisationParentale] : []),
     ];
+    const autorisationSortieManquante = mineur && adh.autorisationSortieSeul == null;
 
     if (adh.inscriptionValide) return { label: "Validé", color: "bg-green-100 text-green-700" };
-    if (documentsRequis.some((s) => s === "non_fourni")) return { label: "Incomplet", color: "bg-red-100 text-red-700" };
+    if (documentsRequis.some((s) => s === "non_fourni") || autorisationSortieManquante) return { label: "Incomplet", color: "bg-red-100 text-red-700" };
     if (documentsRequis.every((s) => s === "valide")) return { label: "Docs validés", color: "bg-blue-100 text-blue-700" };
     return { label: "En attente", color: "bg-orange-100 text-orange-700" };
 }

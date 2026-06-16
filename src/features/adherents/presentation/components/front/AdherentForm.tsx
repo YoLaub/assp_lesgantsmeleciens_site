@@ -83,6 +83,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
         register,
         handleSubmit,
         watch,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm<FormValues>({
         resolver: zodResolver(FormSchema),
@@ -97,6 +98,22 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
             codePassSport: "",
         },
     });
+
+    // ─── Re-remplissage après import renouvellement ───────────────────────────
+    // `defaultValues` n'est appliqué qu'au montage ; le formulaire étant déjà
+    // monté quand l'import renouvellement arrive, on doit réinitialiser les
+    // champs explicitement à chaque changement de `prefill` (sinon le formulaire
+    // reste vide alors que l'import a réussi).
+    useEffect(() => {
+        if (!prefill) return;
+        reset((current) => ({
+            ...current,
+            nom: prefill.nom ?? current.nom,
+            prenom: prefill.prenom ?? current.prenom,
+            email: prefill.email ?? current.email,
+            dateDeNaissance: prefill.dateDeNaissance ?? current.dateDeNaissance,
+        }));
+    }, [prefill, reset]);
 
     const watchedValues = watch();
     const age = calcAge(watchedValues.dateDeNaissance ?? "");
