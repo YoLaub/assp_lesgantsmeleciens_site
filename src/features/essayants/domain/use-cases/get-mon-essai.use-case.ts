@@ -12,6 +12,5 @@ export async function getMonEssaiUseCase(token: string) {
     prenom: inscription.membre.prenom,
     nombrePresences: inscription.nombrePresences,
     accesBloque: inscription.accesBloque,
-    accesToken: inscription.membre.accesToken,
   };
 }

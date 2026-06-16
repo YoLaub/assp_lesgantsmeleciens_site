@@ -27,7 +27,7 @@ export default async function AdminAdherentDetailPage({ params }: PageProps) {
         telephone2: adherent.telephone2,
         adresse: adherent.membre.adresse,
         codePostal: adherent.membre.codePostal,
-        ville: adherent.membre.ville,
+        ville: adherent.membre.communeNom,
         oxygene: adherent.oxygene,
         renouvellement: adherent.renouvellement,
         fnsmr: adherent.fnsmr,

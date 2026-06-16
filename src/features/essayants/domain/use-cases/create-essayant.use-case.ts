@@ -1,5 +1,6 @@
 import { membreRepository } from '@/features/adhesion/data/repositories/membre.repository.impl';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
+import { hashToken } from '@/shared/lib/token';
 
 export interface CreateEssayantInput {
   nom: string;
@@ -22,7 +23,7 @@ export async function createEssayantUseCase(input: CreateEssayantInput) {
     telephone: input.telephone,
     dateDeNaissance: input.dateDeNaissance,
     numeroAdherent,
-    accesToken,
+    accesToken: hashToken(accesToken),
     accesTokenExpireLe,
   });
 

@@ -48,7 +48,7 @@ describe('inscriptionRepository.findAllEssayants', () => {
             reglementSigne: 'non_fourni', oxygene: false, renouvellement: false,
             typePaiement: null, telephone2: null, stripeSessionId: null, categorie: null,
             dateInscription: null, saison: '2025-2026', membreId: 'uuid-1',
-            membre: { id: 'uuid-1', nom: 'Martin', prenom: 'Alice', email: 'a@test.fr', telephone: null, sexe: null, ville: null, codePostal: null, adresse: null, dateDeNaissance: new Date('1990-01-01'), numeroAdherent: 'ADH-AAA', accesToken: null, accesTokenExpireLe: null, dateCreation: new Date() },
+            membre: { id: 'uuid-1', nom: 'Martin', prenom: 'Alice', email: 'a@test.fr', telephone: null, sexe: null, codeInsee: null, commune: null, codePostal: null, adresse: null, dateDeNaissance: new Date('1990-01-01'), numeroAdherent: 'ADH-AAA', accesToken: null, accesTokenExpireLe: null, dateCreation: new Date() },
             presences: [],
         }]);
         const result = await inscriptionRepository.findAllEssayants();

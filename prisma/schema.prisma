@@ -104,6 +104,14 @@ enum Categorie {
   adulte
 }
 
+// ─── Commune ──────────────────────────────────────────────────────────────────
+
+model Commune {
+  codeInsee String   @id @db.VarChar(5)
+  nom       String   @db.VarChar(100)
+  membres   Membre[]
+}
+
 // ─── Membre (identité uniquement) ────────────────────────────────────────────
 
 model Membre {
@@ -113,9 +121,10 @@ model Membre {
   email              String   @unique @db.VarChar(150)
   telephone          String?  @db.VarChar(20)
   sexe               String?  @db.VarChar(10)
-  ville              String?  @db.VarChar(100)
   codePostal         String?  @db.VarChar(5)
   adresse            String?  @db.Text
+  codeInsee          String?  @db.VarChar(5)
+  commune            Commune? @relation(fields: [codeInsee], references: [codeInsee])
   dateDeNaissance    DateTime @db.Date
   numeroAdherent     String?  @unique @db.VarChar(10)
   accesToken         String?  @db.VarChar(255)

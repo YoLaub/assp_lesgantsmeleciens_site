@@ -74,7 +74,7 @@ describe('getMonEssaiAction', () => {
     });
 
     it('retourne les données essayant si token valide', async () => {
-        const fakeData = { id: 'uuid-1', inscriptionId: 42, numeroAdherent: 'ADH-ABCDE', nom: 'Dupont', prenom: 'Jean', nombrePresences: 2, accesBloque: false, accesToken: 'valid-token' };
+        const fakeData = { id: 'uuid-1', inscriptionId: 42, numeroAdherent: 'ADH-ABCDE', nom: 'Dupont', prenom: 'Jean', nombrePresences: 2, accesBloque: false };
         mockGetMonEssai.mockResolvedValue(fakeData);
         const result = await getMonEssaiAction('valid-token');
         expect(result.success).toBe(true);

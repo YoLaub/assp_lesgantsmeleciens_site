@@ -1,7 +1,9 @@
 'use server';
 
 import { verifyHCaptcha } from '@/shared/lib/hcaptcha';
+import { checkRateLimit } from '@/shared/lib/rate-limit';
 import { sendLienAccesDossier } from '@/shared/lib/mail';
+import { hashToken } from '@/shared/lib/token';
 import { z } from 'zod';
 import { prisma } from '@/shared/lib/prisma';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
@@ -11,12 +13,16 @@ import { signerReglementUseCase } from '../domain/use-cases/signer-reglement.use
 import { setTypePaiementUseCase } from '../domain/use-cases/set-type-paiement.use-case';
 import { patchAutorisationSortieUseCase } from '../domain/use-cases/patch-autorisation-sortie.use-case';
 import { updateTelephoneUseCase } from '../domain/use-cases/update-telephone.use-case';
+import { updateAdresseUseCase } from '../domain/use-cases/update-adresse.use-case';
 import { updateDroitImageUseCase } from '../domain/use-cases/update-droit-image.use-case';
 import { validerEngagementUseCase } from '../domain/use-cases/valider-engagement.use-case';
 import { uploadDocumentAdherentUseCase } from '../domain/use-cases/upload-document-adherent.use-case';
 import { createCheckoutUseCase } from '../domain/use-cases/create-checkout.use-case';
 
 export async function requestAccesDossierAction(input: { email: string; numeroAdherent: string; hcaptchaToken: string }) {
+  const allowed = await checkRateLimit('acces-dossier');
+  if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
   const captchaOk = await verifyHCaptcha(input.hcaptchaToken);
   if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
 
@@ -24,7 +30,7 @@ export async function requestAccesDossierAction(input: { email: string; numeroAd
   if (membre) {
     const token = crypto.randomUUID();
     const expireLe = new Date(Date.now() + 60 * 60 * 1000);
-    await prisma.membre.update({ where: { id: membre.id }, data: { accesToken: token, accesTokenExpireLe: expireLe } });
+    await prisma.membre.update({ where: { id: membre.id }, data: { accesToken: hashToken(token), accesTokenExpireLe: expireLe } });
     try { await sendLienAccesDossier({ email: membre.email, prenom: membre.prenom, token }); }
     catch (e) { console.error('[requestAccesDossierAction]', e); }
   }
@@ -112,6 +118,23 @@ export async function updateTelephoneAction(token: string, data: z.infer<typeof 
   return { success: true };
 }
 
+const UpdateAdresseSchema = z.object({
+  adresse: z.string().min(3),
+  codePostal: z.string().regex(/^\d{5}$/, 'Code postal invalide'),
+  codeInsee: z.string().regex(/^[0-9A-Z]{5}$/i, 'Code INSEE invalide'),
+  communeNom: z.string().min(1),
+});
+
+export async function updateAdresseAction(token: string, data: z.infer<typeof UpdateAdresseSchema>) {
+  if (!token) return { success: false, error: 'Token manquant' };
+  const parsed = UpdateAdresseSchema.safeParse(data);
+  if (!parsed.success) return { success: false, error: 'Adresse invalide' };
+  const inscription = await inscriptionRepository.findByToken(token);
+  if (!inscription) return { success: false, error: 'Lien invalide ou expiré' };
+  await updateAdresseUseCase(inscription.membreId, parsed.data);
+  return { success: true };
+}
+
 export async function updateDroitImageAction(token: string, droitImage: boolean) {
   if (!token) return { success: false, error: 'Token manquant' };
   const inscription = await inscriptionRepository.findByToken(token);
@@ -163,8 +186,9 @@ export async function rechercherMembreParEmailAction(email: string) {
   if (!email || !email.includes('@')) return { success: false, error: 'Email invalide' };
   const membre = await prisma.membre.findFirst({
     where: { email },
-    select: { nom: true, prenom: true, email: true, telephone: true, dateDeNaissance: true, sexe: true, adresse: true, codePostal: true, ville: true },
+    select: { nom: true, prenom: true, email: true, telephone: true, dateDeNaissance: true, sexe: true, adresse: true, codePostal: true, commune: { select: { nom: true } } },
   });
   if (!membre) return { success: false, error: 'Aucun dossier trouvé pour cet email' };
-  return { success: true, data: membre };
+  const { commune, ...rest } = membre;
+  return { success: true, data: { ...rest, ville: commune?.nom ?? null } };
 }
