@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { StickyNavbar } from "@/app/(front)/_components/Navbar";
+import { Header } from "@/app/(front)/_components/Header";
 import { Footer } from "@/app/(front)/_components/Footer";
 import { ChevronUpMod } from "@/app/(front)/_components/icon";
 import gantDeBoxe from "@/../public/gant_de_boxe.jpg";
@@ -10,6 +11,7 @@ export default function NotFound() {
     <div className="flex min-h-screen flex-col bg-white selection:bg-brand-red selection:text-white">
       {/* Global Navigation */}
       <StickyNavbar />
+      <Header />
 
       {/* Main Content Area */}
       <main className="flex-grow flex items-center justify-center py-20 px-5 md:px-0">
