@@ -961,6 +961,7 @@ function DossierVue({
     const reglementManquant = dossier.reglementSigne === "non_fourni";
     const typePaiementManquant = dossier.typePaiement === null;
     const telephoneManquant = !dossier.telephone1;
+    const adresseManquante = !dossier.adresse || !dossier.codePostal || !dossier.ville;
     const engagementManquant = !dossier.engagementPrisConnaissance;
     const photoManquante = !dossier.documents.find((d) => d.type === "ID_PHOTO");
     const certificatADeclarer =
@@ -983,7 +984,7 @@ function DossierVue({
         !autorisationSortieManquante;
     const tousDeciares = documentsRequis.every((s) => s !== "non_fourni") && !autorisationSortieManquante;
     const documentsManquants = documentsRequis.some((s) => s === "non_fourni");
-    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || engagementManquant || photoManquante || autorisationSortieManquante;
+    const dossierIncomplet = questionnaireManquant || reglementManquant || typePaiementManquant || telephoneManquant || adresseManquante || engagementManquant || photoManquante || autorisationSortieManquante;
 
     let statutLabel = "";
     let statutColor = "";
@@ -1114,7 +1115,7 @@ function DossierVue({
                 />
             )}
 
-            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && (
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && adresseManquante && (
                 <AdresseSection
                     token={token}
                     adresse={dossier.adresse}
@@ -1124,7 +1125,7 @@ function DossierVue({
                 />
             )}
 
-            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && engagementManquant && (
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && !adresseManquante && engagementManquant && (
                 <EngagementSection
                     token={token}
                     onDone={() => setDossier((d) => ({ ...d, engagementPrisConnaissance: true }))}
@@ -1132,7 +1133,7 @@ function DossierVue({
             )}
 
             {/* ── Photo d'identité (obligatoire — bloquant) ─────────────────── */}
-            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && !engagementManquant && photoManquante && (
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && !adresseManquante && !engagementManquant && photoManquante && (
                 <PhotoIdSection
                     token={token}
                     documentExistant={false}
