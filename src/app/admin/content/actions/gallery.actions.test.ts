@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { vi, type Mock } from 'vitest';
+import { vi } from 'vitest';
 import { makeGalleryImage, makeGalleryImageList } from '@/features/gallery/__tests__/fixtures';
 
 // --- Hoisted mocks ---
@@ -15,15 +15,31 @@ const mockDataSource = vi.hoisted(() => ({
 const mockRevalidatePath = vi.hoisted(() => vi.fn());
 const mockUploadPublicImage = vi.hoisted(() => vi.fn());
 
-vi.mock('@/features/gallery/data/repositories/gallery-image.repository.impl', () => ({
-    GalleryImageRepositoryImpl: class {
+const mockPrismaImageCategory = vi.hoisted(() => ({
+    findUnique: vi.fn(),
+}));
+
+vi.mock('@/features/gallery/data/repositories/image.repository.impl', () => ({
+    ImageRepositoryImpl: class {
         private dataSource = mockDataSource;
         getAll() { return mockDataSource.getGalleryImages(); }
+        getByCategory(categorySlug: string) { return mockDataSource.getGalleryImages(); }
         getById(id: string) { return mockDataSource.getGalleryImageById(id); }
         save(image: unknown) { return mockDataSource.upsertGalleryImage(image); }
         delete(id: string) { return mockDataSource.deleteGalleryImage(id); }
         bulkDelete(ids: string[]) { return mockDataSource.bulkDeleteGalleryImages(ids); }
     },
+}));
+
+vi.mock('@/shared/lib/prisma', () => ({
+    prisma: {
+        imageCategory: mockPrismaImageCategory,
+    },
+}));
+
+vi.mock('@/shared/lib/cloudinary.server', () => ({
+    deleteCloudinaryAsset: vi.fn(),
+    deleteCloudinaryAssets: vi.fn(),
 }));
 
 vi.mock('next/cache', () => ({
@@ -44,6 +60,20 @@ import {
 } from './gallery.actions';
 
 describe('gallery server actions', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockPrismaImageCategory.findUnique.mockResolvedValue({
+            id: 'cat-1',
+            name: 'Discipline',
+            slug: 'discipline',
+        });
+        mockDataSource.getGalleryImages.mockReturnValue(okAsync([]));
+        mockDataSource.getGalleryImageById.mockReturnValue(okAsync(null));
+        mockDataSource.upsertGalleryImage.mockReturnValue(okAsync(undefined));
+        mockDataSource.deleteGalleryImage.mockReturnValue(okAsync(undefined));
+        mockDataSource.bulkDeleteGalleryImages.mockReturnValue(okAsync(undefined));
+    });
+
     describe('getAllGalleryImagesAction', () => {
         it('returns { success: true, images } on success', async () => {
             const images = makeGalleryImageList(2);
@@ -86,6 +116,7 @@ describe('gallery server actions', () => {
 
     describe('deleteGalleryImageAction', () => {
         it('returns success and revalidates', async () => {
+            mockDataSource.getGalleryImageById.mockReturnValue(okAsync(makeGalleryImage()));
             mockDataSource.deleteGalleryImage.mockReturnValue(okAsync(undefined));
 
             const result = await deleteGalleryImageAction('img-1');
@@ -95,6 +126,7 @@ describe('gallery server actions', () => {
         });
 
         it('returns error', async () => {
+            mockDataSource.getGalleryImageById.mockReturnValue(okAsync(makeGalleryImage()));
             mockDataSource.deleteGalleryImage.mockReturnValue(errAsync('Not found'));
 
             const result = await deleteGalleryImageAction('img-1');
@@ -105,6 +137,7 @@ describe('gallery server actions', () => {
 
     describe('bulkDeleteGalleryImagesAction', () => {
         it('returns success and revalidates', async () => {
+            mockDataSource.getGalleryImages.mockReturnValue(okAsync(makeGalleryImageList(2)));
             mockDataSource.bulkDeleteGalleryImages.mockReturnValue(okAsync(undefined));
 
             const result = await bulkDeleteGalleryImagesAction(['id-1', 'id-2']);
@@ -121,6 +154,7 @@ describe('gallery server actions', () => {
         });
 
         it('returns error on repo fail', async () => {
+            mockDataSource.getGalleryImages.mockReturnValue(okAsync(makeGalleryImageList(2)));
             mockDataSource.bulkDeleteGalleryImages.mockReturnValue(errAsync('Bulk failed'));
 
             const result = await bulkDeleteGalleryImagesAction(['id-1']);
@@ -139,14 +173,20 @@ describe('gallery server actions', () => {
             return new File([buffer], name, { type });
         }
 
-        function makeFormDataWith(file: File): FormData {
+        function makeFormDataWith(file: File, categoryId = 'discipline'): FormData {
             const fd = new FormData();
             fd.append('file', file);
+            fd.append('categoryId', categoryId);
             return fd;
         }
 
         beforeEach(() => {
-            mockUploadPublicImage.mockResolvedValue({ url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
+            mockUploadPublicImage.mockResolvedValue({
+                url: 'https://res.cloudinary.com/test/gallery/photo.jpg',
+                width: 1920,
+                height: 1080,
+                blurDataUrl: 'data:image/svg+xml;base64,xxx',
+            });
         });
 
         it('uploads valid JPEG and returns url', async () => {
@@ -155,12 +195,24 @@ describe('gallery server actions', () => {
 
             const result = await uploadGalleryImageAction(fd);
 
-            expect(result).toEqual({ success: true, url: 'https://res.cloudinary.com/test/gallery/photo.jpg', width: 1920, height: 1080 });
+            expect(result).toEqual({
+                success: true,
+                asset: {
+                    url: 'https://res.cloudinary.com/test/gallery/photo.jpg',
+                    width: 1920,
+                    height: 1080,
+                },
+                blurDataUrl: 'data:image/svg+xml;base64,xxx',
+                categoryId: 'cat-1',
+                categorySlug: 'discipline',
+                categoryName: 'Discipline',
+            });
             expect(mockUploadPublicImage).toHaveBeenCalledWith(expect.any(File), 'gallery');
         });
 
         it('rejects missing file', async () => {
             const fd = new FormData();
+            fd.append('categoryId', 'discipline');
 
             const result = await uploadGalleryImageAction(fd);
 

@@ -8,7 +8,6 @@ const defaultProps = {
     onCategoryChange: vi.fn(),
     selectionMode: false,
     onSelectionModeChange: vi.fn(),
-    onAdd: vi.fn(),
     viewMode: 'masonry' as const,
     onViewModeChange: vi.fn(),
     sortField: 'date' as const,
@@ -34,35 +33,27 @@ describe('GalleryToolbar', () => {
         expect(onSearchChange).toHaveBeenCalledWith('test');
     });
 
-    it('calls onAdd when "Ajouter" button clicked', () => {
-        const onAdd = vi.fn();
-        render(<GalleryToolbar {...defaultProps} onAdd={onAdd} />);
-
-        fireEvent.click(screen.getByText('Ajouter'));
-
-        expect(onAdd).toHaveBeenCalledOnce();
-    });
-
     it('renders category filter buttons including "Tout"', () => {
         render(<GalleryToolbar {...defaultProps} />);
 
         expect(screen.getByText('Tout')).toBeTruthy();
-        expect(screen.getByText('Compétitions')).toBeTruthy();
-        expect(screen.getByText('Entraînements')).toBeTruthy();
+        expect(screen.getByText('Discipline')).toBeTruthy();
+        expect(screen.getByText('Actualité')).toBeTruthy();
+        expect(screen.getByText('Carousel')).toBeTruthy();
     });
 
     it('calls onCategoryChange when a category chip is clicked', () => {
         const onCategoryChange = vi.fn();
         render(<GalleryToolbar {...defaultProps} onCategoryChange={onCategoryChange} />);
 
-        fireEvent.click(screen.getByText('Compétitions'));
+        fireEvent.click(screen.getByText('Discipline'));
 
-        expect(onCategoryChange).toHaveBeenCalledWith('competitions');
+        expect(onCategoryChange).toHaveBeenCalledWith('discipline');
     });
 
     it('calls onCategoryChange(null) when "Tout" is clicked', () => {
         const onCategoryChange = vi.fn();
-        render(<GalleryToolbar {...defaultProps} activeCategory="competitions" onCategoryChange={onCategoryChange} />);
+        render(<GalleryToolbar {...defaultProps} activeCategory="discipline" onCategoryChange={onCategoryChange} />);
 
         fireEvent.click(screen.getByText('Tout'));
 
