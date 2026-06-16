@@ -1141,6 +1141,17 @@ function DossierVue({
                 />
             )}
 
+            {/* ── Autorisation de sortie seul (mineurs, bloquant) ────────────── */}
+            {!questionnaireManquant && !reglementManquant && !typePaiementManquant && !telephoneManquant && !adresseManquante && !engagementManquant && !photoManquante && mineur && autorisationSortieManquante && (
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <AutorisationSortieSection
+                        token={token}
+                        statut={dossier.autorisationSortieSeul}
+                        onDone={(s) => setDossier((d) => ({ ...d, autorisationSortieSeul: s }))}
+                    />
+                </div>
+            )}
+
             {/* ── Droit à l'image (non bloquant) ────────────────────────────── */}
             {!dossierIncomplet && (
                 <DroitImageSection
