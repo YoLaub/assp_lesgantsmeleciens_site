@@ -56,6 +56,16 @@ describe('createCheckoutUseCase', () => {
     await expect(createCheckoutUseCase('tok', 'https://app')).rejects.toThrow('Lien invalide');
   });
 
+  it('échoue si l\'inscription est déjà validée', async () => {
+    mockFindByToken.mockResolvedValue(inscriptionValide({ inscriptionValide: true }));
+    await expect(createCheckoutUseCase('tok', 'https://app')).rejects.toThrow('déjà validée');
+  });
+
+  it('échoue si le montant est introuvable', async () => {
+    mockFindByToken.mockResolvedValue(inscriptionValide({ montantSnapshot: null }));
+    await expect(createCheckoutUseCase('tok', 'https://app')).rejects.toThrow('Montant introuvable');
+  });
+
   it('échoue si le mode de paiement n\'est pas en ligne', async () => {
     mockFindByToken.mockResolvedValue(inscriptionValide({ typePaiement: 'sur_place' }));
     await expect(createCheckoutUseCase('tok', 'https://app')).rejects.toThrow('Mode de paiement');

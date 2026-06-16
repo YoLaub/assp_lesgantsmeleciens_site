@@ -17,18 +17,12 @@ describe('patchAdherentUseCase', () => {
   });
 
   it('filtre les champs non autorisés (anti mass-assignment)', async () => {
-    await patchAdherentUseCase(2, {
-      bonCaf: 'valide',
-      // @ts-expect-error champ volontairement interdit
-      montantSnapshot: 9999,
-      // @ts-expect-error champ volontairement interdit
-      membreId: 'pirate',
-    });
+    // montantSnapshot et membreId sont typables mais hors liste blanche : ignorés.
+    await patchAdherentUseCase(2, { bonCaf: 'valide', montantSnapshot: 9999, membreId: 'pirate' });
     expect(mockUpdate).toHaveBeenCalledWith(2, { bonCaf: 'valide' });
   });
 
   it('appelle update avec un objet vide si aucun champ autorisé', async () => {
-    // @ts-expect-error champs tous interdits
     await patchAdherentUseCase(3, { montantSnapshot: 1, stripeSessionId: 'x' });
     expect(mockUpdate).toHaveBeenCalledWith(3, {});
   });
