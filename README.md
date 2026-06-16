@@ -60,7 +60,22 @@ Toutes les mutations BDD passent par des **Server Actions** (`'use server'`), sa
 npm install
 ```
 
-Créer un fichier `.env.local` avec les variables suivantes (voir section Variables d'environnement) :
+Base de données locale (PostgreSQL via Docker — aucune donnée de production
+n'est répliquée) :
+
+```bash
+docker compose up -d           # démarre PostgreSQL
+npx prisma migrate deploy      # applique le schéma
+npm run db:seed:base           # seed autonome (questionnaire santé)
+```
+
+Créer un fichier `.env.local` avec les variables suivantes (voir section Variables d'environnement). Pour la base Docker ci-dessus :
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/lesgants_dev"
+```
+
+Puis :
 
 ```bash
 npm run dev
@@ -78,7 +93,8 @@ npm run test         # tests Vitest (run once)
 npm run test:watch   # tests en mode watch
 npm run db:push      # applique le schéma Prisma en base
 npm run db:studio    # ouvre Prisma Studio
-npm run db:seed      # seed galerie, disciplines, actualités, questionnaire
+npm run db:seed      # seed galerie, disciplines, actualités, questionnaire (Cloudinary requis)
+npm run db:seed:base # seed autonome : questionnaire santé (sans dépendance externe)
 ```
 
 ## Variables d'environnement

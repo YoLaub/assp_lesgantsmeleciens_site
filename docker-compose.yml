@@ -1,0 +1,41 @@
+# Base PostgreSQL locale pour le développement (même image que la CI).
+# Permet de travailler sans toucher la base de production (RGPD : la prod
+# contient des données personnelles sensibles — adhérents, mineurs, santé —
+# qu'on ne réplique jamais en local).
+#
+# Démarrage :
+#   docker compose up -d
+#
+# Puis pointer DATABASE_URL vers cette base dans ton .env.local :
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:5433/lesgants_dev"
+#
+#   npx prisma migrate deploy     # applique le schéma
+#   npm run db:seed:base          # seed autonome (questionnaire santé)
+#
+# Les seeds galerie/disciplines/actualités (npm run db:seed) téléversent des
+# images vers Cloudinary : ils nécessitent les identifiants CLOUDINARY_* et un
+# accès réseau, donc à lancer manuellement uniquement si besoin.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: lesgants_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: lesgants_dev
+    # Publié sur 5433 côté hôte pour ne pas entrer en conflit avec un
+    # PostgreSQL déjà installé localement (port 5432 par défaut).
+    ports:
+      - "5433:5432"
+    volumes:
+      - lesgants_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lesgants_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  lesgants_pgdata:
