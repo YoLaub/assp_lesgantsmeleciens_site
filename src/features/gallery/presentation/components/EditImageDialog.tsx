@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { Image } from '@/features/gallery/domain/models/image.model';
 import { IMAGE_CATEGORIES, type ImageCategorySlug } from '@/features/gallery/domain/models/gallery-category.model';
@@ -20,16 +20,18 @@ export function EditImageDialog({ image, onClose, onSaved }: EditImageDialogProp
     const [categorySlug, setCategorySlug] = useState<ImageCategorySlug | ''>('');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [syncedId, setSyncedId] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (image) {
-            setTitle(image.title);
-            setAlt(image.alt);
-            setCategorySlug(image.category.slug as ImageCategorySlug | '');
-            setError('');
-            setIsSaving(false);
-        }
-    }, [image]);
+    // Synchronise l'état du formulaire avec l'image sélectionnée (pattern React
+    // « ajuster le state pendant le rendu » plutôt qu'un useEffect).
+    if (image && image.id !== syncedId) {
+        setSyncedId(image.id);
+        setTitle(image.title);
+        setAlt(image.alt);
+        setCategorySlug(image.category.slug as ImageCategorySlug | '');
+        setError('');
+        setIsSaving(false);
+    }
 
     if (!image) return null;
 

@@ -14,6 +14,6 @@ export function createMockRepository() {
         reorderMany: vi.fn(),
     };
     return mock as unknown as {
-        [K in keyof ImageRepository]: Mock<any> & ImageRepository[K];
+        [K in keyof ImageRepository]: Mock & ImageRepository[K];
     };
 }

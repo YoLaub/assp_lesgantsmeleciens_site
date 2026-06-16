@@ -39,7 +39,7 @@ const contentSecurityPolicy = [
     `img-src 'self' data: blob: https://res.cloudinary.com https://img.clerk.com https://*.clerk.com https://lh3.googleusercontent.com${r2Src}`,
     `media-src 'self' https://res.cloudinary.com${r2Src}`,
     `font-src 'self' data:`,
-    `connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com${clerkSrc}${r2Src}`,
+    `connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com${clerkSrc}${r2Src} https://api-adresse.data.gouv.fr`,
     `frame-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.clerk.accounts.dev${clerkSrc}`,
     `worker-src 'self' blob:`,
     `form-action 'self'${clerkSrc}`,

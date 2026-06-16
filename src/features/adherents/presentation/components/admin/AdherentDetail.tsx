@@ -266,7 +266,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                             {adherent.oxygene ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-slate-300" />}
                         </div>
                         <div className="flex items-center gap-2 text-slate-600">
-                            <span className="font-medium">Droit à l'image :</span>
+                            <span className="font-medium">Droit à l&apos;image :</span>
                             {adherent.droitImage ? <CheckCircle className="w-4 h-4 text-green-500" /> : <XCircle className="w-4 h-4 text-slate-300" />}
                         </div>
                         {adherent.codePassSport && (
@@ -339,7 +339,7 @@ export function AdherentDetail({ adherent }: { adherent: AdherentDetailData }) {
                         )}
                         {adherent.documents.some((d) => d.type === "ID_PHOTO") && (
                             <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
-                                <p className="text-sm font-medium text-slate-800">Photo d'identité</p>
+                                <p className="text-sm font-medium text-slate-800">Photo d&apos;identité</p>
                                 <div className="flex items-center gap-2">
                                     <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-600">Reçue</span>
                                     <a

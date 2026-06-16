@@ -44,9 +44,9 @@ export default function EssaiForm() {
                 <h2 className="text-xl font-bold text-gray-900">Bienvenue !</h2>
                 <p className="text-gray-700">
                     Votre numéro est <strong className="text-[#FF8A00]">{success}</strong>.{" "}
-                    Conservez-le — il vous permettra de suivre vos cours d'essai et deviendra votre numéro d'adhérent si vous rejoignez le club.
+                    Conservez-le — il vous permettra de suivre vos cours d&apos;essai et deviendra votre numéro d&apos;adhérent si vous rejoignez le club.
                 </p>
-                <p className="text-sm text-gray-500">Un email de confirmation vient d'être envoyé.</p>
+                <p className="text-sm text-gray-500">Un email de confirmation vient d&apos;être envoyé.</p>
             </div>
         );
     }

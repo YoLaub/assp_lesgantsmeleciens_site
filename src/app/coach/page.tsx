@@ -9,7 +9,7 @@ export default async function CoachPage({ searchParams }: CoachPageProps) {
     if (!params.token) {
         return (
             <main className="min-h-screen bg-slate-900 flex items-center justify-center p-8">
-                <p className="text-white font-medium">Ce lien n'est plus valide. Contactez l'administrateur.</p>
+                <p className="text-white font-medium">Ce lien n&apos;est plus valide. Contactez l&apos;administrateur.</p>
             </main>
         );
     }
