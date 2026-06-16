@@ -86,16 +86,50 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 ### Scripts disponibles
 
 ```bash
-npm run dev          # serveur de développement
-npm run build        # build de production
-npm run lint         # ESLint
-npm run test         # tests Vitest (run once)
-npm run test:watch   # tests en mode watch
-npm run db:push      # applique le schéma Prisma en base
-npm run db:studio    # ouvre Prisma Studio
-npm run db:seed      # seed galerie, disciplines, actualités, questionnaire (Cloudinary requis)
-npm run db:seed:base # seed autonome : questionnaire santé (sans dépendance externe)
+npm run dev            # serveur de développement
+npm run build          # build de production
+npm run lint           # ESLint
+npm run typecheck      # vérification TypeScript (tsc --noEmit)
+npm run test           # tests Vitest (run once)
+npm run test:watch     # tests en mode watch
+npm run test:coverage  # tests + rapport de couverture (seuil 80%)
+npm run db:push        # applique le schéma Prisma en base
+npm run db:studio      # ouvre Prisma Studio
+npm run db:seed        # seed galerie, disciplines, actualités, questionnaire (Cloudinary requis)
+npm run db:seed:base   # seed autonome : questionnaire santé (sans dépendance externe)
 ```
+
+## Tests & couverture
+
+Tests unitaires avec **Vitest** (jsdom). Lancer `npm run test` (ou `npm run test:coverage` pour le rapport + le seuil).
+
+### Périmètre de couverture (et ce qui en est exclu)
+
+Le seuil de **80 %** (statements / branches / functions / lines) est appliqué à la **logique métier**, là où les tests unitaires ont de la valeur. La configuration vit dans [`vitest.config.ts`](vitest.config.ts).
+
+**Inclus dans le calcul** (`coverage.include`) :
+
+| Couche | Chemin | Pourquoi |
+|---|---|---|
+| Use-cases | `features/**/domain/**` | Règles métier (calcul tarif, complétude dossier, blocage essai…) |
+| Repositories | `features/**/data/repositories/**` | Mapping domaine ↔ persistance |
+| Server actions | `features/**/actions/**`, `app/**/actions/**` | Validation, autorisation, orchestration |
+| Helpers purs | `shared/lib/**` | `mail`, `hcaptcha`, `sanitize`, `csv`, `adherent-utils`, `token` |
+
+**Exclus volontairement** (testés en **intégration**, pas en unitaire) :
+
+- `presentation/**` et pages `app/**` (hors `actions`) → relèvent de tests de **composants / e2e**, pas de la couche logique.
+- `features/**/data/datasources/**` → requêtes **Prisma brutes** : à valider contre une vraie base (le `docker-compose` fournit un PostgreSQL à cet effet).
+- Wrappers de **SDK externes** : `shared/lib/upload.ts` (S3/R2), `cloudinary*.ts`, `rate-limit.ts` (Upstash) → mockés ailleurs, intégration côté fournisseur.
+- Code généré (`src/generated/**`), types/interfaces (`*.model.ts`, `domain/repositories/**`), singleton Prisma (`prisma.ts`).
+
+### Convention
+
+- Tests **co-localisés** (`xxx.test.ts` à côté du fichier), environnement `// @vitest-environment node` pour la logique serveur.
+- Les dépendances (Prisma, repositories, use-cases, Clerk `auth`, mail, SDK) sont **mockées** via `vi.mock` / `vi.hoisted`.
+- Le rapport HTML est généré dans `coverage/` (publié en artifact par la CI).
+
+> Le seuil 80 % ne porte donc **pas** sur le rendu UI : viser 80 % global est trompeur (le volume de lignes y est dominé par les composants React). On mesure ce qui contient la logique.
 
 ## Variables d'environnement
 
