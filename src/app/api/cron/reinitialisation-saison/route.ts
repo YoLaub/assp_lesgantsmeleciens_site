@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/shared/lib/prisma';
 import { sendOuvertureInscriptions } from '@/shared/lib/mail';
+import { purgerDonneesSanteSaison } from '@/shared/lib/purge-sante';
 
 export async function GET(req: NextRequest) {
     const authHeader = req.headers.get('Authorization');
@@ -18,6 +19,9 @@ export async function GET(req: NextRequest) {
         data: { inscriptionValide: false },
     });
 
+    // Purge RGPD des données de santé conservées 1 an (cf. consentement art. 9.2.a).
+    const purge = await purgerDonneesSanteSaison(inscriptions.map((i) => i.id));
+
     let envoyes = 0;
     for (const insc of inscriptions) {
         try {
@@ -26,5 +30,11 @@ export async function GET(req: NextRequest) {
         } catch (e) { console.error('[cron/reinitialisation-saison]', insc.membre.email, e); }
     }
 
-    return NextResponse.json({ ok: true, reinitialises: inscriptions.length, emailsEnvoyes: envoyes });
+    return NextResponse.json({
+        ok: true,
+        reinitialises: inscriptions.length,
+        emailsEnvoyes: envoyes,
+        questionnairesPurges: purge.questionnairesPurges,
+        documentsPurges: purge.documentsPurges,
+    });
 }
