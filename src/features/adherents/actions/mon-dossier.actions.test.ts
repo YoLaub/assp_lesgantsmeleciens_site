@@ -86,11 +86,11 @@ describe('actions liées à une inscription (token)', () => {
   it('soumettreQuestionnaireAction valide et délègue', async () => {
     h.soumettreQ.mockResolvedValue({ certificatMedicalReq: true });
     const reps = { q1: true, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false };
-    expect(await actions.soumettreQuestionnaireAction('tok', reps)).toEqual({ success: true, certificatMedicalReq: true });
+    expect(await actions.soumettreQuestionnaireAction('tok', reps, true)).toEqual({ success: true, certificatMedicalReq: true });
   });
 
   it('soumettreQuestionnaireAction rejette des données invalides', async () => {
-    expect(await actions.soumettreQuestionnaireAction('tok', { q1: true } as never)).toMatchObject({ success: false });
+    expect(await actions.soumettreQuestionnaireAction('tok', { q1: true } as never, true)).toMatchObject({ success: false });
   });
 
   it('signerReglementAction délègue', async () => {
@@ -178,6 +178,33 @@ describe('uploadDocumentAdherentAction', () => {
     h.uploadDoc.mockResolvedValue('https://cdn/doc');
     const res = await actions.uploadDocumentAdherentAction('tok', fd({ type: 'image/png', size: 100 }), 'ID_PHOTO');
     expect(res).toEqual({ success: true, url: 'https://cdn/doc' });
+  });
+});
+
+describe('gate consentement questionnaire', () => {
+  beforeEach(() => {
+    h.findByToken.mockResolvedValue({ id: 1, membreId: 'm-1' });
+    h.soumettreQ.mockResolvedValue({ certificatMedicalReq: false });
+  });
+
+  it('refuse le questionnaire majeur sans consentement', async () => {
+    const r = { q1: true, q2: true, q3: true, q4: true, q5: true, q6: true, q7: true };
+    const res = await actions.soumettreQuestionnaireAction('tok', r, false);
+    expect(res).toMatchObject({ success: false });
+    expect(h.soumettreQ).not.toHaveBeenCalled();
+  });
+
+  it('accepte le questionnaire majeur avec consentement', async () => {
+    const r = { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false };
+    const res = await actions.soumettreQuestionnaireAction('tok', r, true);
+    expect(res).toMatchObject({ success: true });
+    expect(h.soumettreQ).toHaveBeenCalled();
+  });
+
+  it('refuse le questionnaire enfant sans consentement', async () => {
+    const res = await actions.soumettreQuestionnaireEnfantAction('tok', {} as never, false);
+    expect(res).toMatchObject({ success: false });
+    expect(h.soumettreQ).not.toHaveBeenCalled();
   });
 });
 
