@@ -205,6 +205,9 @@ model QuestionnaireSante {
   type          String      @db.VarChar(10)  // 'majeur' | 'mineur'
   createdAt     DateTime    @default(now())
 
+  consentementSanteLe      DateTime?
+  consentementSanteVersion String?  @db.VarChar(20)
+
   inscriptionId Int         @unique
   inscription   Inscription @relation(fields: [inscriptionId], references: [id], onDelete: Cascade)
 
