@@ -13,6 +13,8 @@ export interface Inscription {
   certificatMedicalReq: boolean;
   engagementPrisConnaissance: boolean;
   autorisationParentale: StatutDocument;
+  /** Sortie seul (mineurs) : null = non répondu, true = autorisé, false = non autorisé. */
+  autorisationSortieSeul: boolean | null;
   couponSport: StatutDocument;
   bonCaf: StatutDocument;
   codePassSport: string | null;

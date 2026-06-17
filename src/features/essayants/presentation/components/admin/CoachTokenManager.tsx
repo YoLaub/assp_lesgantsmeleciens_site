@@ -73,7 +73,7 @@ export function CoachTokenManager({ tokenData }: { tokenData: TokenData | null }
 
             {/* Avertissement */}
             <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-xs text-orange-700">
-                ⚠️ Générer un nouveau lien révoque immédiatement l'ancien. Les coachs utilisant l'ancien lien seront déconnectés.
+                ⚠️ Générer un nouveau lien révoque immédiatement l&apos;ancien. Les coachs utilisant l&apos;ancien lien seront déconnectés.
             </div>
 
             <button

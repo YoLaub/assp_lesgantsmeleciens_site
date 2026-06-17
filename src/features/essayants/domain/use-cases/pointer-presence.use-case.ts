@@ -1,5 +1,6 @@
 import { prisma } from '@/shared/lib/prisma';
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
+import { hashToken } from '@/shared/lib/token';
 
 export async function pointerPresenceUseCase(inscriptionId: number, nomCoach: string) {
   const inscription = await inscriptionRepository.findById(inscriptionId);
@@ -15,27 +16,26 @@ export async function pointerPresenceUseCase(inscriptionId: number, nomCoach: st
 
   await inscriptionRepository.createPresence(inscriptionId, nomCoach);
 
-  const updateData: Record<string, unknown> = {
-    nombrePresences: nouvPresences,
-    accesBloque: bloque,
-  };
-
+  let newToken: string | undefined;
   if (bloque) {
-    const newToken = crypto.randomUUID();
+    newToken = crypto.randomUUID();
     const expireLe = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     await prisma.membre.update({
       where: { id: inscription.membre.id },
-      data: { accesToken: newToken, accesTokenExpireLe: expireLe },
+      data: { accesToken: hashToken(newToken), accesTokenExpireLe: expireLe },
     });
-    updateData._newToken = newToken;
   }
 
-  await inscriptionRepository.update(inscriptionId, updateData as Partial<import('@/features/adhesion/domain/models/inscription.model').Inscription>);
+  await inscriptionRepository.update(inscriptionId, {
+    nombrePresences: nouvPresences,
+    accesBloque: bloque,
+  } as Partial<import('@/features/adhesion/domain/models/inscription.model').Inscription>);
 
   return {
     success: true as const,
     nouvPresences,
     bloque,
+    newToken,
     membre: { email: inscription.membre.email, prenom: inscription.membre.prenom, numeroAdherent: inscription.membre.numeroAdherent },
   };
 }

@@ -1,10 +1,11 @@
 import { prisma } from '@/shared/lib/prisma';
 import type { Prisma } from '@/generated/prisma/client';
+import { hashToken } from '@/shared/lib/token';
 
-const INCLUDE_MEMBRE = { membre: true } as const;
+const INCLUDE_MEMBRE = { membre: { include: { commune: true } } } as const;
 
 const INCLUDE_FULL = {
-  membre: true,
+  membre: { include: { commune: true } },
   presences: { orderBy: { pointeLe: 'asc' as const } },
   documents: true,
   questionnaire: {
@@ -29,7 +30,7 @@ export const inscriptionDataSource = {
   findByToken(token: string) {
     return prisma.inscription.findFirst({
       where: {
-        membre: { accesToken: token, accesTokenExpireLe: { gt: new Date() } },
+        membre: { accesToken: hashToken(token), accesTokenExpireLe: { gt: new Date() } },
       },
       include: INCLUDE_FULL,
     });
@@ -46,7 +47,7 @@ export const inscriptionDataSource = {
     return prisma.inscription.findMany({
       where: { statut: 'ESSAYANT' },
       include: {
-        membre: true,
+        membre: { include: { commune: true } },
         presences: { orderBy: { pointeLe: 'desc' }, take: 1 },
       },
       orderBy: { id: 'desc' },

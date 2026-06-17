@@ -83,6 +83,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
         register,
         handleSubmit,
         watch,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm<FormValues>({
         resolver: zodResolver(FormSchema),
@@ -97,6 +98,22 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
             codePassSport: "",
         },
     });
+
+    // ─── Re-remplissage après import renouvellement ───────────────────────────
+    // `defaultValues` n'est appliqué qu'au montage ; le formulaire étant déjà
+    // monté quand l'import renouvellement arrive, on doit réinitialiser les
+    // champs explicitement à chaque changement de `prefill` (sinon le formulaire
+    // reste vide alors que l'import a réussi).
+    useEffect(() => {
+        if (!prefill) return;
+        reset((current) => ({
+            ...current,
+            nom: prefill.nom ?? current.nom,
+            prenom: prefill.prenom ?? current.prenom,
+            email: prefill.email ?? current.email,
+            dateDeNaissance: prefill.dateDeNaissance ?? current.dateDeNaissance,
+        }));
+    }, [prefill, reset]);
 
     const watchedValues = watch();
     const age = calcAge(watchedValues.dateDeNaissance ?? "");
@@ -157,11 +174,11 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                 </div>
                 <h3 className="text-xl font-bold text-gray-900">Dossier créé !</h3>
                 <p className="text-gray-700">
-                    Votre numéro d'adhérent est{" "}
+                    Votre numéro d&apos;adhérent est{" "}
                     <strong className="text-[#FF8A00]">{successInfo.numeroAdherent}</strong> — conservez-le.
                 </p>
                 <p className="text-sm text-gray-500">
-                    Un email vient d'être envoyé avec un lien pour compléter votre dossier (questionnaire de santé, documents, paiement).
+                    Un email vient d&apos;être envoyé avec un lien pour compléter votre dossier (questionnaire de santé, documents, paiement).
                 </p>
             </div>
         );
@@ -173,7 +190,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left max-w-xl mx-auto">
-            <h3 className="text-xl font-bold text-center mb-2 text-gray-900">Dossier d'inscription</h3>
+            <h3 className="text-xl font-bold text-center mb-2 text-gray-900">Dossier d&apos;inscription</h3>
 
             {/* ── Identité ─────────────────────────────────────────────────── */}
             <div className="space-y-4">
@@ -282,7 +299,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                 <label className="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" {...register("bonCaf")} className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]" />
                     <span className="text-sm text-gray-700">
-                        Je bénéficie d'une aide CAF{" "}
+                        Je bénéficie d&apos;une aide CAF{" "}
                         <span className="text-gray-500">(remboursement direct CAF, aucun impact sur le montant)</span>
                     </span>
                 </label>

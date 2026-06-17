@@ -27,10 +27,10 @@ describe('SaveManyGalleryImagesUseCase', () => {
     it('rejects image with missing src', async () => {
         const repo = createMockRepository();
         const useCase = new SaveManyGalleryImagesUseCase(repo);
-        const result = await useCase.execute([makeGalleryImage({ src: '' })]);
+        const result = await useCase.execute([makeGalleryImage({ publicId: '' })]);
 
         expect(result.isErr()).toBe(true);
-        expect(result._unsafeUnwrapErr()).toContain('URL manquante');
+        expect(result._unsafeUnwrapErr()).toContain('Métadonnées Cloudinary manquantes');
         expect(repo.saveMany).not.toHaveBeenCalled();
     });
 

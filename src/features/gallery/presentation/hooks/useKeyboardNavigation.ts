@@ -10,7 +10,10 @@ interface KeyboardCallbacks {
 
 export function useKeyboardNavigation(callbacks: KeyboardCallbacks) {
     const callbacksRef = useRef(callbacks);
-    callbacksRef.current = callbacks;
+
+    useEffect(() => {
+        callbacksRef.current = callbacks;
+    });
 
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {

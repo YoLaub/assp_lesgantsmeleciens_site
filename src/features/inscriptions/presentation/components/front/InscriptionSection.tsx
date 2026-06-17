@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, ArrowRight } from "lucide-react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { CloudImage } from '@/shared/components/CloudImage';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import AdherentForm from "@/features/adherents/presentation/components/front/AdherentForm";
-import { rechercherMembreParEmailAction } from "@/features/adherents/actions/mon-dossier.actions";
+import { demanderLienRenouvellementAction } from "@/features/adherents/actions/mon-dossier.actions";
 
 interface PrefillData {
     nom?: string;
@@ -28,42 +29,33 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
     const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     // ─── Renouvellement ───────────────────────────────────────────────────────
+    // Sécurité : on ne récupère plus les données par email (exposition de PII).
+    // On envoie un lien d'accès au dossier, qui n'arrive que dans la boîte du
+    // propriétaire ; il y retrouve et reporte ses informations en toute sécurité.
     const [showRenouvellement, setShowRenouvellement] = useState(false);
     const [renouvEmail, setRenouvEmail] = useState('');
     const [renouvLoading, setRenouvLoading] = useState(false);
     const [renouvError, setRenouvError] = useState<string | null>(null);
-    const [renouvSuccess, setRenouvSuccess] = useState(false);
-    const [formPrefill, setFormPrefill] = useState<PrefillData | undefined>(prefill);
-    const [readonlyFields, setReadonlyFields] = useState<('nom' | 'prenom' | 'email' | 'dateDeNaissance')[]>(
+    const [renouvSent, setRenouvSent] = useState(false);
+    const hcaptchaRef = useRef<HCaptcha>(null);
+    const [hcaptchaToken, setHcaptchaToken] = useState<string | null>(null);
+    const [formPrefill] = useState<PrefillData | undefined>(prefill);
+    const [readonlyFields] = useState<('nom' | 'prenom' | 'email' | 'dateDeNaissance')[]>(
         prefill ? ['nom', 'prenom', 'email', 'dateDeNaissance'] : []
     );
 
-    const handleImporter = async () => {
-        if (!renouvEmail) return;
+    const handleDemanderLien = async () => {
+        if (!renouvEmail || !hcaptchaToken) return;
         setRenouvLoading(true);
         setRenouvError(null);
-        const result = await rechercherMembreParEmailAction(renouvEmail);
+        const result = await demanderLienRenouvellementAction({ email: renouvEmail, hcaptchaToken });
         setRenouvLoading(false);
-        if (result.success && result.data) {
-            const d = result.data;
-            const dob = d.dateDeNaissance instanceof Date
-                ? d.dateDeNaissance.toISOString().split('T')[0]
-                : String(d.dateDeNaissance).split('T')[0];
-            setFormPrefill({
-                nom: d.nom,
-                prenom: d.prenom,
-                email: d.email,
-                telephone1: d.telephone ?? undefined,
-                dateDeNaissance: dob,
-            });
-            setReadonlyFields(['nom', 'prenom', 'email', 'dateDeNaissance']);
-            setRenouvSuccess(true);
-            setTimeout(() => {
-                setShowRenouvellement(false);
-                setRenouvSuccess(false);
-            }, 1500);
+        hcaptchaRef.current?.resetCaptcha();
+        setHcaptchaToken(null);
+        if (result.success) {
+            setRenouvSent(true);
         } else {
-            setRenouvError(result.error ?? 'Erreur lors de la recherche');
+            setRenouvError(result.error ?? 'Erreur lors de la demande');
         }
     };
 
@@ -151,14 +143,14 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
                             {/* ── Banner essai ──────────────────────────────────────── */}
                             <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
                                 <p className="text-amber-800 font-bold uppercase text-sm tracking-tight flex-1">
-                                    Offre : 3 cours d'essai avant inscription !
+                                    Offre : 3 cours d&apos;essai avant inscription !
                                 </p>
                                 <Link
                                     href="/essai"
                                     className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-xs font-black uppercase tracking-wider text-white hover:bg-amber-600 transition-colors self-start sm:self-auto"
                                 >
                                     <Sparkles className="h-4 w-4" />
-                                    <span>Je tente l'essai</span>
+                                    <span>Je tente l&apos;essai</span>
                                     <ArrowRight className="h-4 w-4" />
                                 </Link>
                             </div>
@@ -186,37 +178,49 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
                                     </button>
                                 </div>
 
-                                {/* ── Panneau import renouvellement ─────────────────────── */}
+                                {/* ── Panneau renouvellement (lien d'accès sécurisé) ────── */}
                                 {showRenouvellement && (
                                     <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg space-y-3">
-                                        <p className="text-sm font-medium text-orange-900">Importez vos informations depuis votre dossier précédent</p>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="email"
-                                                value={renouvEmail}
-                                                onChange={(e) => setRenouvEmail(e.target.value)}
-                                                placeholder="Votre email de l'année dernière"
-                                                className="flex-1 rounded-md border border-gray-300 p-2 text-sm focus:border-[#FF8A00] focus:outline-none focus:ring-1 focus:ring-[#FF8A00]"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={handleImporter}
-                                                disabled={renouvLoading || !renouvEmail}
-                                                className="bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors"
-                                            >
-                                                {renouvLoading ? (
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                        Import…
-                                                    </span>
-                                                ) : 'Importer'}
-                                            </button>
-                                        </div>
-                                        {renouvSuccess && (
-                                            <p className="text-sm text-green-700 font-medium">Importation réussie ✓</p>
-                                        )}
-                                        {renouvError && (
-                                            <p className="text-sm text-red-600">{renouvError}</p>
+                                        {renouvSent ? (
+                                            <p className="text-sm text-green-700 font-medium">
+                                                Si un dossier correspond à cet email, un lien d&apos;accès vient d&apos;y être envoyé.
+                                                Ouvrez-le pour retrouver et reporter vos informations.
+                                            </p>
+                                        ) : (
+                                            <>
+                                                <p className="text-sm font-medium text-orange-900">
+                                                    Renouvellement : recevez un lien d&apos;accès à votre dossier de l&apos;année précédente.
+                                                </p>
+                                                <input
+                                                    type="email"
+                                                    value={renouvEmail}
+                                                    onChange={(e) => setRenouvEmail(e.target.value)}
+                                                    placeholder="Votre email de l'année dernière"
+                                                    className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-[#FF8A00] focus:outline-none focus:ring-1 focus:ring-[#FF8A00]"
+                                                />
+                                                <HCaptcha
+                                                    ref={hcaptchaRef}
+                                                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY ?? "10000000-ffff-ffff-ffff-000000000001"}
+                                                    onVerify={(t) => setHcaptchaToken(t)}
+                                                    onExpire={() => setHcaptchaToken(null)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleDemanderLien}
+                                                    disabled={renouvLoading || !renouvEmail || !hcaptchaToken}
+                                                    className="bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+                                                >
+                                                    {renouvLoading ? (
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                            Envoi…
+                                                        </span>
+                                                    ) : "Recevoir le lien d'accès"}
+                                                </button>
+                                                {renouvError && (
+                                                    <p className="text-sm text-red-600">{renouvError}</p>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 )}
