@@ -181,19 +181,41 @@ describe('uploadDocumentAdherentAction', () => {
   });
 });
 
-describe('rechercherMembreParEmailAction', () => {
+describe('demanderLienRenouvellementAction', () => {
+  it('bloque si rate-limit dépassé', async () => {
+    h.checkRateLimit.mockResolvedValue(false);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.sendLien).not.toHaveBeenCalled();
+  });
+
   it('refuse un email invalide', async () => {
-    expect(await actions.rechercherMembreParEmailAction('pas-un-email')).toMatchObject({ success: false });
+    h.checkRateLimit.mockResolvedValue(true);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'pas-un-email', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.verifyHCaptcha).not.toHaveBeenCalled();
   });
 
-  it('retourne les données du membre avec ville', async () => {
-    h.membreFindFirst.mockResolvedValue({ nom: 'T', prenom: 'A', email: 'a@t.fr', telephone: '06', dateDeNaissance: new Date(), sexe: 'F', adresse: '1 rue', codePostal: '59000', commune: { nom: 'Lille' } });
-    const res = await actions.rechercherMembreParEmailAction('a@t.fr');
-    expect(res).toMatchObject({ success: true, data: { ville: 'Lille' } });
+  it('échoue si hCaptcha invalide', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(false);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.sendLien).not.toHaveBeenCalled();
   });
 
-  it('échoue si aucun dossier', async () => {
+  it('envoie le lien sans renvoyer de données si le membre existe', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(true);
+    h.membreFindFirst.mockResolvedValue({ id: 'm-1', email: 'a@t.fr', prenom: 'A' });
+    const res = await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' });
+    expect(res).toEqual({ success: true });
+    expect(res).not.toHaveProperty('data');
+    expect(h.sendLien).toHaveBeenCalled();
+  });
+
+  it('réussit silencieusement (anti-énumération) si aucun dossier', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(true);
     h.membreFindFirst.mockResolvedValue(null);
-    expect(await actions.rechercherMembreParEmailAction('a@t.fr')).toMatchObject({ success: false });
+    expect(await actions.demanderLienRenouvellementAction({ email: 'x@t.fr', hcaptchaToken: 't' })).toEqual({ success: true });
+    expect(h.sendLien).not.toHaveBeenCalled();
   });
 });

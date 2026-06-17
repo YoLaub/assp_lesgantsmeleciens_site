@@ -182,13 +182,35 @@ export async function createCheckoutAction(token: string) {
   }
 }
 
-export async function rechercherMembreParEmailAction(email: string) {
-  if (!email || !email.includes('@')) return { success: false, error: 'Email invalide' };
-  const membre = await prisma.membre.findFirst({
-    where: { email },
-    select: { nom: true, prenom: true, email: true, telephone: true, dateDeNaissance: true, sexe: true, adresse: true, codePostal: true, commune: { select: { nom: true } } },
-  });
-  if (!membre) return { success: false, error: 'Aucun dossier trouvé pour cet email' };
-  const { commune, ...rest } = membre;
-  return { success: true, data: { ...rest, ville: commune?.nom ?? null } };
+const RenouvellementSchema = z.object({
+  email: z.string().email(),
+  hcaptchaToken: z.string().min(1),
+});
+
+/**
+ * Renouvellement : envoie un lien d'accès au dossier à l'email fourni s'il
+ * correspond à un membre. Ne renvoie JAMAIS de données personnelles au client
+ * (anti-énumération) — la réponse est identique que le membre existe ou non, et
+ * le lien d'accès n'arrive que dans la boîte mail du propriétaire légitime.
+ */
+export async function demanderLienRenouvellementAction(input: { email: string; hcaptchaToken: string }) {
+  const allowed = await checkRateLimit('renouvellement');
+  if (!allowed) return { success: false, error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+
+  const parsed = RenouvellementSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: 'Email invalide' };
+
+  const captchaOk = await verifyHCaptcha(parsed.data.hcaptchaToken);
+  if (!captchaOk) return { success: false, error: 'Vérification hCaptcha échouée' };
+
+  const membre = await prisma.membre.findFirst({ where: { email: parsed.data.email } });
+  if (membre) {
+    const token = crypto.randomUUID();
+    const expireLe = new Date(Date.now() + 60 * 60 * 1000);
+    await prisma.membre.update({ where: { id: membre.id }, data: { accesToken: hashToken(token), accesTokenExpireLe: expireLe } });
+    try { await sendLienAccesDossier({ email: membre.email, prenom: membre.prenom, token }); }
+    catch (e) { console.error('[demanderLienRenouvellementAction]', e); }
+  }
+  // Réponse uniforme : aucune fuite sur l'existence ou les données du membre.
+  return { success: true };
 }
