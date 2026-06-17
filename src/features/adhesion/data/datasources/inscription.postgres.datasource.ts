@@ -107,15 +107,33 @@ export const inscriptionDataSource = {
     });
   },
 
-  upsertQuestionnaire(inscriptionId: number, type: string, questionIds: number[], reponses: boolean[]) {
+  upsertQuestionnaire(
+    inscriptionId: number,
+    type: string,
+    questionIds: number[],
+    reponses: boolean[],
+    consent: { le: Date; version: string },
+  ) {
     return prisma.$transaction(async (tx) => {
       let questionnaire = await tx.questionnaireSante.findUnique({ where: { inscriptionId } });
 
       if (!questionnaire) {
-        questionnaire = await tx.questionnaireSante.create({ data: { inscriptionId, type } });
+        questionnaire = await tx.questionnaireSante.create({
+          data: {
+            inscriptionId,
+            type,
+            consentementSanteLe: consent.le,
+            consentementSanteVersion: consent.version,
+          },
+        });
         await tx.interroge.createMany({
           data: questionIds.map((questionId) => ({ questionnaireSanteId: questionnaire!.id, questionId })),
           skipDuplicates: true,
+        });
+      } else {
+        await tx.questionnaireSante.update({
+          where: { id: questionnaire.id },
+          data: { consentementSanteLe: consent.le, consentementSanteVersion: consent.version },
         });
       }
 
