@@ -28,3 +28,28 @@ export async function deleteCloudinaryAssets(assets: CloudinaryAsset[]): Promise
     const publicIds = assets.map(a => a.publicId)
     await cloudinary.api.delete_resources(publicIds)
 }
+
+/** Déduit le public_id Cloudinary (folder/name sans version ni extension) d'une secure_url. */
+export function cloudinaryPublicIdFromUrl(url: string): string | null {
+    const marker = '/upload/';
+    const i = url.indexOf(marker);
+    if (i === -1) return null;
+    let path = url.slice(i + marker.length);
+    path = path.replace(/^v\d+\//, '');           // retire le segment version éventuel
+    path = path.replace(/\.[^/.]+$/, '');          // retire l'extension
+    return path || null;
+}
+
+/** Supprime un asset Cloudinary par URL (best-effort). Loggue et ignore en cas d'échec. */
+export async function deleteCloudinaryAssetByUrl(url: string): Promise<void> {
+    const publicId = cloudinaryPublicIdFromUrl(url);
+    if (!publicId) {
+        console.error('[deleteCloudinaryAssetByUrl] public_id introuvable pour', url);
+        return;
+    }
+    try {
+        await cloudinary.uploader.destroy(publicId);
+    } catch (e) {
+        console.error('[deleteCloudinaryAssetByUrl]', url, e);
+    }
+}
