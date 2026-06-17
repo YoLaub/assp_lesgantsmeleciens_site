@@ -18,6 +18,7 @@ import {
 } from "@/features/adherents/actions/mon-dossier.actions";
 import AdresseAutocomplete, { type AdresseSelection } from "./AdresseAutocomplete";
 import { getReglementAction } from "@/features/adherents/actions/reglement.actions";
+import { CONSENT_SANTE } from "@/shared/lib/consent";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -184,23 +185,24 @@ function QuestionnaireSection({
     token: string;
     onDone: (certificatReq: boolean) => void;
     questions: { code: string; label: string; section?: string }[];
-    action: (token: string, reponses: Record<string, boolean>) => Promise<{ success: boolean; certificatMedicalReq?: boolean; error?: string }>;
+    action: (token: string, reponses: Record<string, boolean>, consent: boolean) => Promise<{ success: boolean; certificatMedicalReq?: boolean; error?: string }>;
     groupBySection?: boolean;
 }) {
     const [reponses, setReponses] = useState<Record<string, boolean>>({});
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [consent, setConsent] = useState(false);
 
     const toutesRepondues = questions.every(({ code }) => reponses[code] !== undefined);
     const certificatRequis = questions.some(({ code }) => reponses[code] === true);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!toutesRepondues) return;
+        if (!toutesRepondues || !consent) return;
         setSubmitting(true);
         setError(null);
 
-        const result = await action(token, reponses);
+        const result = await action(token, reponses, consent);
         setSubmitting(false);
 
         if (result.success) {
@@ -275,9 +277,19 @@ function QuestionnaireSection({
 
                 {error && <p className="text-red-600 text-sm">{error}</p>}
 
+                <label className="flex items-start gap-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={consent}
+                        onChange={(e) => setConsent(e.target.checked)}
+                        className="mt-0.5 text-[#FF8A00] focus:ring-[#FF8A00]"
+                    />
+                    <span>{CONSENT_SANTE.texte}</span>
+                </label>
+
                 <button
                     type="submit"
-                    disabled={!toutesRepondues || submitting}
+                    disabled={!toutesRepondues || !consent || submitting}
                     className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
                 >
                     {submitting ? "Enregistrement..." : "Valider le questionnaire"}
@@ -1057,7 +1069,7 @@ function DossierVue({
                 <QuestionnaireSection
                     token={token}
                     questions={questionsEnfant}
-                    action={(t, r) => soumettreQuestionnaireEnfantAction(t, r as Parameters<typeof soumettreQuestionnaireEnfantAction>[1])}
+                    action={(t, r, c) => soumettreQuestionnaireEnfantAction(t, r as Parameters<typeof soumettreQuestionnaireEnfantAction>[1], c)}
                     groupBySection
                     onDone={(certReq) =>
                         setDossier((d) => ({
@@ -1073,7 +1085,7 @@ function DossierVue({
                 <QuestionnaireSection
                     token={token}
                     questions={questions}
-                    action={(t, r) => soumettreQuestionnaireAction(t, r as Parameters<typeof soumettreQuestionnaireAction>[1])}
+                    action={(t, r, c) => soumettreQuestionnaireAction(t, r as Parameters<typeof soumettreQuestionnaireAction>[1], c)}
                     onDone={(certReq) =>
                         setDossier((d) => ({
                             ...d,

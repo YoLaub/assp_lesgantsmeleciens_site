@@ -155,7 +155,7 @@ describe('garde "lien invalide" (inscription introuvable)', () => {
     ['updateAdresseAction', () => actions.updateAdresseAction('tok', { adresse: '1 rue X', codePostal: '59000', codeInsee: '59350', communeNom: 'Lille' })],
     ['updateDroitImageAction', () => actions.updateDroitImageAction('tok', true)],
     ['validerEngagementAction', () => actions.validerEngagementAction('tok')],
-    ['soumettreQuestionnaireEnfantAction', () => actions.soumettreQuestionnaireEnfantAction('tok', Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`q${i + 1}`, false])) as never)],
+    ['soumettreQuestionnaireEnfantAction', () => actions.soumettreQuestionnaireEnfantAction('tok', Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`q${i + 1}`, false])) as never, true)],
   ])('%s échoue si le lien est invalide', async (_n, fn) => {
     expect(await fn()).toMatchObject({ success: false });
   });
