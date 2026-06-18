@@ -1,4 +1,9 @@
 erDiagram
+  COMMUNE {
+    string codeInsee PK
+    string nom
+  }
+
   MEMBRE {
     uuid id PK
     string nom
@@ -9,9 +14,10 @@ erDiagram
     string ville
     string codePostal
     string adresse
+    string codeInsee FK
     date dateDeNaissance
     string numeroAdherent UK
-    string accesToken
+    string accesToken "haché SHA-256"
     datetime accesTokenExpireLe
     datetime dateCreation
   }
@@ -24,6 +30,7 @@ erDiagram
     string photo
     enum certificatMedical
     enum autorisationParentale
+    boolean autorisationSortieSeul "null=N/A, true=oui, false=non"
     enum couponSport
     enum bonCaf
     enum reglementSigne
@@ -139,6 +146,7 @@ erDiagram
     datetime modifieLe
   }
 
+  COMMUNE ||--o{ MEMBRE : "localise"
   MEMBRE ||--o{ INSCRIPTION : "a"
   INSCRIPTION ||--o{ PRESENCE_ESSAI : "a"
   INSCRIPTION ||--o{ DOCUMENT : "contient"

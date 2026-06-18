@@ -1,0 +1,296 @@
+%% ═══════════════════════════════════════════════════════
+%% Vue 1 : Architecture globale
+%% Mise à jour : 2026-06-18
+%% ═══════════════════════════════════════════════════════
+
+flowchart TB
+    subgraph Client["🌐 Client (Browser)"]
+        front_pages["Pages publiques\n/(front)"]
+        admin_pages["Interface Admin\n/admin"]
+        coach_page["Interface Coach\n/coach"]
+        mon_dossier["Mon dossier\n/mon-dossier"]
+        mon_essai["Mon essai\n/mon-essai"]
+        inscription["Inscription\n/inscription"]
+        essai["Inscription essai\n/essai"]
+    end
+
+    subgraph NextJS["⚙️ Next.js 16 — App Router (Vercel)"]
+        subgraph AppRouter["App Router"]
+            front_layout["(front) layout"]
+            admin_layout["admin layout\n⚠️ sans middleware Clerk"]
+            login_page["/login Clerk"]
+            next_config["next.config.ts\n(CSP + Security Headers)"]
+        end
+
+        subgraph ServerActions["Server Actions"]
+            sa_create_adherent["createAdherentAction\n(hCaptcha + rate-limit)"]
+            sa_mon_dossier["monDossierActions\n(token-based, 1h)"]
+            sa_essayants["essayantsActions\n(hCaptcha + rate-limit)"]
+            sa_admin_adherents["adminAdherentsActions\n(Clerk auth)"]
+            sa_config_tarifs["configTarifsActions\n(Clerk auth)"]
+            sa_gallery["galleryActions\n(Clerk auth)"]
+            sa_content["contentActions\n(disciplines, actualités)"]
+        end
+
+        subgraph APIRoutes["API Routes"]
+            webhook_stripe["/api/webhooks/stripe\n(sig Stripe)"]
+            cron_dossier["/api/cron/dossier-incomplet\n(Bearer CRON_SECRET)"]
+            cron_reinit["/api/cron/reinitialisation-saison\n(Bearer CRON_SECRET)"]
+        end
+
+        subgraph Features["Features"]
+            feat_gallery["gallery\nClean Arch: data/domain/presentation\n✅ Testé"]
+            feat_disciplines["disciplines\nClean Arch: data/domain/presentation"]
+            feat_actualites["actualités\nClean Arch: data/domain/presentation"]
+            feat_adherents["adherents\nDDD v2: use-cases + thin SA\n✅ Testé ~80%"]
+            feat_essayants["essayants\nServer Actions + CoachDashboard"]
+            feat_dashboard["dashboard\npresentation"]
+        end
+
+        subgraph SharedLib["Shared Lib"]
+            lib_prisma["prisma.ts\n(Pool pg + PrismaPg adapter)"]
+            lib_mail["mail.ts\n(Brevo REST — 21 fonctions)"]
+            lib_cloudinary["cloudinary.server.ts"]
+            lib_hcaptcha["hcaptcha.ts"]
+            lib_upload["upload.ts\n(Cloudinary — docs + images)"]
+            lib_sanitize["sanitize.ts\n(sanitize-html)"]
+            lib_ratelimit["rate-limit.ts\n(Upstash ou in-memory)"]
+            lib_csv["csv.ts\n(toCsv — export adhérents)"]
+            lib_token["token.ts\n(hashToken SHA-256)"]
+        end
+    end
+
+    subgraph ExternalServices["☁️ Services Externes"]
+        clerk["Clerk\nAuthentification Admin"]
+        pg[("PostgreSQL\n(Neon / Vercel Postgres)")]
+        cloudinary["Cloudinary\nImages CDN (contenu public)"]
+        brevo["Brevo\nEmails transactionnels"]
+        stripe["Stripe\nPaiement en ligne"]
+        hcaptcha["hCaptcha\nAnti-bot formulaires"]
+        s3["AWS S3\nDocuments adhérents (privés)"]
+        upstash["Upstash Redis\nRate-limit distribué (optionnel)"]
+    end
+
+    %% Flux Client → Next.js
+    front_pages --> front_layout
+    admin_pages --> admin_layout
+    mon_dossier --> sa_mon_dossier
+    inscription --> sa_create_adherent
+    essai --> sa_essayants
+
+    %% Auth Admin
+    admin_layout -->|"auth() Clerk"| clerk
+
+    %% Rate-limit
+    sa_create_adherent --> lib_ratelimit
+    sa_essayants --> lib_ratelimit
+    lib_ratelimit -.->|"si configuré"| upstash
+
+    %% Server Actions → Features
+    sa_create_adherent --> feat_adherents
+    sa_mon_dossier --> feat_adherents
+    sa_essayants --> feat_essayants
+    sa_gallery --> feat_gallery
+    sa_content --> feat_disciplines
+    sa_content --> feat_actualites
+
+    %% Features → Shared
+    feat_gallery --> lib_prisma
+    feat_disciplines --> lib_prisma
+    feat_actualites --> lib_prisma
+    feat_adherents --> lib_prisma
+    feat_essayants --> lib_prisma
+
+    %% Shared → External
+    lib_prisma --> pg
+    lib_mail --> brevo
+    lib_cloudinary --> cloudinary
+    lib_hcaptcha --> hcaptcha
+    lib_upload --> cloudinary
+    sa_admin_adherents --> lib_csv
+    sa_mon_dossier --> lib_token
+    sa_essayants --> lib_token
+
+    %% API Routes → External
+    webhook_stripe -->|"checkout.session.completed"| lib_prisma
+    webhook_stripe --> lib_mail
+    cron_dossier --> lib_prisma
+    cron_dossier --> lib_mail
+    cron_reinit --> lib_prisma
+    cron_reinit --> lib_mail
+
+    %% Stripe flow
+    sa_mon_dossier -->|"createCheckoutSession"| stripe
+    stripe -->|"webhook POST"| webhook_stripe
+
+    %% Mail flow
+    sa_create_adherent --> lib_mail
+    sa_essayants --> lib_mail
+
+
+%% ═══════════════════════════════════════════════════════
+%% Vue 2 : Parcours Adhérent (inscription standard)
+%% ═══════════════════════════════════════════════════════
+
+flowchart LR
+    A([Visiteur]) -->|"Remplit formulaire\n+ hCaptcha + rate-limit"| B["/inscription"]
+    B -->|"createAdherentAction"| C{{"DB: Adherent créé\ninscriptionValide=false"}}
+    C -->|"Email 1"| D["Confirmation\n→ adhérent"]
+    C -->|"Email 2"| E["Notif admin\n→ club"]
+    C --> F["/mon-dossier\n(token 1h par email)"]
+    F --> G["Questionnaire santé\n→ certificatMedicalReq ?"]
+    G --> H["Signer règlement\n+ uploader documents (S3)"]
+    H --> I{{"Admin valide\ndocuments → Emails 6/7"}}
+    I --> J{Type paiement ?}
+    J -->|sur_place| K["Admin → inscriptionValide=true\n(manuel)"]
+    J -->|en_ligne| L["Stripe Checkout Session"]
+    L -->|"webhook checkout.session.completed"| M{{"inscriptionValide=true\nauto"}}
+    M -->|"Email 4"| N["Confirmation paiement\n→ adhérent"]
+    M -->|"Email 5"| O["Notif paiement\n→ admin"]
+
+
+%% ═══════════════════════════════════════════════════════
+%% Vue 3 : Parcours Essayant → Adhérent
+%% ═══════════════════════════════════════════════════════
+
+flowchart LR
+    A([Visiteur]) -->|"Formulaire /essai\n+ hCaptcha + rate-limit"| B{{"DB: Essayant créé\naccesToken 7j"}}
+    B -->|"Email bienvenue"| C["/mon-essai?token=\n(suivi)"]
+    C --> D["Pointage présence\nCoach via /coach?token=\n(CoachToken 30j)"]
+    D -->|"1er ou 2e cours"| E["Email relance\n→ essayant"]
+    D -->|"3e cours → accesBloque=true"| F["Email conversion\n→ /inscription?token=..."]
+    F -->|"Données pré-remplies\nessayantId lié"| G["InscriptionForm"]
+    G --> H{{"Adherent créé\nessayantId=X\nessayant.adherent=Y"}}
+
+
+%% ═══════════════════════════════════════════════════════
+%% Vue 4 : Parcours Admin
+%% ═══════════════════════════════════════════════════════
+
+flowchart LR
+    Admin([Admin]) -->|"Clerk SSO\n(/login)"| Dashboard["/admin/dashboard"]
+    Dashboard --> Adherents["/admin/club/adherents\nListe + détails dossier"]
+    Dashboard --> Essayants["/admin/club/essayants\nListe essayants actifs"]
+    Dashboard --> ConfigTarifs["/admin/club/config-tarifs\nTarifs saison"]
+    Dashboard --> CoachToken["/admin/club/coach-token\nGénération token 30j"]
+    Dashboard --> Gallery["/admin/content/gallery\nGestion images (Cloudinary)"]
+    Dashboard --> Disciplines["/admin/content/disciplines\nGestion disciplines"]
+    Dashboard --> Actualites["/admin/content/actualites\nGestion actualités"]
+
+    Adherents -->|"validerDoc / rejeterDoc"| EmailDoc["Email 6/7\ndoc validé/rejeté → adhérent"]
+    CoachToken -->|"Token 30j"| CoachPage["/coach?token=..."]
+    CoachPage -->|"pointerPresenceAction"| PresenceEssai[("PresenceEssai\nDB")]
+
+
+%% ═══════════════════════════════════════════════════════
+%% Vue 5 : Modèle de données simplifié (erDiagram) — DDD v2
+%% ═══════════════════════════════════════════════════════
+
+erDiagram
+    Commune {
+        string codeInsee PK
+        string nom
+    }
+
+    Membre {
+        uuid id PK
+        string nom
+        string prenom
+        string email UK
+        string codeInsee FK
+        string codePostal
+        string adresse
+        date dateDeNaissance
+        string numeroAdherent UK
+        string accesToken "haché SHA-256"
+        datetime accesTokenExpireLe
+    }
+
+    Inscription {
+        int id PK
+        enum statut "ESSAYANT|ACTIF|BLOQUE|ARCHIVE"
+        string saison
+        string membreId FK
+        boolean inscriptionValide
+        boolean accesBloque
+        boolean autorisationSortieSeul "null/true/false"
+        int nombrePresences
+        enum typePaiement
+        string stripeSessionId
+        decimal montantSnapshot
+        enum categorie
+    }
+
+    Document {
+        uuid id PK
+        enum type
+        string url
+        string name
+        int inscriptionId FK
+    }
+
+    QuestionnaireSante {
+        int id PK
+        string type
+        int inscriptionId FK
+    }
+
+    PresenceEssai {
+        int id PK
+        datetime pointeLe
+        string pointePar
+        int inscriptionId FK
+    }
+
+    ConfigTarifs {
+        int id PK
+        string saison
+        decimal tarifEnfant
+        decimal tarifAdos
+        decimal tarifAdulte
+        decimal supplementOxygene
+        decimal deductionCouponSport
+    }
+
+    CoachToken {
+        int id PK
+        string token UK
+        datetime expireLe
+    }
+
+    Image {
+        uuid id PK
+        string publicId UK
+        int order
+        int categoryId FK
+    }
+
+    ImageCategory {
+        int id PK
+        string name
+        string slug UK
+    }
+
+    Discipline {
+        uuid id PK
+        string title
+        int order
+        boolean active
+    }
+
+    Actualite {
+        uuid id PK
+        string title
+        datetime publishedAt
+        boolean featured
+        boolean active
+    }
+
+    Commune ||--o{ Membre : "localise"
+    Membre ||--o{ Inscription : "a"
+    Inscription ||--o{ PresenceEssai : "a"
+    Inscription ||--o{ Document : "contient"
+    Inscription ||--o| QuestionnaireSante : "a"
+    ImageCategory ||--o{ Image : "regroupe"
+    Image }o--o{ Discipline : "illustre"
+    Image }o--o{ Actualite : "illustre"

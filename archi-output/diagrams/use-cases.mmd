@@ -23,7 +23,8 @@ graph LR
     UC10[Choisir mode de paiement]
     UC11[Payer en ligne - Stripe]
     UC12[Uploader ses documents]
-    UC13[Valider engagement / auto. sortie]
+    UC13[Valider engagement / auto. sortie seul]
+    UC28[Mettre à jour son adresse - BAN]
   end
 
   subgraph EspaceEssai["Espace essayant - token"]
@@ -47,6 +48,7 @@ graph LR
     UC25[Configurer les tarifs]
     UC26[Éditer le règlement intérieur]
     UC27[Éditer questionnaire santé]
+    UC29[Exporter CSV adhérents]
   end
 
   VISITOR --> UC1
@@ -63,6 +65,7 @@ graph LR
   ADHERENT --> UC11
   ADHERENT --> UC12
   ADHERENT --> UC13
+  ADHERENT --> UC28
 
   ESSAYANT --> UC14
   ESSAYANT --> UC15
@@ -80,3 +83,4 @@ graph LR
   ADMIN --> UC25
   ADMIN --> UC26
   ADMIN --> UC27
+  ADMIN --> UC29

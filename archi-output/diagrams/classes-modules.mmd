@@ -83,19 +83,21 @@ classDiagram
   BulkDeleteGalleryImagesUseCase --> ImageRepository : uses
   ReorderGalleryImagesUseCase --> ImageRepository : uses
 
-  %% ── Pattern direct SA + Prisma (adherents · essayants) ──
+  %% ── Pattern DDD v2 : thin SA → use-case → IRepository (adherents · essayants) ──
 
   class AdherentsServerActions {
-    <<Server Actions>>
+    <<thin Server Actions wrappers>>
     +createAdherentAction(input) void
     +getMonDossierAction(token) Dossier
+    +updateAdresseAction(token, data) void
     +uploadDocumentAdherentAction(token, file, type) void
     +createCheckoutAction(token) Session
     +validerEngagementAction(token) void
+    +exportAdherentsCsvAction() Response
   }
 
   class EssayantsServerActions {
-    <<Server Actions>>
+    <<thin Server Actions wrappers>>
     +createEssayantAction(input) void
     +pointerPresenceAction(id, coachToken, nom) void
     +getMonEssaiAction(token) Essai
@@ -103,15 +105,12 @@ classDiagram
     +getEssayantsForCoachAction(coachToken) Essayant[]
   }
 
-  class PrismaClient {
-    +adherent CRUD
-    +essayant CRUD
-    +document CRUD
-    +coachToken CRUD
-    +configTarifs CRUD
-    +reglementInterieur CRUD
+  class AdhesionRepositories {
+    <<IMembreRepository + IInscriptionRepository>>
+    +implémentés dans adhesion/data/
+    +injectés dans les use-cases
   }
 
-  AdherentsServerActions --> PrismaClient : accès direct
-  EssayantsServerActions --> PrismaClient : accès direct
+  AdherentsServerActions --> AdhesionRepositories : via use-cases
+  EssayantsServerActions --> AdhesionRepositories : via use-cases
 ```
