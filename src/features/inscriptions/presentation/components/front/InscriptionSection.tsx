@@ -139,7 +139,7 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, config
                                     <span className="font-semibold text-gray-800">3 cours d&apos;essai offerts</span> avant tout engagement — venez tester gratuitement avant de vous inscrire.
                                 </li>
                                 <li>
-                                    <span className="font-semibold text-gray-800">Cours à la carte</span> accessibles via votre espace essayant, sans abonnement, pour découvrir à votre rythme.
+                                    <span className="font-semibold text-gray-800">Cours à la carte</span> - Votre inscription vous donne accès à tout les cours proposé.
                                 </li>
                                 <li>
                                     <span className="font-semibold text-gray-800">Partenariat Oxygène</span> — inscrivez-vous simultanément au club Oxygène et bénéficiez d&apos;un tarif préférentiel{configTarifs?.supplementOxygene ? ` (+${configTarifs.supplementOxygene}€ seulement)` : ''}.
