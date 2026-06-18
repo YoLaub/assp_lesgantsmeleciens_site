@@ -9,6 +9,7 @@ import { SaveManyGalleryImagesUseCase } from '@/features/gallery/domain/usecases
 import { ReorderGalleryImagesUseCase } from '@/features/gallery/domain/usecases/reorder-gallery-images.usecase';
 import { GetGalleryImagesByCategoryUseCase } from '@/features/gallery/domain/usecases/getByCategory-gallery-images.usecase';
 import { Image } from '@/features/gallery/domain/models/image.model';
+import { IMAGE_CATEGORIES } from '@/features/gallery/domain/models/gallery-category.model';
 import { revalidatePath } from 'next/cache';
 import { ResultAsync } from '@/shared/lib/result';
 import { uploadPublicImage } from '@/shared/lib/upload';
@@ -156,15 +157,17 @@ export async function uploadGalleryImageAction(formData: FormData) {
         return { success: false as const, error: 'Type de fichier invalide. Utilisez JPG, PNG ou WebP' };
     }
 
-    // Resolve slug to real UUID
-    const { prisma } = await import('@/shared/lib/prisma');
-    const category = await prisma.imageCategory.findUnique({
-        where: { slug: categorySlug },
-    });
-
-    if (!category) {
+    // Validate slug against the model (source of truth), then upsert in DB
+    const catDef = IMAGE_CATEGORIES.find((c) => c.slug === categorySlug);
+    if (!catDef) {
         return { success: false as const, error: `Catégorie inconnue : ${categorySlug}` };
     }
+    const { prisma } = await import('@/shared/lib/prisma');
+    const category = await prisma.imageCategory.upsert({
+        where: { slug: categorySlug },
+        create: { name: catDef.name, slug: catDef.slug },
+        update: {},
+    });
 
     return ResultAsync.fromPromise(
         uploadPublicImage(file, 'gallery'),

@@ -86,7 +86,16 @@ function mapToDiscipline(d: {
 export class DisciplinePostgresDataSource {
 
     async upsertDiscipline(discipline: Discipline): Promise<void> {
-        const imageIds = discipline.imageOrder ?? discipline.images.map((i) => i.id);
+        const requestedIds = discipline.imageOrder ?? discipline.images.map((i) => i.id);
+
+        // Filter out IDs that don't exist in DB — prevents "Expected N records, found N-1" crash
+        // when a client-side UUID was never persisted (e.g. saveGalleryImageAction failed silently)
+        const existing = await prisma.image.findMany({
+            where: { id: { in: requestedIds } },
+            select: { id: true },
+        });
+        const existingSet = new Set(existing.map((i) => i.id));
+        const imageIds = requestedIds.filter((id) => existingSet.has(id));
 
         await prisma.discipline.upsert({
             where: { id: discipline.id || '' },
