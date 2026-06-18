@@ -17,14 +17,23 @@ interface PrefillData {
     membreId?: string;
 }
 
+interface ConfigTarifs {
+    saison: string;
+    tarifEnfant: number;
+    tarifAdos: number;
+    tarifAdulte: number;
+    supplementOxygene: number;
+}
+
 interface InscriptionSectionProps {
     prefill?: PrefillData;
     image?: CloudinaryAsset;
     blurDataUrl?: string;
+    configTarifs?: ConfigTarifs | null;
 }
 
 
-export default function InscriptionSection({ prefill, image, blurDataUrl }: InscriptionSectionProps) {
+export default function InscriptionSection({ prefill, image, blurDataUrl, configTarifs }: InscriptionSectionProps) {
     const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     // ─── Renouvellement ───────────────────────────────────────────────────────
@@ -105,11 +114,26 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
 
                         {/* Bloc Tarifs */}
                         <div>
-                            <h3 className="text-xl font-bold tracking-[0.2em] mb-6 text-gray-900">TARIFS</h3>
+                            <h3 className="text-xl font-bold tracking-[0.2em] mb-6 text-gray-900">TARIFS {configTarifs?.saison}</h3>
                             <ul className="space-y-3 text-sm font-semibold text-gray-800">
-                                <li>Tarifs : Enfants (2011-2020) : 80€</li>
-                                <li>Ados/adultes (&lt;2010) : 140€</li>
-                                <li>Partenariat Oxygène : + 40€</li>
+                                {configTarifs ? (
+                                    <>
+                                        <li>Enfants : {configTarifs.tarifEnfant}€</li>
+                                        {configTarifs.tarifAdos === configTarifs.tarifAdulte ? (
+                                            <li>Ados / Adultes : {configTarifs.tarifAdos}€</li>
+                                        ) : (
+                                            <>
+                                                <li>Ados : {configTarifs.tarifAdos}€</li>
+                                                <li>Adultes : {configTarifs.tarifAdulte}€</li>
+                                            </>
+                                        )}
+                                        {configTarifs.supplementOxygene > 0 && (
+                                            <li>Partenariat Oxygène : +{configTarifs.supplementOxygene}€</li>
+                                        )}
+                                    </>
+                                ) : (
+                                    <li className="text-gray-400">Tarifs non disponibles</li>
+                                )}
                             </ul>
                         </div>
 
@@ -118,12 +142,17 @@ export default function InscriptionSection({ prefill, image, blurDataUrl }: Insc
                             <h3 className="text-xl font-bold tracking-[0.2em] mb-4 text-gray-900">
                                 MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
-                            <p className="text-[11px] leading-relaxed text-gray-600 mb-6 max-w-sm text-justify">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                            </p>
-                            <button type="button" className="border border-[#E33535] text-gray-700 text-xs px-6 py-2 rounded-sm hover:bg-red-50 transition-colors duration-300">
-                                Voir plus
-                            </button>
+                            <ul className="text-[11px] leading-relaxed text-gray-600 max-w-sm text-justify space-y-2">
+                                <li>
+                                    <span className="font-semibold text-gray-800">3 cours d&apos;essai offerts</span> avant tout engagement — venez tester gratuitement avant de vous inscrire.
+                                </li>
+                                <li>
+                                    <span className="font-semibold text-gray-800">Cours à la carte</span> accessibles via votre espace essayant, sans abonnement, pour découvrir à votre rythme.
+                                </li>
+                                <li>
+                                    <span className="font-semibold text-gray-800">Partenariat Oxygène</span> — inscrivez-vous simultanément au club Oxygène et bénéficiez d&apos;un tarif préférentiel{configTarifs?.supplementOxygene ? ` (+${configTarifs.supplementOxygene}€ seulement)` : ''}.
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 import InscriptionSection from '@/features/inscriptions/presentation/components/front/InscriptionSection';
 import { getEssayantConversionDataAction } from '@/features/essayants/actions/essayants.actions';
+import { getConfigTarifsAction } from '@/features/adherents/actions/config-tarifs.actions';
 
 interface InscriptionPageProps {
     searchParams: Promise<{ conversion?: string; token?: string }>;
@@ -24,9 +25,18 @@ export default async function InscriptionPage({ searchParams }: InscriptionPageP
         }
     }
 
+    const configRaw = await getConfigTarifsAction();
+    const configTarifs = configRaw ? {
+        saison: configRaw.saison,
+        tarifEnfant: Number(configRaw.tarifEnfant),
+        tarifAdos: Number(configRaw.tarifAdos),
+        tarifAdulte: Number(configRaw.tarifAdulte),
+        supplementOxygene: Number(configRaw.supplementOxygene),
+    } : null;
+
     return (
         <main className="container mx-auto py-20 px-5">
-            <InscriptionSection prefill={prefill} />
+            <InscriptionSection prefill={prefill} configTarifs={configTarifs} />
         </main>
     );
 }
