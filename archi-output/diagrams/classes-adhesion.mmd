@@ -4,11 +4,12 @@ classDiagram
       <<interface>>
       +findById(id) Membre
       +findByEmail(email) Membre
-      +findByToken(token) Membre
+      +findByToken(token) Membre "lookup par hash"
       +findByEmailAndNumero(email, numero) Membre
       +findAllWithInscription() Membre[]
       +create(data) Membre
       +updateToken(id, token, exp) void
+      +updateAdresse(id, data) void
       +generateUniqueNumero() string
     }
 
@@ -35,9 +36,12 @@ classDiagram
       +string prenom
       +string email
       +string telephone?
+      +string codeInsee? (FK → Commune)
+      +string codePostal?
+      +string adresse?
       +DateTime dateDeNaissance
       +string numeroAdherent?
-      +string accesToken?
+      +string accesToken? "haché SHA-256"
       +DateTime accesTokenExpireLe?
     }
 
@@ -49,6 +53,7 @@ classDiagram
       +string membreId (FK)
       +boolean inscriptionValide
       +boolean accesBloque
+      +boolean autorisationSortieSeul? "null/true/false"
       +int nombrePresences
       +TypePaiement typePaiement?
       +string stripeSessionId?
@@ -60,10 +65,18 @@ classDiagram
       +createAdherentUseCase(input)
       +getMonDossierUseCase(token)
       +soumettreQuestionnaireUseCase(token, data)
+      +signerReglementUseCase(token)
+      +setTypePaiementUseCase(token, type)
+      +patchAutorisationSortieUseCase(token, autorise)
+      +updateAdresseUseCase(membreId, data)
+      +updateTelephoneUseCase(token, data)
+      +updateDroitImageUseCase(token, droitImage)
+      +validerEngagementUseCase(token)
       +uploadDocumentAdherentUseCase(token, file, type)
       +createCheckoutUseCase(token)
-      +validerEngagementUseCase(token)
       +getAdherentsUseCase()
+      +getAdherentByIdUseCase(id)
+      +patchAdherentUseCase(id, data)
       +validerDocumentUseCase(inscriptionId, type)
       +notifierRejetDossierUseCase(id)
     }

@@ -49,8 +49,9 @@ const QuestionnaireSchema = z.object({
   q5: z.boolean(), q6: z.boolean(), q7: z.boolean(),
 });
 
-export async function soumettreQuestionnaireAction(token: string, reponses: z.infer<typeof QuestionnaireSchema>) {
+export async function soumettreQuestionnaireAction(token: string, reponses: z.infer<typeof QuestionnaireSchema>, consentementSante: boolean) {
   if (!token) return { success: false, error: 'Token manquant' };
+  if (consentementSante !== true) return { success: false, error: 'Consentement requis' };
   const parsed = QuestionnaireSchema.safeParse(reponses);
   if (!parsed.success) return { success: false, error: 'Données invalides' };
   const inscription = await inscriptionRepository.findByToken(token);
@@ -68,8 +69,9 @@ const QuestionnaireEnfantSchema = z.object({
   q21: z.boolean(), q22: z.boolean(), q23: z.boolean(), q24: z.boolean(),
 });
 
-export async function soumettreQuestionnaireEnfantAction(token: string, reponses: z.infer<typeof QuestionnaireEnfantSchema>) {
+export async function soumettreQuestionnaireEnfantAction(token: string, reponses: z.infer<typeof QuestionnaireEnfantSchema>, consentementSante: boolean) {
   if (!token) return { success: false, error: 'Token manquant' };
+  if (consentementSante !== true) return { success: false, error: 'Consentement requis' };
   const parsed = QuestionnaireEnfantSchema.safeParse(reponses);
   if (!parsed.success) return { success: false, error: 'Données invalides' };
   const inscription = await inscriptionRepository.findByToken(token);
@@ -105,7 +107,7 @@ export async function patchAutorisationSortieAction(token: string, autorise: boo
 
 const UpdateTelephoneSchema = z.object({
   telephone1: z.string().min(6),
-  telephone2: z.string().optional(),
+  telephone2: z.string(),
 });
 
 export async function updateTelephoneAction(token: string, data: z.infer<typeof UpdateTelephoneSchema>) {

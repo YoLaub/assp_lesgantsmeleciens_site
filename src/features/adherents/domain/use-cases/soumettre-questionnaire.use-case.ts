@@ -1,4 +1,5 @@
 import { inscriptionRepository } from '@/features/adhesion/data/repositories/inscription.repository.impl';
+import { CONSENT_SANTE } from '@/shared/lib/consent';
 
 export async function soumettreQuestionnaireUseCase(
   inscriptionId: number,
@@ -6,7 +7,10 @@ export async function soumettreQuestionnaireUseCase(
   reponses: Record<string, boolean>
 ) {
   const certificatMedicalReq = Object.values(reponses).some(Boolean);
-  await inscriptionRepository.upsertQuestionnaire(inscriptionId, type, reponses);
+  await inscriptionRepository.upsertQuestionnaire(inscriptionId, type, reponses, {
+    le: new Date(),
+    version: CONSENT_SANTE.version,
+  });
   await inscriptionRepository.update(inscriptionId, {
     certificatMedicalReq,
     certificatMedical: certificatMedicalReq ? undefined : 'non_fourni',

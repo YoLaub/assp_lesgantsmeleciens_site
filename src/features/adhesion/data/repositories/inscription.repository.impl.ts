@@ -199,11 +199,11 @@ export const inscriptionRepository: IInscriptionRepository = {
     return raws.map((q): QuestionSante => ({ id: q.id, label: q.label, type: q.type, ordre: q.ordre, section: q.section }));
   },
 
-  async upsertQuestionnaire(inscriptionId, type, reponses) {
+  async upsertQuestionnaire(inscriptionId, type, reponses, consent) {
     const questions = await inscriptionDataSource.findQuestionsByType(type);
     const questionIds = questions.map((q) => q.id);
     const reponsesArray = questions.map((_, i) => reponses[`q${i + 1}`] ?? false);
-    await inscriptionDataSource.upsertQuestionnaire(inscriptionId, type, questionIds, reponsesArray);
+    await inscriptionDataSource.upsertQuestionnaire(inscriptionId, type, questionIds, reponsesArray, consent);
   },
 
   async updateQuestionsLabels(updates) {

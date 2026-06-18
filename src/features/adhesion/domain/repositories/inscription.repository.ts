@@ -34,7 +34,12 @@ export interface IInscriptionRepository {
 
   // Questionnaire
   findQuestionsByType(type: 'majeur' | 'mineur'): Promise<QuestionSante[]>;
-  upsertQuestionnaire(inscriptionId: number, type: 'majeur' | 'mineur', reponses: Record<string, boolean>): Promise<void>;
+  upsertQuestionnaire(
+    inscriptionId: number,
+    type: 'majeur' | 'mineur',
+    reponses: Record<string, boolean>,
+    consent: { le: Date; version: string },
+  ): Promise<void>;
   updateQuestionsLabels(updates: { id: number; label: string }[]): Promise<void>;
 
   // Config
