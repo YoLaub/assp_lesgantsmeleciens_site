@@ -86,11 +86,11 @@ describe('actions liées à une inscription (token)', () => {
   it('soumettreQuestionnaireAction valide et délègue', async () => {
     h.soumettreQ.mockResolvedValue({ certificatMedicalReq: true });
     const reps = { q1: true, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false };
-    expect(await actions.soumettreQuestionnaireAction('tok', reps)).toEqual({ success: true, certificatMedicalReq: true });
+    expect(await actions.soumettreQuestionnaireAction('tok', reps, true)).toEqual({ success: true, certificatMedicalReq: true });
   });
 
   it('soumettreQuestionnaireAction rejette des données invalides', async () => {
-    expect(await actions.soumettreQuestionnaireAction('tok', { q1: true } as never)).toMatchObject({ success: false });
+    expect(await actions.soumettreQuestionnaireAction('tok', { q1: true } as never, true)).toMatchObject({ success: false });
   });
 
   it('signerReglementAction délègue', async () => {
@@ -155,7 +155,7 @@ describe('garde "lien invalide" (inscription introuvable)', () => {
     ['updateAdresseAction', () => actions.updateAdresseAction('tok', { adresse: '1 rue X', codePostal: '59000', codeInsee: '59350', communeNom: 'Lille' })],
     ['updateDroitImageAction', () => actions.updateDroitImageAction('tok', true)],
     ['validerEngagementAction', () => actions.validerEngagementAction('tok')],
-    ['soumettreQuestionnaireEnfantAction', () => actions.soumettreQuestionnaireEnfantAction('tok', Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`q${i + 1}`, false])) as never)],
+    ['soumettreQuestionnaireEnfantAction', () => actions.soumettreQuestionnaireEnfantAction('tok', Object.fromEntries(Array.from({ length: 24 }, (_, i) => [`q${i + 1}`, false])) as never, true)],
   ])('%s échoue si le lien est invalide', async (_n, fn) => {
     expect(await fn()).toMatchObject({ success: false });
   });
@@ -181,19 +181,68 @@ describe('uploadDocumentAdherentAction', () => {
   });
 });
 
-describe('rechercherMembreParEmailAction', () => {
+describe('gate consentement questionnaire', () => {
+  beforeEach(() => {
+    h.findByToken.mockResolvedValue({ id: 1, membreId: 'm-1' });
+    h.soumettreQ.mockResolvedValue({ certificatMedicalReq: false });
+  });
+
+  it('refuse le questionnaire majeur sans consentement', async () => {
+    const r = { q1: true, q2: true, q3: true, q4: true, q5: true, q6: true, q7: true };
+    const res = await actions.soumettreQuestionnaireAction('tok', r, false);
+    expect(res).toMatchObject({ success: false });
+    expect(h.soumettreQ).not.toHaveBeenCalled();
+  });
+
+  it('accepte le questionnaire majeur avec consentement', async () => {
+    const r = { q1: false, q2: false, q3: false, q4: false, q5: false, q6: false, q7: false };
+    const res = await actions.soumettreQuestionnaireAction('tok', r, true);
+    expect(res).toMatchObject({ success: true });
+    expect(h.soumettreQ).toHaveBeenCalled();
+  });
+
+  it('refuse le questionnaire enfant sans consentement', async () => {
+    const res = await actions.soumettreQuestionnaireEnfantAction('tok', {} as never, false);
+    expect(res).toMatchObject({ success: false });
+    expect(h.soumettreQ).not.toHaveBeenCalled();
+  });
+});
+
+describe('demanderLienRenouvellementAction', () => {
+  it('bloque si rate-limit dépassé', async () => {
+    h.checkRateLimit.mockResolvedValue(false);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.sendLien).not.toHaveBeenCalled();
+  });
+
   it('refuse un email invalide', async () => {
-    expect(await actions.rechercherMembreParEmailAction('pas-un-email')).toMatchObject({ success: false });
+    h.checkRateLimit.mockResolvedValue(true);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'pas-un-email', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.verifyHCaptcha).not.toHaveBeenCalled();
   });
 
-  it('retourne les données du membre avec ville', async () => {
-    h.membreFindFirst.mockResolvedValue({ nom: 'T', prenom: 'A', email: 'a@t.fr', telephone: '06', dateDeNaissance: new Date(), sexe: 'F', adresse: '1 rue', codePostal: '59000', commune: { nom: 'Lille' } });
-    const res = await actions.rechercherMembreParEmailAction('a@t.fr');
-    expect(res).toMatchObject({ success: true, data: { ville: 'Lille' } });
+  it('échoue si hCaptcha invalide', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(false);
+    expect(await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' })).toMatchObject({ success: false });
+    expect(h.sendLien).not.toHaveBeenCalled();
   });
 
-  it('échoue si aucun dossier', async () => {
+  it('envoie le lien sans renvoyer de données si le membre existe', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(true);
+    h.membreFindFirst.mockResolvedValue({ id: 'm-1', email: 'a@t.fr', prenom: 'A' });
+    const res = await actions.demanderLienRenouvellementAction({ email: 'a@t.fr', hcaptchaToken: 't' });
+    expect(res).toEqual({ success: true });
+    expect(res).not.toHaveProperty('data');
+    expect(h.sendLien).toHaveBeenCalled();
+  });
+
+  it('réussit silencieusement (anti-énumération) si aucun dossier', async () => {
+    h.checkRateLimit.mockResolvedValue(true);
+    h.verifyHCaptcha.mockResolvedValue(true);
     h.membreFindFirst.mockResolvedValue(null);
-    expect(await actions.rechercherMembreParEmailAction('a@t.fr')).toMatchObject({ success: false });
+    expect(await actions.demanderLienRenouvellementAction({ email: 'x@t.fr', hcaptchaToken: 't' })).toEqual({ success: true });
+    expect(h.sendLien).not.toHaveBeenCalled();
   });
 });

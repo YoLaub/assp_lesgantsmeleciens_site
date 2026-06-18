@@ -172,6 +172,7 @@ jobs:
           target: 'http://localhost:3000'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false   # avertit sans bloquer le CI (passer à true quand les alertes sont traitées)
+          allow_issue_writing: false   # n'écrit pas d'issue GitHub (rapport déjà publié en artifact ; évite le 403 issues:write)
           artifact_name: zap-report
 
   # ── Promote develop → main (PR automatique) ──────────────────────────────────

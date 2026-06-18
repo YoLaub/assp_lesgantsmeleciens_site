@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { type CloudinaryAsset } from '@/shared/types/cloudinary';
 import { generateBlurBase64 } from '@/shared/lib/cloudinary.server';
 
@@ -52,6 +52,33 @@ async function uploadToR2(file: File, key: string): Promise<{ url: string }> {
     const publicBase = process.env.R2_PUBLIC_URL ?? '';
     if (!publicBase) throw new Error('Variable R2_PUBLIC_URL manquante');
     return { url: `${publicBase}/${key}` };
+}
+
+/** Déduit la clé R2 d'une URL publique R2. `null` si l'URL ne correspond pas au préfixe. */
+export function r2KeyFromUrl(url: string, publicBase = process.env.R2_PUBLIC_URL ?? ''): string | null {
+    if (!publicBase) return null;
+    const prefix = publicBase.endsWith('/') ? publicBase : `${publicBase}/`;
+    if (!url.startsWith(prefix)) return null;
+    return decodeURIComponent(url.slice(prefix.length));
+}
+
+/** Supprime un objet R2 par URL (best-effort). Loggue et ignore en cas d'échec. */
+export async function deleteR2Object(url: string): Promise<void> {
+    const key = r2KeyFromUrl(url);
+    const endpoint = process.env.R2_ENDPOINT;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const bucket = process.env.R2_BUCKET_NAME;
+    if (!key || !endpoint || !accessKeyId || !secretAccessKey || !bucket) {
+        console.error('[deleteR2Object] clé/variables R2 manquantes pour', url);
+        return;
+    }
+    try {
+        const r2 = getR2Client(endpoint, accessKeyId, secretAccessKey);
+        await r2.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    } catch (e) {
+        console.error('[deleteR2Object]', url, e);
+    }
 }
 
 // ─── Upload document adhérent ─────────────────────────────────────────────────
