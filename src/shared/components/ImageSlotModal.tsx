@@ -78,8 +78,12 @@ export function ImageSlotModal({
             updatedAt: new Date(),
         };
 
-        await saveGalleryImageAction(newImage);
+        const saveResult = await saveGalleryImageAction(newImage);
         setUploading(false);
+        if (!saveResult.success) {
+            setUploadError(saveResult.error || "Erreur lors de la sauvegarde de l'image");
+            return;
+        }
         onImageUploaded(newImage);
         onClose();
     }
