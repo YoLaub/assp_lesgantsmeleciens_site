@@ -134,15 +134,15 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, config
                             <h3 className="text-xl font-bold tracking-[0.2em] mb-4 text-gray-900">
                                 MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
-                            <ul className="text-lg leading-relaxed text-gray-600 max-w-sm text-justify space-y-2">
+                            <ul className="text-md leading-relaxed text-gray-600 max-w-sm text-justify space-y-2">
                                 <li>
-                                    <span className="font-semibold text-gray-800">3 cours d&apos;essai offerts</span> avant tout engagement — venez tester gratuitement avant de vous inscrire.
+                                    <span className="font-semibold text-gray-800">3 cours d&apos;essai offerts</span> avant tout engagement - venez tester gratuitement avant de vous inscrire.
                                 </li>
                                 <li>
                                     <span className="font-semibold text-gray-800">Cours à la carte</span> - Votre inscription vous donne accès à tout les cours proposé.
                                 </li>
                                 <li>
-                                    <span className="font-semibold text-gray-800">Partenariat Oxygène</span> — inscrivez-vous simultanément au club Oxygène et bénéficiez d&apos;un tarif préférentiel{configTarifs?.supplementOxygene ? ` (+${configTarifs.supplementOxygene}€ seulement)` : ''}.
+                                    <span className="font-semibold text-gray-800">Partenariat Oxygène</span> - inscrivez-vous simultanément au club Oxygène et bénéficiez d&apos;un tarif préférentiel{configTarifs?.supplementOxygene ? ` (+${configTarifs.supplementOxygene}€ seulement)` : ''}.
                                 </li>
                             </ul>
                         </div>
