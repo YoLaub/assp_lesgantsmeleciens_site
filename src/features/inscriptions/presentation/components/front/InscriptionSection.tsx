@@ -134,7 +134,7 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, config
                             <h3 className="text-xl font-bold tracking-[0.2em] mb-4 text-gray-900">
                                 MODALITÉS<br />D&apos;INSCRIPTIONS
                             </h3>
-                            <ul className="text-[11px] leading-relaxed text-gray-600 max-w-sm text-justify space-y-2">
+                            <ul className="text-lg leading-relaxed text-gray-600 max-w-sm text-justify space-y-2">
                                 <li>
                                     <span className="font-semibold text-gray-800">3 cours d&apos;essai offerts</span> avant tout engagement — venez tester gratuitement avant de vous inscrire.
                                 </li>
