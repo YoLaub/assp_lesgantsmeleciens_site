@@ -16,7 +16,7 @@ const mockRevalidatePath = vi.hoisted(() => vi.fn());
 const mockUploadPublicImage = vi.hoisted(() => vi.fn());
 
 const mockPrismaImageCategory = vi.hoisted(() => ({
-    findUnique: vi.fn(),
+    upsert: vi.fn(),
 }));
 
 vi.mock('@/features/gallery/data/repositories/image.repository.impl', () => ({
@@ -62,7 +62,7 @@ import {
 describe('gallery server actions', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockPrismaImageCategory.findUnique.mockResolvedValue({
+        mockPrismaImageCategory.upsert.mockResolvedValue({
             id: 'cat-1',
             name: 'Discipline',
             slug: 'discipline',
@@ -261,6 +261,15 @@ describe('gallery server actions', () => {
 
             expect(result.success).toBe(false);
             expect((result as { error: string }).error).toBe('Upload error');
+        });
+
+        it('rejects unknown category slug (not in IMAGE_CATEGORIES)', async () => {
+            const fd = makeFormDataWith(makeFile(), 'unknown-slug');
+
+            const result = await uploadGalleryImageAction(fd);
+
+            expect(result).toEqual({ success: false, error: 'Catégorie inconnue : unknown-slug' });
+            expect(mockPrismaImageCategory.upsert).not.toHaveBeenCalled();
         });
     });
 });
