@@ -105,7 +105,7 @@ export async function patchAutorisationSortieAction(token: string, autorise: boo
 
 const UpdateTelephoneSchema = z.object({
   telephone1: z.string().min(6),
-  telephone2: z.string().optional(),
+  telephone2: z.string(),
 });
 
 export async function updateTelephoneAction(token: string, data: z.infer<typeof UpdateTelephoneSchema>) {

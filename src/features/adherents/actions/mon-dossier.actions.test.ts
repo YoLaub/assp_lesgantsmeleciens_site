@@ -118,8 +118,8 @@ describe('actions liées à une inscription (token)', () => {
   });
 
   it('updateTelephoneAction valide le numéro', async () => {
-    expect(await actions.updateTelephoneAction('tok', { telephone1: '0612345678' })).toEqual({ success: true });
-    expect(await actions.updateTelephoneAction('tok', { telephone1: '123' })).toMatchObject({ success: false });
+    expect(await actions.updateTelephoneAction('tok', { telephone1: '0612345678', telephone2: '' })).toEqual({ success: true });
+    expect(await actions.updateTelephoneAction('tok', { telephone1: '123', telephone2: '' })).toMatchObject({ success: false });
   });
 
   it('updateAdresseAction valide code postal/INSEE', async () => {
@@ -151,7 +151,7 @@ describe('garde "lien invalide" (inscription introuvable)', () => {
   it.each([
     ['setTypePaiementAction', () => actions.setTypePaiementAction('tok', 'en_ligne')],
     ['patchAutorisationSortieAction', () => actions.patchAutorisationSortieAction('tok', true)],
-    ['updateTelephoneAction', () => actions.updateTelephoneAction('tok', { telephone1: '0612345678' })],
+    ['updateTelephoneAction', () => actions.updateTelephoneAction('tok', { telephone1: '0612345678', telephone2: '' })],
     ['updateAdresseAction', () => actions.updateAdresseAction('tok', { adresse: '1 rue X', codePostal: '59000', codeInsee: '59350', communeNom: 'Lille' })],
     ['updateDroitImageAction', () => actions.updateDroitImageAction('tok', true)],
     ['validerEngagementAction', () => actions.validerEngagementAction('tok')],

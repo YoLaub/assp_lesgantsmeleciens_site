@@ -585,7 +585,7 @@ function CoordonneesSection({
         setSubmitting(true);
         setError(null);
 
-        const result = await updateTelephoneAction(token, { telephone1: tel1, telephone2: tel2 || undefined });
+        const result = await updateTelephoneAction(token, { telephone1: tel1, telephone2: tel2 });
         setSubmitting(false);
 
         if (result.success) {
@@ -636,11 +636,11 @@ function CoordonneesSection({
                         placeholder="06 12 34 56 78"
                         className={inputCls}
                     />
-                    {mineur && (
-                        <p className="text-xs text-orange-600 mt-1">
-                            Pour les mineurs, merci de nous communiquer si possible les deux numéros de téléphone (père et mère) en cas de parents séparés.
-                        </p>
-                    )}
+                    <p className="text-xs text-orange-600 mt-1">
+                        {mineur
+                            ? "En cas de parents séparés, merci de nous communiquer si possible les deux numéros (père et mère)."
+                            : "Si vous avez un tuteur légal, merci de nous communiquer son numéro de contact."}
+                    </p>
                 </div>
                 {error && <p className="text-red-600 text-sm">{error}</p>}
                 {saved ? (
@@ -960,7 +960,7 @@ function DossierVue({
         : dossier.questionnaire === null;
     const reglementManquant = dossier.reglementSigne === "non_fourni";
     const typePaiementManquant = dossier.typePaiement === null;
-    const telephoneManquant = !dossier.telephone1;
+    const telephoneManquant = !dossier.telephone1 || dossier.telephone2 === null;
     const adresseManquante = !dossier.adresse || !dossier.codePostal || !dossier.ville;
     const engagementManquant = !dossier.engagementPrisConnaissance;
     const photoManquante = !dossier.documents.find((d) => d.type === "ID_PHOTO");
