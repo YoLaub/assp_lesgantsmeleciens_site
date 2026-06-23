@@ -21,7 +21,7 @@ export function Header() {
             className={`relative border-b border-zinc-200 -top-16 transition-all duration-500 ease-in-out overflow-hidden ${
                 videoOpen
                     ? "h-[calc(100vh+4rem)]"
-                    : "h-87.5 sm:h-112.5 md:h-137.5 lg:h-162.5 xl:h-100"
+                    : "h-87.5 sm:h-100 md:h-112.5 lg:h-125 xl:h-115"
             }`}
         >
             {/* Background Image */}
@@ -44,7 +44,7 @@ export function Header() {
             <Link
                 href="/"
                 className={`relative z-10 flex justify-center mx-auto items-center transition-all duration-500
-                           top-24
+                           top-16
                            md:absolute md:top-1/2 md:-translate-y-1/2 md:left-16
                            lg:left-24
                            xl:left-32
@@ -60,10 +60,11 @@ export function Header() {
                     sizes="(max-width: 768px) 260px, (max-width: 1536px) 380px, 380px"
                     priority
                     placeholder="blur"
-                    className="h-56 w-auto
-                               md:h-64 md:w-auto
-                               lg:h-72 lg:w-auto
-                               2xl:h-80 2xl:w-auto
+                    className="h-44 w-auto
+                               md:h-56 md:w-auto
+                               lg:h-64 lg:w-auto
+                               xl:h-72 xl:w-auto
+                               2xl:h-72 2xl:w-auto
                                object-contain
                                drop-shadow-[0_4px_24px_rgba(0,0,0,0.55)]
                                filter brightness-110"
