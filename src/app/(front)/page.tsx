@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {ChevronUpMod, ChevronDownMod} from "@/app/(front)/_components/icon"
 import gantDeBoxe from "@/../public/gant_de_boxe.jpg";
 import accueilValeur from "@/../public/accueil_valeur.png";
@@ -99,17 +100,17 @@ export default async function HomePage() {
 
                             {/* Boutons d'action */}
                             <div className="flex flex-col space-y-4 w-full max-w-xs px-4">
-                                <button className="group relative bg-white border-2 border-brand-red rounded-full py-3 md:py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)]">
+                                <Link href="/disciplines" className="group relative bg-white border-2 border-brand-red rounded-full py-3 md:py-3.5 shadow-[6px_6px_15px_rgba(0,0,0,0.1)] transition-all hover:-translate-y-1 hover:shadow-[8px_8px_20px_rgba(220,38,38,0.2)] text-center">
                                     <span className="text-brand-red font-bold tracking-[0.2em] text-xs md:text-sm">
                                       DISCIPLINES
                                     </span>
-                                </button>
+                                </Link>
 
-                                <button className="group relative border-[1px] border-brand-orange bg-black rounded-full py-3 md:py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900">
+                                <Link href="/inscription" className="group relative border-[1px] border-brand-orange bg-black rounded-full py-3 md:py-3.5 shadow-[6px_6px_20px_rgba(0,0,0,0.3)] transition-all hover:-translate-y-1 hover:bg-zinc-900 text-center">
                                     <span className="text-white font-bold tracking-[0.2em] text-xs md:text-sm">
                                       INSCRIPTION
                                     </span>
-                                </button>
+                                </Link>
                             </div>
                         </div>
 
