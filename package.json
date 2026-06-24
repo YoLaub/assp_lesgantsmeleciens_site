@@ -36,6 +36,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "axios": "^1.13.5",
+    "browser-image-compression": "^2.0.2",
     "cloudinary": "^2.9.0",
     "lucide-react": "^0.563.0",
     "neverthrow": "^8.2.0",
