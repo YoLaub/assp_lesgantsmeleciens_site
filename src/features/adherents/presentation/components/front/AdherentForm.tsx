@@ -7,6 +7,7 @@ import { z } from "zod";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { createAdherentAction } from "@/features/adherents/actions/create-adherent.actions";
 import { getConfigTarifsAction } from "@/features/adherents/actions/config-tarifs.actions";
+import { DateNaissanceSelect } from "@/shared/components/ui/DateNaissanceSelect";
 
 // ─── Schéma de validation ─────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors, isSubmitting },
     } = useForm<FormValues>({
         resolver: zodResolver(FormSchema),
@@ -224,12 +226,10 @@ export default function AdherentForm({ prefill, readonlyFields = [] }: AdherentF
                         <label className="block text-sm font-medium text-gray-700">
                             Date de naissance <span className="text-red-500">*</span>
                         </label>
-                        <input
-                            type="date"
-                            {...register("dateDeNaissance")}
-                            readOnly={isReadonly("dateDeNaissance")}
-                            className={`${inputCls} ${isReadonly("dateDeNaissance") ? "bg-gray-100" : ""}`}
-                            max={new Date().toISOString().split("T")[0]}
+                        <DateNaissanceSelect
+                            value={watchedValues.dateDeNaissance ?? ""}
+                            disabled={isReadonly("dateDeNaissance")}
+                            onChange={(v) => setValue("dateDeNaissance", v, { shouldValidate: true, shouldDirty: true })}
                         />
                         {age !== null && <p className="text-xs text-gray-500 mt-1">Âge : {age} ans</p>}
                         {errors.dateDeNaissance && <p className="text-red-500 text-xs mt-1">{errors.dateDeNaissance.message}</p>}

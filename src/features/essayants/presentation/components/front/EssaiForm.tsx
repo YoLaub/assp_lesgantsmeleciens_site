@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { createEssayantAction } from "@/features/essayants/actions/essayants.actions";
+import { DateNaissanceSelect } from "@/shared/components/ui/DateNaissanceSelect";
 
 export default function EssaiForm() {
     const hcaptchaRef = useRef<HCaptcha>(null);
@@ -16,6 +17,7 @@ export default function EssaiForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!values.dateDeNaissance) { setError("Veuillez renseigner votre date de naissance."); return; }
         if (!hcaptchaToken) { setError("Veuillez compléter le captcha."); return; }
         setSubmitting(true);
         setError(null);
@@ -75,7 +77,7 @@ export default function EssaiForm() {
             </div>
             <div>
                 <label className="block text-sm font-medium text-gray-700">Date de naissance <span className="text-red-500">*</span></label>
-                <input type="date" required value={values.dateDeNaissance} onChange={(e) => set("dateDeNaissance", e.target.value)} max={new Date().toISOString().split("T")[0]} className={inputCls} />
+                <DateNaissanceSelect value={values.dateDeNaissance} onChange={(v) => set("dateDeNaissance", v)} />
             </div>
 
             <div className="flex justify-center pt-2">
