@@ -18,6 +18,7 @@ import {
 } from "@/features/adherents/actions/mon-dossier.actions";
 import AdresseAutocomplete, { type AdresseSelection } from "./AdresseAutocomplete";
 import { getReglementAction } from "@/features/adherents/actions/reglement.actions";
+import { compressImageIfNeeded } from "@/shared/lib/compress-image";
 import { CONSENT_SANTE } from "@/shared/lib/consent";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
@@ -426,17 +427,22 @@ function TypePaiementSection({ token, onDone }: { token: string; onDone: (type: 
 function CertificatSection({ token, onDone }: { token: string; onDone: () => void }) {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [compressing, setCompressing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) return;
-        setUploading(true);
         setError(null);
 
+        setCompressing(true);
+        const fichier = await compressImageIfNeeded(file);
+        setCompressing(false);
+
+        setUploading(true);
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', fichier);
         const result = await uploadDocumentAdherentAction(token, fd, 'MEDICAL_CERTIFICATE');
         setUploading(false);
 
@@ -480,10 +486,10 @@ function CertificatSection({ token, onDone }: { token: string; onDone: () => voi
                 ) : (
                     <button
                         type="submit"
-                        disabled={!file || uploading}
+                        disabled={!file || uploading || compressing}
                         className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
                     >
-                        {uploading ? "Envoi en cours..." : "Envoyer le certificat"}
+                        {compressing ? "Optimisation de l'image..." : uploading ? "Envoi en cours..." : "Envoyer le certificat"}
                     </button>
                 )}
             </form>
@@ -504,17 +510,22 @@ function PhotoIdSection({
 }) {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [compressing, setCompressing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) return;
-        setUploading(true);
         setError(null);
 
+        setCompressing(true);
+        const fichier = await compressImageIfNeeded(file);
+        setCompressing(false);
+
+        setUploading(true);
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', fichier);
         const result = await uploadDocumentAdherentAction(token, fd, 'ID_PHOTO');
         setUploading(false);
 
@@ -558,10 +569,10 @@ function PhotoIdSection({
                     ) : (
                         <button
                             type="submit"
-                            disabled={!file || uploading}
+                            disabled={!file || uploading || compressing}
                             className="w-full bg-[#FF8A00] hover:bg-[#e67a00] disabled:bg-gray-300 text-white font-bold py-2.5 rounded-lg transition-colors text-sm"
                         >
-                            {uploading ? "Envoi en cours..." : "Envoyer la photo"}
+                            {compressing ? "Optimisation de l'image..." : uploading ? "Envoi en cours..." : "Envoyer la photo"}
                         </button>
                     )}
                 </form>
