@@ -4,10 +4,10 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Sparkles, ArrowRight } from "lucide-react";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
-import { CloudImage } from '@/shared/components/CloudImage';
-import { type CloudinaryAsset } from '@/shared/types/cloudinary';
+import Image from "next/image";
 import AdherentForm from "@/features/adherents/presentation/components/front/AdherentForm";
 import { demanderLienRenouvellementAction } from "@/features/adherents/actions/mon-dossier.actions";
+import gantDeBoxeEnfant from "@/../public/inscription.webp";
 
 interface PrefillData {
     nom?: string;
@@ -28,13 +28,12 @@ interface ConfigTarifs {
 
 interface InscriptionSectionProps {
     prefill?: PrefillData;
-    image?: CloudinaryAsset;
     blurDataUrl?: string;
     configTarifs?: ConfigTarifs | null;
 }
 
 
-export default function InscriptionSection({ prefill, image, blurDataUrl, configTarifs }: InscriptionSectionProps) {
+export default function InscriptionSection({ prefill, blurDataUrl, configTarifs }: InscriptionSectionProps) {
     const [isOpen, setIsOpen] = useState(!!prefill); // auto-open si pré-remplissage (conversion)
 
     // ─── Renouvellement ───────────────────────────────────────────────────────
@@ -84,15 +83,14 @@ export default function InscriptionSection({ prefill, image, blurDataUrl, config
                     <div className="flex flex-col items-center w-full">
                         <div className="w-3/4 h-0.5 bg-[#E33535] mb-8"></div> {/* Ligne rouge haut */}
                         <div className="relative w-full aspect-4/3 rounded-sm overflow-hidden bg-gray-100 shadow-md">
-                            {image ? (
-                                <CloudImage
-                                    asset={image}
+                            {gantDeBoxeEnfant ? (
+                                <Image
+                                    src={gantDeBoxeEnfant}
                                     alt="Enfants en cours de boxe"
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 50vw"
-                                    crop="fill"
                                     className="object-cover"
-                                    blurDataUrl={blurDataUrl}
+                                    placeholder="blur"
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gray-200" />
