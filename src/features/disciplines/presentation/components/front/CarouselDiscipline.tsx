@@ -44,10 +44,10 @@ export default function DisciplineCarousel({ images, imageOrder, disciplineName 
     const currentImage = sortedImages[currentIndex];
 
     return (
-        <div className="w-full border-4 border-brand-red rounded-3xl p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-[500px] flex items-center justify-center relative overflow-hidden">
-            <div className="relative w-full h-full min-h-[400px] flex items-center justify-center">
+        <div className="w-full border-4 border-brand-red rounded-3xl p-3 sm:p-8 bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg h-95 sm:h-125 flex items-center justify-center relative overflow-hidden">
+            <div className="relative w-full h-full flex items-center justify-center">
                 {/* Image principale */}
-                <div className="relative w-full aspect-video">
+                <div className="relative w-full h-full rounded-2xl overflow-hidden">
                     <CloudImage
                         asset={toCloudinaryAsset(currentImage)}
                         alt={currentImage.alt || `Photo de ${disciplineName}`}
