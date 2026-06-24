@@ -972,7 +972,7 @@ function DossierVue({
         : dossier.questionnaire === null;
     const reglementManquant = dossier.reglementSigne === "non_fourni";
     const typePaiementManquant = dossier.typePaiement === null;
-    const telephoneManquant = !dossier.telephone1 || dossier.telephone2 === null;
+    const telephoneManquant = !dossier.telephone1;
     const adresseManquante = !dossier.adresse || !dossier.codePostal || !dossier.ville;
     const engagementManquant = !dossier.engagementPrisConnaissance;
     const photoManquante = !dossier.documents.find((d) => d.type === "ID_PHOTO");
