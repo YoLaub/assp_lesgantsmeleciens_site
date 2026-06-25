@@ -30,6 +30,12 @@
 }
 
 :root {
+  /* Le site est conçu en thème clair uniquement. On le déclare explicitement
+     pour empêcher l'assombrissement automatique de certains navigateurs
+     (Samsung Internet, Chrome Android "force dark") et fiabiliser le rendu
+     des widgets natifs (date picker, select…). */
+  color-scheme: light;
+
   --background: #ffffff;
   --foreground: #171717;
 
