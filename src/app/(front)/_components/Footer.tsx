@@ -37,8 +37,8 @@ export function Footer() {
                                 <a href="mailto:lesgantsmeleciens@gmail.com" className="hover:text-brand-red transition-colors underline decoration-gray-300 underline-offset-4">lesgantsmeleciens@gmail.com</a>
                             </p>
                             <p>
-                                <span className="font-medium text-zinc-800">Téléphone :</span> 07 66 99 94 80<br/>
-                                <span className="text-xs italic text-zinc-400 font-normal">(uniquement par message sur WhatsApp)</span>
+                                <span className="font-medium text-zinc-800">WhatsApp :</span> 07 66 99 94 80<br/>
+                                <span className="text-xs italic text-zinc-400 font-normal">(uniquement par message)</span>
                             </p>
                         </div>
                     </div>

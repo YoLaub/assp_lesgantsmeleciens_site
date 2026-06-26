@@ -28,18 +28,25 @@ export default function ContactPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
 
-                {/* Carte */}
+                {/* Carte (OpenStreetMap — sans cookies ni traceurs, conforme RGPD) */}
                 <div className="w-full aspect-square md:aspect-auto md:h-[420px] overflow-hidden shadow-md border border-gray-100">
                     <iframe
                         title="Complexe sportif de la Madeleine, Plumelec"
-                        src="https://maps.google.com/maps?q=Complexe%20sportif%20de%20la%20Madeleine%2C%20Route%20de%20Josselin%2056420%20Plumelec&output=embed"
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=-2.6474%2C47.8388%2C-2.6314%2C47.8478&layer=mapnik&marker=47.84331%2C-2.63938"
                         width="100%"
                         height="100%"
                         style={{ border: 0 }}
                         loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"
-                        allowFullScreen
                     />
+                    <a
+                        href="https://www.openstreetmap.org/?mlat=47.84331&mlon=-2.63938#map=17/47.84331/-2.63938"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="sr-only"
+                    >
+                        Voir le Complexe sportif de la Madeleine sur OpenStreetMap
+                    </a>
                 </div>
 
                 {/* Colonne Contact + Bureau */}
