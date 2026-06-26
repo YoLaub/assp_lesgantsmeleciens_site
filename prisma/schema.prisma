@@ -277,3 +277,23 @@ model ReglementInterieur {
   modifieLe  DateTime @default(now()) @updatedAt
   modifiePar String?
 }
+
+model Association {
+  id        Int    @id @default(autoincrement())
+  // Coordonnées
+  email     String @db.VarChar(255)
+  telephone String @db.VarChar(30)
+  lieu      String @db.VarChar(255)
+  // Bureau
+  president      String? @db.VarChar(120)
+  secretaire     String? @db.VarChar(120)
+  viceSecretaire String? @db.VarChar(120)
+  tresorier      String? @db.VarChar(120)
+  viceTresoriere String? @db.VarChar(120)
+  // Réseaux sociaux
+  instagramUrl String? @db.VarChar(255)
+  xUrl         String? @db.VarChar(255)
+  youtubeUrl   String? @db.VarChar(255)
+  modifieLe    DateTime @default(now())
+  modifiePar   String?
+}
