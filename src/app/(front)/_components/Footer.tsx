@@ -53,7 +53,7 @@ export function Footer() {
                             <a href="#" className="hover:text-brand-red transition-colors">Disciplines</a>
                             <a href="#" className="hover:text-brand-red transition-colors">Inscription</a>
                             <a href="#" className="hover:text-brand-red transition-colors">Actus</a>
-                            <a href="#" className="hover:text-brand-red transition-colors">Contacts</a>
+                            <Link href="/contact" className="hover:text-brand-red transition-colors">Contacts</Link>
                         </nav>
                     </div>
 
