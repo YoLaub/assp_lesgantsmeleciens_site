@@ -40,7 +40,7 @@ const contentSecurityPolicy = [
     `media-src 'self' https://res.cloudinary.com${r2Src}`,
     `font-src 'self' data:`,
     `connect-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com${clerkSrc}${r2Src} https://api-adresse.data.gouv.fr`,
-    `frame-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://*.clerk.accounts.dev${clerkSrc}`,
+    `frame-src 'self' https://hcaptcha.com https://*.hcaptcha.com https://challenges.cloudflare.com https://www.openstreetmap.org https://*.clerk.accounts.dev${clerkSrc}`,
     `worker-src 'self' blob:`,
     `form-action 'self'${clerkSrc}`,
     `upgrade-insecure-requests`,

@@ -1,11 +1,22 @@
 import { Metadata } from "next";
+import { getAssociationAction } from "@/features/association/actions/association.actions";
 
 export const metadata: Metadata = {
     title: "Contact | Les Gants Méléciens",
     description: "Retrouvez les coordonnées, le lieu et le bureau de l'association Les Gants Méléciens à Plumelec.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+    const asso = await getAssociationAction();
+
+    const bureau = [
+        { role: "Président", nom: asso.president },
+        { role: "Secrétaire", nom: asso.secretaire },
+        { role: "Vice-secrétaire", nom: asso.viceSecretaire },
+        { role: "Trésorier", nom: asso.tresorier },
+        { role: "Vice-trésorière", nom: asso.viceTresoriere },
+    ].filter((m) => m.nom);
+
     return (
         <main className="container mx-auto py-20 px-6 max-w-6xl">
 
@@ -50,42 +61,44 @@ export default function ContactPage() {
                 </div>
 
                 {/* Colonne Contact + Bureau */}
-                <div className="flex flex-col gap-16 text-center ">
+                <div className="flex flex-col gap-16 text-center">
 
                     {/* CONTACT */}
                     <section>
                         <h2 className="text-2xl font-bold tracking-widest text-zinc-800 mb-6">CONTACT</h2>
                         <div className="space-y-4 text-zinc-600 leading-relaxed">
                             <p>
-                                <span className="font-bold text-zinc-800">Lieu :</span> Complexe sportif de la Madeleine,
-                                Route Josselin 56420 PLUMELEC
+                                <span className="font-bold text-zinc-800">Lieu :</span> {asso.lieu}
                             </p>
                             <p>
                                 <span className="font-bold text-zinc-800">Mail :</span>{" "}
                                 <a
-                                    href="mailto:lesgantsmeleciens@gmail.com"
+                                    href={`mailto:${asso.email}`}
                                     className="hover:text-brand-red transition-colors underline decoration-gray-300 underline-offset-4"
                                 >
-                                    lesgantsmeleciens@gmail.com
+                                    {asso.email}
                                 </a>
                             </p>
                             <p>
-                                <span className="font-bold text-zinc-800">WhatsApp :</span> 07 66 99 94 80
+                                <span className="font-bold text-zinc-800">Téléphone :</span> {asso.telephone}
+                                {" "}(uniquement par message sur WhatsApp)
                             </p>
                         </div>
                     </section>
 
                     {/* LE BUREAU */}
-                    <section>
-                        <h2 className="text-2xl font-bold tracking-widest text-center text-zinc-800 mb-6">LE BUREAU</h2>
-                        <div className="space-y-3 text-zinc-600">
-                            <p><span className="font-bold text-zinc-800">Président :</span> Christophe Barbereau</p>
-                            <p><span className="font-bold text-zinc-800">Secrétaire :</span> Sophie Le Guennec</p>
-                            <p><span className="font-bold text-zinc-800">Vice-secrétaire :</span> Dephine Ciotta</p>
-                            <p><span className="font-bold text-zinc-800">Trésorier :</span> Sylvain Trouillard</p>
-                            <p><span className="font-bold text-zinc-800">Vice-trésorière :</span> Emmanuelle Trouillard</p>
-                        </div>
-                    </section>
+                    {bureau.length > 0 && (
+                        <section>
+                            <h2 className="text-2xl font-bold tracking-widest text-center text-zinc-800 mb-6">LE BUREAU</h2>
+                            <div className="space-y-3 text-zinc-600">
+                                {bureau.map((m) => (
+                                    <p key={m.role}>
+                                        <span className="font-bold text-zinc-800">{m.role} :</span> {m.nom}
+                                    </p>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
                 </div>
             </div>

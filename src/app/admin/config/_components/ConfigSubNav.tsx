@@ -7,6 +7,7 @@ const TABS = [
     { label: 'Tarifs', href: '/admin/config/tarifs' },
     { label: 'Règlement', href: '/admin/config/reglement' },
     { label: 'Questionnaire santé', href: '/admin/config/sante' },
+    { label: 'Association', href: '/admin/config/association' },
 ];
 
 export function ConfigSubNav() {
