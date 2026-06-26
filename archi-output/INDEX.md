@@ -1,5 +1,5 @@
 # Index d'Architecture — asso_lesgantsmeleciens_site
-> Généré le 2026-06-08 — mis à jour le 2026-06-18 (adresse BAN, export CSV, sécurité token, couverture 80%)
+> Généré le 2026-06-08 — mis à jour le 2026-06-26 (module Association : page Contact + footer pilotés par config singleton)
 
 ## Stack
 
@@ -64,6 +64,7 @@ STACK DÉTECTÉ :
 | `/` | `src/app/(front)/page.tsx` |
 | `/actualites` | `src/app/(front)/actualites/page.tsx` |
 | `/actualites/[id]` | `src/app/(front)/actualites/[id]/page.tsx` |
+| `/contact` | `src/app/(front)/contact/page.tsx` |
 | `/disciplines` | `src/app/(front)/disciplines/page.tsx` |
 | `/essai` | `src/app/(front)/essai/page.tsx` |
 | `/inscription` | `src/app/(front)/inscription/page.tsx` |
@@ -89,6 +90,7 @@ STACK DÉTECTÉ :
 | `/admin/content/disciplines/new` | `src/app/admin/content/disciplines/new/page.tsx` |
 | `/admin/content/disciplines/[id]` | `src/app/admin/content/disciplines/[id]/page.tsx` |
 | `/admin/content/gallery` | `src/app/admin/content/gallery/page.tsx` |
+| `/admin/config/association` | `src/app/admin/config/association/page.tsx` |
 | `/admin/config/reglement` | `src/app/admin/config/reglement/page.tsx` |
 | `/admin/config/sante` | `src/app/admin/config/sante/page.tsx` |
 | `/admin/config/tarifs` | `src/app/admin/config/tarifs/page.tsx` |
@@ -256,6 +258,28 @@ STACK DÉTECTÉ :
 
 ---
 
+### 📦 Module: Association (Config singleton)
+
+**Architecture** : pattern **thin** (Server Action → Prisma directement), calqué sur `ConfigTarifs` / `ReglementInterieur` — pas de use-case/repository séparé.
+
+> Source unique de vérité pour les informations publiques de l'association (coordonnées, bureau, réseaux sociaux), affichées sur la **page Contact** et le **footer**. Évite la duplication de valeurs codées en dur.
+
+- **Modèle Prisma** : `Association` singleton (`prisma/schema.prisma`, section Config)
+  → `{ id, email, telephone, lieu, president?, secretaire?, viceSecretaire?, tresorier?, viceTresoriere?, instagramUrl?, xUrl?, youtubeUrl?, modifieLe, modifiePar? }`
+- **Actions** (`src/features/association/actions/association.actions.ts`) :
+  - `getAssociationAction()` → dernière ligne ou **valeurs par défaut** (anciennes constantes en dur) si table vide → le front ne casse jamais
+  - `updateAssociationAction(data)` → garde `auth()` Clerk, validation `zod` (email + URLs http(s) uniquement), écriture avec `modifiePar = userId`
+- **Presentation** :
+  - Admin : `AssociationForm` (`src/app/admin/config/association/AssociationForm.tsx`), page `/admin/config/association`, onglet ajouté à `ConfigSubNav`
+  - Front : consommé par `src/app/(front)/contact/page.tsx` (page Contact + carte OpenStreetMap RGPD-friendly) et `src/app/(front)/_components/Footer.tsx` (désormais Server Component async)
+- **Règles métier** :
+  - Attribution via `modifiePar String?` (snapshot Clerk `userId`) — **pas** de table `Administrateur` (Clerk matérialise déjà l'admin)
+  - URLs réseaux restreintes au protocole http/https (exclut `javascript:`, `data:`…)
+  - Carte page Contact : géoloc codée en dur dans l'iframe OSM (non éditable)
+- **Tests** : `association.actions.test.ts` (7 cas — fallback défauts, garde auth, validation email/URL, normalisation URLs vides → null, `modifiePar`)
+
+---
+
 ### 📦 Module: Dashboard Admin
 
 - `src/features/dashboard/presentation/components/AdminDashboard.tsx`
@@ -277,6 +301,7 @@ STACK DÉTECTÉ :
 | Règlement intérieur | `mon-dossier.actions.ts:signerReglementAction` | État final déclaratif, pas de validation admin |
 | Autorisation sortie seul | `mon-dossier.actions.ts:patchAutorisationSortieAction` | Boolean? — état final (null/true/false) |
 | Export CSV | `admin-adherents.actions.ts:exportAdherentsCsvAction` | Utilise `toCsv()` de `src/shared/lib/csv.ts` |
+| Infos association (singleton) | `association.actions.ts` | Config unique (coordonnées/bureau/réseaux) ; fallback défauts si vide ; `modifiePar = userId` Clerk (pas de table admin) |
 
 ---
 
@@ -327,11 +352,11 @@ STACK DÉTECTÉ :
 
 ## Métriques
 
-- Nombre total de routes : 32 (9 front + 18 admin + 2 cron + 1 webhook + 1 coach + 1 login + 1 not-found)
-- Nombre de modules métier : 7 (actualites, disciplines, gallery, adhesion, adherents, essayants, inscriptions)
-- Nombre de fichiers source : 273 TS/TSX
-- Fichiers de test : 62
-- Couverture de test : ~80% couche logique — use-cases adherents (17 tests), essayants (5 tests), actions (6 tests), repos adhesion (4 tests), gallery (14 tests), actualites/disciplines (4 tests), shared lib (6 tests)
+- Nombre total de routes : 34 (10 front + 19 admin + 2 cron + 1 webhook + 1 coach + 1 login + 1 not-found)
+- Nombre de modules métier : 8 (actualites, disciplines, gallery, adhesion, adherents, essayants, inscriptions, association)
+- Nombre de fichiers source : ~277 TS/TSX
+- Fichiers de test : 63
+- Couverture de test : ~80% couche logique — use-cases adherents (17 tests), essayants (5 tests), actions (7 tests, dont association), repos adhesion (4 tests), gallery (14 tests), actualites/disciplines (4 tests), shared lib (6 tests)
 
 ---
 

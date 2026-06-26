@@ -2,9 +2,16 @@ import {Instagram, Twitter, Youtube} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import logoNoir from "@/../public/logoNoir.webp";
+import {getAssociationAction} from "@/features/association/actions/association.actions";
 
-export function Footer() {
+export async function Footer() {
     const currentYear = new Date().getFullYear();
+    const asso = await getAssociationAction();
+    const reseaux = [
+        { url: asso.instagramUrl, label: "Instagram", Icon: Instagram },
+        { url: asso.xUrl, label: "X", Icon: Twitter },
+        { url: asso.youtubeUrl, label: "YouTube", Icon: Youtube },
+    ].filter((r) => r.url);
 
     return (
         <footer className="bg-brand-light-gray pt-16 font-sans border-t border-gray-200">
@@ -34,10 +41,10 @@ export function Footer() {
                             <p>Besoin d&apos;une information ?<br/>Contactez-nous !</p>
                             <p>
                                 <span className="font-medium text-zinc-800">Mail :</span><br/>
-                                <a href="mailto:lesgantsmeleciens@gmail.com" className="hover:text-brand-red transition-colors underline decoration-gray-300 underline-offset-4">lesgantsmeleciens@gmail.com</a>
+                                <a href={`mailto:${asso.email}`} className="hover:text-brand-red transition-colors underline decoration-gray-300 underline-offset-4">{asso.email}</a>
                             </p>
                             <p>
-                                <span className="font-medium text-zinc-800">WhatsApp :</span> 07 66 99 94 80<br/>
+                                <span className="font-medium text-zinc-800">WhatsApp :</span> {asso.telephone}<br/>
                                 <span className="text-xs italic text-zinc-400 font-normal">(uniquement par message)</span>
                             </p>
                         </div>
@@ -58,20 +65,25 @@ export function Footer() {
                     </div>
 
                     {/* Section Réseaux */}
-                    <div className="flex flex-col items-center md:items-center space-y-6">
-                        <h3 className="text-zinc-800 font-bold tracking-wide text-lg">Suivez nous sur nos réseaux !</h3>
-                        <div className="flex space-x-6 text-zinc-700">
-                            <a href="#" className="hover:text-brand-red transition-all hover:scale-110" aria-label="X">
-                                <Twitter size={24} />
-                            </a>
-                            <a href="#" className="hover:text-brand-red0 transition-all hover:scale-110" aria-label="Instagram">
-                                <Instagram size={24} />
-                            </a>
-                            <a href="#" className="hover:text-brand-red transition-all hover:scale-110" aria-label="YouTube">
-                                <Youtube size={24} />
-                            </a>
+                    {reseaux.length > 0 && (
+                        <div className="flex flex-col items-center md:items-center space-y-6">
+                            <h3 className="text-zinc-800 font-bold tracking-wide text-lg">Suivez nous sur nos réseaux !</h3>
+                            <div className="flex space-x-6 text-zinc-700">
+                                {reseaux.map(({ url, label, Icon }) => (
+                                    <a
+                                        key={label}
+                                        href={url!}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:text-brand-red transition-all hover:scale-110"
+                                        aria-label={label}
+                                    >
+                                        <Icon size={24} />
+                                    </a>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                 </div>
             </div>
