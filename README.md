@@ -2,6 +2,8 @@
 
 Site web de l'ASSP Les Gants Méléciens, club de self-protection. Gestion des inscriptions, des adhérents, des essais et de l'interface d'administration.
 
+> 📚 **Documentation technique structurée** : [`documentation/`](documentation/README.md) — architecture, modèle de données, modules, parcours utilisateurs, sécurité, exploitation (diagrammes Mermaid inclus).
+
 ## Stack technique
 
 | Couche | Outil |
